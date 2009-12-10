@@ -1,0 +1,29 @@
+From ef3c5cf2cf9762cc412194d82e6d742c5faa7586 Mon Sep 17 00:00:00 2001
+From: root <root@cent.localnet>
+Date: Sun, 6 Dec 2009 18:26:44 +0000
+Subject: [PATCH 04/14] missing cpuid instruction
+
+---
+ arch/x86/include/asm/virtext.h |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/arch/x86/include/asm/virtext.h b/arch/x86/include/asm/virtext.h
+index e0f9aa1..98af57f 100644
+--- a/arch/x86/include/asm/virtext.h
++++ b/arch/x86/include/asm/virtext.h
+@@ -27,8 +27,12 @@
+ 
+ static inline int cpu_has_vmx(void)
+ {
++#ifdef CONFIG_X86_RDC321X
++	return 0;
++#else
+ 	unsigned long ecx = cpuid_ecx(1);
+ 	return test_bit(5, &ecx); /* CPUID.1:ECX.VMX[bit 5] -> VT */
++#endif
+ }
+ 
+ 
+-- 
+1.6.4
+

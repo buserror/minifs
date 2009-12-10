@@ -1,0 +1,672 @@
+From f23d874b40728f6dbe761afc616205898563c2ca Mon Sep 17 00:00:00 2001
+From: root <root@cent.localnet>
+Date: Sun, 6 Dec 2009 18:26:47 +0000
+Subject: [PATCH 07/14] configfs flash interface
+
+---
+ drivers/char/Kconfig      |   12 +
+ drivers/char/Makefile     |    1 +
+ drivers/char/biffconfig.c |  616 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 629 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/char/biffconfig.c
+
+diff --git a/drivers/char/Kconfig b/drivers/char/Kconfig
+index 6aad99e..7b0652d 100644
+--- a/drivers/char/Kconfig
++++ b/drivers/char/Kconfig
+@@ -4,6 +4,18 @@
+ 
+ menu "Character devices"
+ 
++config BIFFCONFIG
++	tristate "Bifferboard config block support"
++	depends on X86_RDC321X && CONFIGFS_FS && CRYPTO_MD5
++	---help---
++	  This driver creates a device file /dev/biffconfig which then 
++	  allows update of the Biffboot flash config block.  THIS DRIVER 
++	  IS HIGHLY EXPERIMENTAL AND NOT COMPLETE!!!!  Use only if you 
++	  have the Bifferboard JTAG cable and software.  Requires CONFIGFS.
++
++	  To compile this driver as module, choose M here: the
++	  module will be called biffconfig.
++
+ config VT
+ 	bool "Virtual terminal" if EMBEDDED
+ 	depends on !S390
+diff --git a/drivers/char/Makefile b/drivers/char/Makefile
+index 19a79dd..b8f13ee 100644
+--- a/drivers/char/Makefile
++++ b/drivers/char/Makefile
+@@ -9,6 +9,7 @@ FONTMAPFILE = cp437.uni
+ 
+ obj-y	 += mem.o random.o tty_io.o n_tty.o tty_ioctl.o tty_ldisc.o tty_buffer.o tty_port.o
+ 
++obj-$(CONFIG_BIFFCONFIG)        += biffconfig.o
+ obj-$(CONFIG_LEGACY_PTYS)	+= pty.o
+ obj-$(CONFIG_UNIX98_PTYS)	+= pty.o
+ obj-y				+= misc.o
+diff --git a/drivers/char/biffconfig.c b/drivers/char/biffconfig.c
+new file mode 100644
+index 0000000..c27bead
+--- /dev/null
++++ b/drivers/char/biffconfig.c
+@@ -0,0 +1,616 @@
++/*
++ * Flash driver, (c) Bifferos, bifferos@yahoo.co.uk
++ *
++ * Allows access to the config area of the Bifferboard flash.
++ *
++ */
++
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/configfs.h>
++#include <linux/mutex.h>
++#include <linux/fs.h>
++#include <linux/delay.h>
++#include <linux/io.h>
++#include <linux/err.h>
++#include <linux/scatterlist.h>
++#include <linux/crypto.h>
++#include <asm/uaccess.h>
++#include <asm/atomic.h>
++
++
++
++MODULE_AUTHOR("bifferos");
++MODULE_LICENSE("GPL");
++
++#define PFX "biffconfig: "
++
++#define CONFIG_OFFSET 0x4000
++#define CONFIG_SIZE 0x2000
++
++
++static DEFINE_SPINLOCK(config_lock);
++
++// our item
++static struct configfs_subsystem biffconfig_subsys;
++
++
++// The entire 8k config block
++typedef struct _cfg
++{
++  unsigned char buffer[0x1ff0];
++  unsigned char digest[0x10];
++} cfg_t;
++
++
++struct _cfg_vals
++{
++  int version;       // one for first version
++  unsigned char bootsource;   // 0=flash, 1=MMC 2=NET 3=USB  (0)
++  unsigned char console; // 0 = no console output, 1= console output (1)
++  unsigned char nic; // 0 = no nic, 1= nic init  (1)
++  unsigned char boottype;  // 1 == linux, 0 == flat bin
++  ulong loadaddress;  // load address of payload (0x400000 def.)
++  char cmndline[1024];  // null term, 1023 chars max
++};
++
++
++static void* g_flash_base=0;
++
++/* keep copy of values in memory */
++static struct _cfg_vals cfg_vals;
++
++
++
++static void WriteFlash(u32 addr, unsigned char data)
++{
++  *(volatile unsigned char *)(g_flash_base+addr) = data;
++}
++static void WriteFlash16(u32 addr, unsigned short data)
++{
++  *(volatile unsigned short *)(g_flash_base+addr) = data;
++}
++
++
++static unsigned char ReadFlash(u32 addr, int delay)
++{
++  unsigned char val;
++  int i;
++  if (addr>(CONFIG_OFFSET+CONFIG_SIZE)) {
++    pr_err(PFX "Error reading flash, value too large\n");
++    return 0;
++  }
++  val = *(volatile unsigned char *)(g_flash_base+addr);
++  
++  for (i=0;i<delay;i++)
++  {};
++  return val;
++}
++
++
++static u32 FlashDetect(void)
++{
++  u32 ret = 0;
++  
++  ulong flags;
++  
++  /* for detection, map in just the 1MB device, 1st 64k - it's enough */
++  g_flash_base = ioremap(0xfff00000, 0x10000);
++    
++  if (!g_flash_base)
++  {
++    pr_err(PFX "Failed to map flash for detection\n");
++    return 0;
++  }
++  
++  spin_lock_irqsave(&config_lock, flags);  
++  
++  /* put flash in auto-detect mode */
++  WriteFlash16(0xaaaa, 0xaaaa);
++  WriteFlash16(0x5554, 0x5555);
++  WriteFlash16(0xaaaa, 0x9090);
++
++  /* Read the auto-config data - 4 values in total */
++  ret = ReadFlash(0x0000, 8);
++  ret <<= 8;
++  ret |= ReadFlash(0x0200, 8);
++  ret <<= 8;
++  ret |= ReadFlash(0x0003, 8);
++  ret <<= 8;
++  ret |= ReadFlash(0x0002, 8);
++  
++  /* exit the autodetect state */
++  WriteFlash16(0x0000, 0xf0f0);
++  
++  spin_unlock_irqrestore(&config_lock, flags);
++  
++  /* unmap it, it'll be re-mapped based on the detection */
++  iounmap(g_flash_base);
++  g_flash_base = 0;
++  
++  return ret;
++}
++
++
++
++static int biffconfig_EraseSector(void)
++{
++  int prev, cur, count = 0;
++  ulong flags;
++
++  spin_lock_irqsave(&config_lock, flags);
++  
++  WriteFlash(0xAAA,0xAA);
++  WriteFlash(0x555,0x55);
++  WriteFlash(0xAAA,0x80);
++  WriteFlash(0xAAA,0xAA);
++  WriteFlash(0x555,0x55);
++  WriteFlash(CONFIG_OFFSET,0x30);   // offset
++
++  prev = ReadFlash(CONFIG_OFFSET,8);
++  prev &= 0x40;
++
++  cur  = ReadFlash(CONFIG_OFFSET,8);
++  cur  &= 0x40;
++
++  while (prev != cur)
++  {
++    prev = ReadFlash(CONFIG_OFFSET,8);
++    prev &= 0x40;
++
++    cur  = ReadFlash(CONFIG_OFFSET,8);
++    cur  &= 0x40;
++
++    if (cur & 0x20)  // DQ5==1
++    {
++      prev = ReadFlash(CONFIG_OFFSET,8) & 0x40;
++      cur  = ReadFlash(CONFIG_OFFSET,8) & 0x40;
++      if (prev!=cur) count = 0xffffff;
++      break;
++    }
++    cur &= 0x40;
++    if (count++ > 0x100000) break;   // taken too long
++  }
++
++  spin_unlock_irqrestore(&config_lock, flags);
++
++  if (count>0x100000)
++  {
++    pr_err(PFX "Timeout erasing sector\n");
++    return -1;   // timeout?
++  } else {
++    pr_info(PFX "Sector erased in %d ticks\n", count);
++    return count;
++  }
++}
++
++
++static int biffconfig_ProgramWord(u32 addr, unsigned short val)
++{
++  int prev, cur;
++  u32 count = 0;
++  ulong flags;
++
++  spin_lock_irqsave(&config_lock, flags);
++  
++  WriteFlash(0xAAA,0xAA);
++  WriteFlash(0x555,0x55);
++  WriteFlash(0xAAA,0xA0);
++  WriteFlash16(addr,val);
++  prev = ReadFlash(addr,1) & 0x40;
++  cur  = ReadFlash(addr,1) & 0x40;
++  while (prev != cur)
++  {
++    prev = ReadFlash(addr,1) & 0x40;
++    cur  = ReadFlash(addr,1);
++    if (cur & 0x20)  // DQ5==1
++    {
++      prev = ReadFlash(addr,1) & 0x40;
++      cur  = ReadFlash(addr,1) & 0x40;
++      if (prev!=cur) count = 0xffffff;
++      break;
++    }
++    cur &= 0x40;
++    if (count++ > 0x100000) break;   // way too long.
++  }
++
++  spin_unlock_irqrestore(&config_lock, flags);
++
++  if (count>0x10000)
++    return -1;  // error
++
++  return count;
++}
++
++
++static int do_md5(const unsigned char* data, size_t length, unsigned char* digest, size_t dlen)
++{
++  struct scatterlist sg;
++  char result[128];
++  struct crypto_hash *tfm;
++  struct hash_desc desc;
++  int err = 0;
++
++  // calculate the md5 digest, to keep the bootloader happy
++  tfm = crypto_alloc_hash("md5", 0, CRYPTO_ALG_ASYNC);
++  if (IS_ERR(tfm))
++    return -1;  // error
++
++  desc.tfm = tfm;
++  desc.flags = 0;
++
++  sg_init_one(&sg, data, length);
++  
++  if (crypto_hash_digest(&desc, &sg, sg.length, result))
++    err = -1;
++    
++  crypto_free_hash(tfm);
++  
++  if (!err) {
++    memcpy(digest, result, dlen);
++  }
++
++  return err;
++}
++
++
++/*
++static void biffconfig_DumpDigest(void)
++{
++  int i;
++  unsigned char digest[0x10];
++
++  for (i=0;i<sizeof(digest);i++)
++  {
++    digest[i] = ReadFlash(i+CONFIG_OFFSET+CONFIG_SIZE-0x10, 8);
++  }
++
++  printk("flash md5: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x \n",
++	digest[0],	digest[1],	digest[2],	digest[3],
++	digest[4],	digest[5],	digest[6],	digest[7],
++	digest[8],	digest[9],	digest[10],	digest[11],
++	digest[12],	digest[13],	digest[14],	digest[15]);
++
++}
++*/
++
++static int biffconfig_commit(void)
++{
++  cfg_t *pcfg;
++  int err = 0;
++  u32 i;
++  unsigned short val;
++  
++  pcfg = (cfg_t*)kzalloc(sizeof(cfg_t), GFP_KERNEL);
++  if (!pcfg) {
++    pr_err(PFX "Error allocating buffer\n");
++    return -1;
++  }
++
++  // Set any unused bits to 0xff, to minimise write time and flash wear-and-tear.
++  memset(pcfg, 0xff, sizeof(*pcfg));
++  // now copy the cfg block here
++  memcpy(pcfg, &cfg_vals, sizeof(cfg_vals));
++  // Set the md5 sum of the block correctly
++  err = do_md5(pcfg->buffer, sizeof(pcfg->buffer), pcfg->digest, sizeof(pcfg->digest));
++    
++  if (!err) {
++    // actually do the flash writing
++    for (i=0;i<CONFIG_SIZE;i+=2)
++    {
++      val = *((unsigned short*)&pcfg->buffer[i]);
++      err = biffconfig_ProgramWord(CONFIG_OFFSET + i, val);
++      if (err<0)
++      {
++        pr_err(PFX "Error programming word at %x\n", CONFIG_OFFSET+i);
++        break;
++      }
++    }
++  }
++
++  if (err>=0)
++    pr_err(PFX "Flash config block updated\n");
++//    printk("RAM md5: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x \n",
++//	pcfg->digest[0],	pcfg->digest[1],	pcfg->digest[2],	pcfg->digest[3],
++//	pcfg->digest[4],	pcfg->digest[5],	pcfg->digest[6],	pcfg->digest[7],
++//	pcfg->digest[8],	pcfg->digest[9],	pcfg->digest[10],	pcfg->digest[11],
++//	pcfg->digest[12],	pcfg->digest[13],	pcfg->digest[14],	pcfg->digest[15]);
++//
++//	DumpDigest();
++
++  kfree(pcfg);
++  return err;
++}
++
++
++
++static struct configfs_attribute biffconfig_attr_DESCRIPTION = {
++  .ca_owner = THIS_MODULE,
++  .ca_name = "description",
++  .ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute biffconfig_attr_COMMIT = {
++  .ca_owner = THIS_MODULE,
++  .ca_name = "commit",
++  .ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute biffconfig_attr_BOOTSOURCE = {
++  .ca_owner = THIS_MODULE,
++  .ca_name = "bootsource",
++  .ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute biffconfig_attr_CONSOLE = {
++  .ca_owner = THIS_MODULE,
++  .ca_name = "console",
++  .ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute biffconfig_attr_NIC = {
++  .ca_owner = THIS_MODULE,
++  .ca_name = "nic",
++  .ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute biffconfig_attr_BOOTTYPE = {
++  .ca_owner = THIS_MODULE,
++  .ca_name = "boottype",
++  .ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute biffconfig_attr_LOADADDRESS = {
++  .ca_owner = THIS_MODULE,
++  .ca_name = "loadaddress",
++  .ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute biffconfig_attr_CMNDLINE = {
++  .ca_owner = THIS_MODULE,
++  .ca_name = "cmndline",
++  .ca_mode = S_IRUGO | S_IWUSR,
++};
++
++
++static ssize_t biffconfig_attr_show(struct config_item *item,
++                                           struct configfs_attribute *attr,
++                                           char *page)
++{
++  ssize_t c = 0;
++  char* ptr;
++  
++  if (attr == &biffconfig_attr_DESCRIPTION) {
++    c = snprintf(page, PAGE_SIZE, 
++      "Change the Bifferboard configuration values by echoing new values to them\n"
++      "echo something to 'commit' to write the changes to flash\n"
++      "cat the values to see the available options\n"
++    );
++  } else if (attr == &biffconfig_attr_BOOTSOURCE) {
++    switch (cfg_vals.bootsource) {
++      case 0:
++        ptr = "Flash";
++        break;
++      case 1:
++        ptr = "MMC";
++        break;
++      case 2:
++        ptr = "Network";
++        break;
++      case 3:
++        ptr = "USB";
++        break;
++      default:
++        ptr = "invalid";
++    } 
++    c = snprintf(page, PAGE_SIZE, "%s (Flash|MMC|Network|USB)\n", ptr);
++  } else if (attr == &biffconfig_attr_CONSOLE) {
++    ptr = cfg_vals.console ? "enabled" : "disabled";
++    c = snprintf(page, PAGE_SIZE, "%s (enabled|disabled)\n", ptr);
++  } else if (attr == &biffconfig_attr_NIC) {
++    ptr = cfg_vals.nic ? "enabled" : "disabled";
++    c = snprintf(page, PAGE_SIZE, "%s (enabled|disabled)\n", ptr);  
++  } else if (attr == &biffconfig_attr_BOOTTYPE) {
++    ptr = cfg_vals.boottype ? "linux" : "simple";
++    c = snprintf(page, PAGE_SIZE, "%s (linux|simple)\n", ptr);
++  } else if (attr == &biffconfig_attr_LOADADDRESS) {
++    c = snprintf(page, PAGE_SIZE, "0x%lx\n", cfg_vals.loadaddress );  
++  } else if (attr == &biffconfig_attr_CMNDLINE) {
++    c = snprintf(page, PAGE_SIZE, "%s\n", cfg_vals.cmndline );
++  } else {
++    return -ENOSYS;
++  }
++  
++  // Newline
++  if (c) {
++    if ((c+2)<PAGE_SIZE)
++      strcat(page, "\n");
++  }
++  
++  return c ? c : -ENOSYS;
++}
++
++
++static ssize_t biffconfig_attr_store(struct config_item *item,
++                                           struct configfs_attribute *attr,
++                                           const char *page, size_t count)
++{
++  int err=0;
++  size_t remain, stored;
++  const char* ptr;
++  
++  if (attr == &biffconfig_attr_COMMIT) {
++    biffconfig_EraseSector();
++    biffconfig_commit();
++  } else if (attr == &biffconfig_attr_BOOTSOURCE) {
++    if (strnicmp(page,"flash",5)==0) {
++      cfg_vals.bootsource = 0;
++    } else if (strnicmp(page,"MMC",3)==0) {
++      cfg_vals.bootsource = 1;
++    } else if (strnicmp(page,"Network",7)==0) {
++      cfg_vals.bootsource = 2;
++    } else if (strnicmp(page,"USB",3)==0) {
++      cfg_vals.bootsource = 3;    
++    } else {
++      cfg_vals.bootsource = 0xff;
++    }
++  } else if (attr == &biffconfig_attr_CONSOLE) {
++    if (strnicmp(page, "disabled",8)==0) {
++      cfg_vals.console = 0;
++    } else {
++      cfg_vals.console = 1;
++    }
++  } else if (attr == &biffconfig_attr_NIC) {
++    if (strnicmp(page, "disabled",8)==0) {
++      cfg_vals.nic = 0;
++    } else {
++      cfg_vals.nic = 1;
++    }
++  } else if (attr == &biffconfig_attr_BOOTTYPE) {
++    if (strnicmp(page, "simple",6)==0) {
++      cfg_vals.nic = 0;
++    } else {
++      cfg_vals.nic = 1;
++    }
++  } else if (attr == &biffconfig_attr_LOADADDRESS) {
++    if (strncmp(page, "0x", 2)==0) {
++      sscanf(page+2,"%lx", &(cfg_vals.loadaddress));
++    }
++  } else if (attr == &biffconfig_attr_CMNDLINE) {
++    remain = count;
++    stored = 0;
++    ptr = page;
++    while ( remain && (stored<(sizeof(cfg_vals.cmndline)-1)) )
++    {
++      if (!(*ptr)) break;   // end of the string.
++      if (((*ptr) > 31) && ((*ptr) < 127)) {
++        // printable, store it.
++        cfg_vals.cmndline[stored] = *ptr;
++        stored++;
++      }
++      remain--;
++      ptr++;
++    }
++    // Ensure termination
++    cfg_vals.cmndline[stored] = 0;  // terminate
++  } else {
++    err = -ENOSYS;
++  }
++  return err ? err : count;
++}
++
++
++static struct configfs_attribute *biffconfig_attrs[] = {
++  &biffconfig_attr_DESCRIPTION,
++  &biffconfig_attr_COMMIT,
++  &biffconfig_attr_BOOTSOURCE,
++  &biffconfig_attr_CONSOLE,
++  &biffconfig_attr_NIC,
++  &biffconfig_attr_BOOTTYPE,
++  &biffconfig_attr_LOADADDRESS,
++  &biffconfig_attr_CMNDLINE,
++  NULL,
++};
++
++static struct configfs_item_operations biffconfig_item_ops = {
++  .show_attribute = biffconfig_attr_show,
++  .store_attribute = biffconfig_attr_store,
++};
++
++static struct config_item_type biffconfig_ci_type = {
++  .ct_item_ops = &biffconfig_item_ops,
++  .ct_attrs = biffconfig_attrs,
++  .ct_owner = THIS_MODULE,
++};
++
++static struct configfs_subsystem biffconfig_subsys = {
++  .su_group = {
++    .cg_item = {
++      .ci_namebuf = "bifferboard",
++      .ci_type = &biffconfig_ci_type,
++    },
++  },
++};
++
++
++static int __init biffconfig_init(void)
++{
++  int err=0;
++  int i;
++  u32 src, flash_code;
++  char* dest;
++  char* message;
++  ulong flash_base = 0xfff00000;
++  struct configfs_subsystem *s = NULL;
++  
++  flash_code = FlashDetect();
++  
++  if (!flash_code) {
++    pr_err(PFX "Failed to detect flash\n");
++    return -1;
++  }
++  
++  switch (flash_code)
++  {
++    case 0x7f1c225b :
++      message = "ENLV800B";
++      flash_base = 0xfff00000;
++      break;
++    case 0x7f1c22f9 :
++      message = "ENLV320B";
++      flash_base = 0xffc00000;
++      break;
++    case 0x7f1c22cb :
++      message = "ENLV640B";
++      flash_base = 0xff800000;
++      break;
++    default:
++      pr_err(PFX "Unrecognised flash chip (0x%x)\n", flash_code);
++      return -1;
++  }
++  
++  pr_info(PFX "Detected flash '%s' (0x%x)\n", message, flash_code);
++  
++  // Register config interface.
++  s = &biffconfig_subsys;
++  config_group_init(&s->su_group);
++  mutex_init(&s->su_mutex);
++  
++  err = configfs_register_subsystem(s);
++  
++  if (err) {
++    pr_err(PFX "registering configfs subsystem\n");
++    return err;
++  }
++
++  // The area of interest starts at 0x4000, for config operations
++  g_flash_base = ioremap(flash_base, CONFIG_OFFSET+CONFIG_SIZE);
++  
++  // Make a copy of the flash area to our internal buffer so we can change it
++
++  src = CONFIG_OFFSET;
++  dest = (char*)&cfg_vals;  
++  for (i=0;i<sizeof(cfg_vals);i++)
++  {
++    *(dest++) = ReadFlash(src++, 8);
++  }
++  
++  pr_info(PFX "mapped flash to 0x%xl.\n", (u32)g_flash_base);	
++  pr_info(PFX "(v1.0) by bifferos, loaded.\n");
++  return 0;
++}
++
++
++static void __exit biffconfig_exit(void)
++{
++  configfs_unregister_subsystem(&biffconfig_subsys);
++  if (g_flash_base)
++    iounmap(g_flash_base);
++  pr_info(PFX "(v1.0) by bifferos, unloaded.\n");
++}
++
++
++module_init(biffconfig_init);
++module_exit(biffconfig_exit);
++
+-- 
+1.6.4
+

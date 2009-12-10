@@ -1,0 +1,25 @@
+From a1d1f8f0b96e21077780be6204bb362e87721858 Mon Sep 17 00:00:00 2001
+From: root <root@cent.localnet>
+Date: Sun, 6 Dec 2009 18:26:41 +0000
+Subject: [PATCH 02/14] single NIC
+
+---
+ drivers/net/r6040.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/net/r6040.c b/drivers/net/r6040.c
+index 8b14c6e..2d7e45c 100644
+--- a/drivers/net/r6040.c
++++ b/drivers/net/r6040.c
+@@ -1085,6 +1085,8 @@ static int __devinit r6040_init_one(struct pci_dev *pdev,
+ 	int bar = 0;
+ 	u16 *adrp;
+ 
++	if (!card_idx) return 0;   // no 2nd nic for Bifferboard
++
+ 	printk("%s\n", version);
+ 
+ 	err = pci_enable_device(pdev);
+-- 
+1.6.4
+

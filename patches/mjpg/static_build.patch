@@ -1,0 +1,429 @@
+diff --git mjpg-streamer/Makefile mjpg-streamer/Makefile
+index e305c3f..ecae1c6 100644
+--- mjpg-streamer/Makefile
++++ mjpg-streamer/Makefile
+@@ -15,18 +15,47 @@ DESTDIR = /usr/local
+ # set the compiler to use
+ CC = gcc
+ 
++# Generate a static executable without plugins
++# Only input_uvc and output_http will be linked
++# STATIC=1
++
+ # general compile flags, enable all warnings to make compile more verbose
+-CFLAGS += -O2 -DLINUX -D_GNU_SOURCE -Wall
++CFLAGS := $(EXTRA_CFLAGS) -O2 -DLINUX -D_GNU_SOURCE -Wall
+ #CFLAGS += -DDEBUG
+ 
++ifdef STATIC
++CFLAGS += -DSTATIC 
++
++VPATH	+= plugins/input_uvc
++IPATH	+= plugins/input_uvc
++
++CFLAGS	+= ${patsubst %,-I%,${subst :, ,${IPATH}}}
++endif
++
+ # we are using the libraries "libpthread" and "libdl"
+ # libpthread is used to run several tasks (virtually) in parallel
+ # libdl is used to load the plugins (shared objects) at runtime
+-LFLAGS += -lpthread -ldl
++LDFLAGS := $(EXTRA_LDFLAGS) -lpthread 
++ifndef STATIC
++LDFLAGS += -ldl
++else
++LFLAGS = -static
++LDFLAGS += -ljpeg
++endif
+ 
+ # define the name of the program
+ APP_BINARY = mjpg_streamer
+ 
++# define the names of object files
++OBJECTS=mjpg_streamer.o utils.o
++
++ifdef STATIC
++# here we add the objects that the plugins need
++OBJECTS += plugins/input_uvc/dynctrl.o
++OBJECTS += plugins/input_uvc/jpeg_utils.o
++OBJECTS += plugins/input_uvc/v4l2uvc.o
++OBJECTS += plugins/output_http/httpd.o
++else
+ # define the names and targets of the plugins
+ PLUGINS = input_uvc.so
+ PLUGINS += output_file.so
+@@ -38,9 +67,8 @@ PLUGINS += input_file.so
+ PLUGINS += input_control.so
+ # PLUGINS += input_http.so
+ # PLUGINS += output_viewer.so
++endif
+ 
+-# define the names of object files
+-OBJECTS=mjpg_streamer.o utils.o
+ 
+ # this is the first target, thus it will be used implictely if no other target
+ # was given. It defines that it is dependent on the application target and
+@@ -51,9 +79,12 @@ application: $(APP_BINARY)
+ 
+ plugins: $(PLUGINS)
+ 
+-$(APP_BINARY): mjpg_streamer.c mjpg_streamer.h mjpg_streamer.o utils.c utils.h utils.o
+-	$(CC) $(CFLAGS) $(LFLAGS) $(OBJECTS) -o $(APP_BINARY)
+-	chmod 755 $(APP_BINARY)
++$(APP_BINARY): mjpg_streamer.h utils.h $(OBJECTS)
++	$(CC) $(LFLAGS) $(OBJECTS) -o $(APP_BINARY) $(LDFLAGS)
++
++ifdef STATIC
++mjpg_streamer.o : static_glue.c
++endif
+ 
+ output_autofocus.so: mjpg_streamer.h utils.h
+ 	make -C plugins/output_autofocus all
+diff --git mjpg-streamer/mjpg_streamer.c mjpg-streamer/mjpg_streamer.c
+index 48c9001..943bed5 100644
+--- mjpg-streamer/mjpg_streamer.c
++++ mjpg-streamer/mjpg_streamer.c
+@@ -34,13 +34,18 @@
+ #include <sys/stat.h>
+ #include <getopt.h>
+ #include <pthread.h>
+-#include <dlfcn.h>
+ #include <fcntl.h>
+ #include <syslog.h>
+ 
+ #include "utils.h"
+ #include "mjpg_streamer.h"
+ 
++#ifdef STATIC
++#include "static_glue.c"
++#else 
++#include <dlfcn.h>
++#endif
++
+ /* globals */
+ static globals global;
+ 
+@@ -291,8 +296,11 @@ int main(int argc, char *argv[])
+   }
+ 
+   /* open input plugin */
+-  tmp = (size_t)(strchr(input, ' ')-input);
+-  global.in.plugin = (tmp > 0)?strndup(input, tmp):strdup(input);
++  global.in.param.parameter_string = strchr(input, ' ');
++  global.in.plugin = input;
++  if (global.in.param.parameter_string)
++  	*global.in.param.parameter_string++ = 0;
++  printf("(%s) (%s)\n", global.in.plugin, global.in.param.parameter_string);
+   global.in.handle = dlopen(global.in.plugin, RTLD_LAZY);
+   if ( !global.in.handle ) {
+     LOG("ERROR: could not find input plugin\n");
+@@ -320,7 +328,6 @@ int main(int argc, char *argv[])
+   /* try to find optional command */
+   global.in.cmd = dlsym(global.in.handle, "input_cmd");
+ 
+-  global.in.param.parameter_string = strchr(input, ' ');
+   global.in.param.global = &global;
+ 
+   if ( global.in.init(&global.in.param) ) {
+@@ -331,8 +338,10 @@ int main(int argc, char *argv[])
+ 
+   /* open output plugin */
+   for (i=0; i<global.outcnt; i++) {
+-    tmp = (size_t)(strchr(output[i], ' ')-output[i]);
+-    global.out[i].plugin = (tmp > 0)?strndup(output[i], tmp):strdup(output[i]);
++    global.out[i].param.parameter_string = strchr(output[i], ' ');
++    global.out[i].plugin = output[i];
++    if (global.out[i].param.parameter_string)
++    	*global.out[i].param.parameter_string++ = 0;
+     global.out[i].handle = dlopen(global.out[i].plugin, RTLD_LAZY);
+     if ( !global.out[i].handle ) {
+       LOG("ERROR: could not find output plugin %s\n", global.out[i].plugin);
+@@ -360,7 +369,6 @@ int main(int argc, char *argv[])
+     /* try to find optional command */
+     global.out[i].cmd = dlsym(global.out[i].handle, "output_cmd");
+ 
+-    global.out[i].param.parameter_string = strchr(output[i], ' ');
+     global.out[i].param.global = &global;
+     global.out[i].param.id = i;
+     if ( global.out[i].init(&global.out[i].param) ) {
+diff --git mjpg-streamer/mjpg_streamer.h mjpg-streamer/mjpg_streamer.h
+index d174f3f..fce7b93 100644
+--- mjpg-streamer/mjpg_streamer.h
++++ mjpg-streamer/mjpg_streamer.h
+@@ -20,6 +20,9 @@
+ #                                                                              #
+ *******************************************************************************/
+ 
++#ifndef __MJPG_STREAMER_H__
++#define __MJPG_STREAMER_H__
++
+ #define SOURCE_VERSION "2.0"
+ #define MAX_OUTPUT_PLUGINS 10
+ 
+@@ -65,3 +68,5 @@ struct _globals {
+   /* pointer to control functions */
+   int (*control)(int command, char *details);
+ };
++
++#endif /* __MJPG_STREAMER_H__ */
+diff --git mjpg-streamer/plugins/input.h mjpg-streamer/plugins/input.h
+index 9ce4c13..d2e6508 100644
+--- mjpg-streamer/plugins/input.h
++++ mjpg-streamer/plugins/input.h
+@@ -20,6 +20,9 @@
+ #                                                                              #
+ *******************************************************************************/
+ 
++#ifndef __INPUT_H__
++#define __INPUT_H__
++
+ #define INPUT_PLUGIN_PREFIX " i: "
+ #define IPRINT(...) { char _bf[1024] = {0}; snprintf(_bf, sizeof(_bf)-1, __VA_ARGS__); fprintf(stderr, "%s", INPUT_PLUGIN_PREFIX); fprintf(stderr, "%s", _bf); syslog(LOG_INFO, "%s", _bf); }
+ 
+@@ -77,3 +80,5 @@ struct _input {
+   int (*run)(void);
+   int (*cmd)(in_cmd_type, int);
+ };
++
++#endif /* __INPUT_H__ */
+diff --git mjpg-streamer/plugins/input_uvc/input_uvc.c mjpg-streamer/plugins/input_uvc/input_uvc.c
+index d680fce..13490ae 100644
+--- mjpg-streamer/plugins/input_uvc/input_uvc.c
++++ mjpg-streamer/plugins/input_uvc/input_uvc.c
+@@ -102,21 +102,22 @@ int input_init(input_parameter *param) {
+     IPRINT("could not initialize mutex variable\n");
+     exit(EXIT_FAILURE);
+   }
++  DBG("argv=%s\n", param->parameter_string);
+ 
+   /* convert the single parameter-string to an array of strings */
+   argv[0] = INPUT_PLUGIN_NAME;
+   if ( param->parameter_string != NULL && strlen(param->parameter_string) != 0 ) {
+     char *arg=NULL, *saveptr=NULL, *token=NULL;
+ 
+-    arg=(char *)strdup(param->parameter_string);
++    arg=(char *)(param->parameter_string);
+ 
+     if ( strchr(arg, ' ') != NULL ) {
+       token=strtok_r(arg, " ", &saveptr);
+       if ( token != NULL ) {
+-        argv[argc] = strdup(token);
++        argv[argc] = (token);
+         argc++;
+         while ( (token=strtok_r(NULL, " ", &saveptr)) != NULL ) {
+-          argv[argc] = strdup(token);
++          argv[argc] = (token);
+           argc++;
+           if (argc >= MAX_ARGUMENTS) {
+             IPRINT("ERROR: too many arguments to input plugin\n");
+diff --git mjpg-streamer/plugins/output.h mjpg-streamer/plugins/output.h
+index 8557833..ed777f2 100644
+--- mjpg-streamer/plugins/output.h
++++ mjpg-streamer/plugins/output.h
+@@ -20,6 +20,9 @@
+ #                                                                              #
+ *******************************************************************************/
+ 
++#ifndef __OUTPUT_H__
++#define __OUTPUT_H__
++
+ #define OUTPUT_PLUGIN_PREFIX " o: "
+ #define OPRINT(...) { char _bf[1024] = {0}; snprintf(_bf, sizeof(_bf)-1, __VA_ARGS__); fprintf(stderr, "%s", OUTPUT_PLUGIN_PREFIX); fprintf(stderr, "%s", _bf); syslog(LOG_INFO, "%s", _bf); }
+ 
+@@ -56,3 +59,5 @@ int output_init(output_parameter *);
+ int output_stop(int id);
+ int output_run(int id);
+ int output_cmd(int id, out_cmd_type cmd, int value);
++
++#endif /* __OUTPUT_H__ */
+diff --git mjpg-streamer/plugins/output_http/httpd.c mjpg-streamer/plugins/output_http/httpd.c
+index 616fa9a..f3629a7 100644
+--- mjpg-streamer/plugins/output_http/httpd.c
++++ mjpg-streamer/plugins/output_http/httpd.c
+@@ -869,13 +869,14 @@ void *server_thread( void *arg ) {
+       perror("setsockopt(SO_REUSEADDR) failed");
+     }
+ 
++#ifdef IPV6_V6ONLY
+     /* IPv6 socket should listen to IPv6 only, otherwise we will get "socket already in use" */
+     on = 1;
+     if(aip2->ai_family == AF_INET6 && setsockopt(pcontext->sd[i], IPPROTO_IPV6, IPV6_V6ONLY,
+                   (const void *)&on , sizeof(on)) < 0) {
+       perror("setsockopt(IPV6_V6ONLY) failed");
+     }
+-
++#endif
+     /* perhaps we will use this keep-alive feature oneday */
+     /* setsockopt(sd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on)); */
+ 
+diff --git mjpg-streamer/plugins/output_http/output_http.c mjpg-streamer/plugins/output_http/output_http.c
+index bb75238..f7b7895 100644
+--- mjpg-streamer/plugins/output_http/output_http.c
++++ mjpg-streamer/plugins/output_http/output_http.c
+@@ -94,15 +94,15 @@ int output_init(output_parameter *param) {
+   if ( param->parameter_string != NULL && strlen(param->parameter_string) != 0 ) {
+     char *arg=NULL, *saveptr=NULL, *token=NULL;
+ 
+-    arg=(char *)strdup(param->parameter_string);
++    arg=(char *)(param->parameter_string);
+ 
+     if ( strchr(arg, ' ') != NULL ) {
+       token=strtok_r(arg, " ", &saveptr);
+       if ( token != NULL ) {
+-        argv[argc] = strdup(token);
++        argv[argc] = (token);
+         argc++;
+         while ( (token=strtok_r(NULL, " ", &saveptr)) != NULL ) {
+-          argv[argc] = strdup(token);
++          argv[argc] = (token);
+           argc++;
+           if (argc >= MAX_ARGUMENTS) {
+             OPRINT("ERROR: too many arguments to output plugin\n");
+diff --git mjpg-streamer/static_glue.c mjpg-streamer/static_glue.c
+new file mode 100644
+index 0000000..0462824
+--- /dev/null
++++ mjpg-streamer/static_glue.c
+@@ -0,0 +1,122 @@
++/*******************************************************************************
++#                                                                              #
++#      MJPG-streamer allows to stream JPG frames from an input-plugin          #
++#      to several output plugins                                               #
++#                                                                              #
++#      Copyright (C) 2007 Tom Stöveken                                         #
++#                                                                              #
++# This program is free software; you can redistribute it and/or modify         #
++# it under the terms of the GNU General Public License as published by         #
++# the Free Software Foundation; version 2 of the License.                      #
++#                                                                              #
++# This program is distributed in the hope that it will be useful,              #
++# but WITHOUT ANY WARRANTY; without even the implied warranty of               #
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                #
++# GNU General Public License for more details.                                 #
++#                                                                              #
++# You should have received a copy of the GNU General Public License            #
++# along with this program; if not, write to the Free Software                  #
++# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA    #
++#                                                                              #
++*******************************************************************************/
++
++/*
++ * This file is included and "fakes" dynamicaly loaded plugins.
++ * It allows mjpg-streamer to be linked staticaly, with dietlib for example.
++ * 
++ * This is an ugly glue, but it makes a compact executable!
++ * 
++ * The idea is to #define the duplicate symbol, make a static table with them, 
++ * and have our own implementation of dl*() that returns the symbol when needed
++ * 
++ * (C) Michel Pollet <buserror@gmail.com>
++ */
++
++#define RTLD_LAZY 0
++
++#define input_init	input_uvc_init
++#define input_stop	input_uvc_stop
++#define input_run	input_uvc_run
++#define help		input_uvc_help
++#include "plugins/input_uvc/input_uvc.c"
++#undef help
++#undef input_init
++#undef input_stop
++#undef input_run
++
++#define output_init	output_http_init
++#define output_stop	output_http_stop
++#define output_run	output_http_run
++#define help		output_http_help
++#include "plugins/output_http/output_http.c"
++#undef help
++#undef output_init
++#undef output_stop
++#undef output_run
++
++struct static_plugin_t {
++	char * name;
++	void * input_init;
++	void * input_stop;
++	void * input_run;
++	void * output_init;	
++	void * output_stop;
++	void * output_run;
++};
++static const struct static_plugin_t _plugins[] = {
++	{ .name = "input_uvc.so",
++	  .input_init = (void*)input_uvc_init,
++	  .input_stop = (void*)input_uvc_stop,
++	  .input_run = (void*)input_uvc_run,
++	},
++	{ .name = "output_http.so", 
++	  .output_init = (void*)output_http_init,
++	  .output_stop = (void*)output_http_stop,
++	  .output_run = (void*)output_http_run,
++	},
++	{ NULL },
++};
++
++static void * dlopen(const char * name, int whatever)
++{
++	int i;
++	char * n = strrchr(name, '/');
++	name = n ? n + 1 : name;
++
++	for (i = 0; _plugins[i].name; i++) 
++		if (!strcmp(_plugins[i].name, name))
++			return (void*)&_plugins[i];
++	return NULL;
++}
++
++static int dlclose(void *handle)
++{
++	return 0;
++}
++
++static char * dlerror(void)
++{
++	return NULL;
++}
++
++void * dlsym(void *handle, const char *symbol)
++{
++	struct static_plugin_t *h = (struct static_plugin_t*)handle;
++
++	if (!strcmp(symbol, "input_init"))
++		return h->input_init;
++	else if (!strcmp(symbol, "input_stop"))
++		return h->input_stop;
++	else if (!strcmp(symbol, "input_run"))
++		return h->input_run;
++	else if (!strcmp(symbol, "output_init"))
++		return h->output_init;
++	else if (!strcmp(symbol, "output_stop"))
++		return h->output_stop;
++	else if (!strcmp(symbol, "output_run"))
++		return h->output_run;
++		
++	return NULL;
++}
++
++
+diff --git mjpg-streamer/utils.h mjpg-streamer/utils.h
+index d036917..20b66af 100644
+--- mjpg-streamer/utils.h
++++ mjpg-streamer/utils.h
+@@ -20,6 +20,9 @@
+ #                                                                              #
+ *******************************************************************************/
+ 
++#ifndef __UTILS_H__
++#define __UTILS_H__
++
+ #define ABS(a) (((a) < 0) ? -(a) : (a))
+ #define MIN(a, b) (((a) < (b)) ? (a) : (b))
+ #define MAX(a, b) (((a) > (b)) ? (a) : (b))
+@@ -45,3 +48,5 @@ static inline void reset_getopt(void)
+ }
+ 
+ void daemon_mode(void);
++
++#endif /* __UTILS_H__ */

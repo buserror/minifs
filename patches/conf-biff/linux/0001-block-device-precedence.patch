@@ -1,0 +1,32 @@
+From 57eb5e504d9ad30ebc1a006a32bd401b617b14c8 Mon Sep 17 00:00:00 2001
+From: root <root@cent.localnet>
+Date: Sun, 6 Dec 2009 18:26:05 +0000
+Subject: [PATCH 01/14] block device precedence
+
+---
+ init/do_mounts.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
+
+diff --git a/init/do_mounts.c b/init/do_mounts.c
+index bb008d0..5d675d1 100644
+--- a/init/do_mounts.c
++++ b/init/do_mounts.c
+@@ -353,10 +353,15 @@ void __init mount_root(void)
+ 			change_floppy("root floppy");
+ 	}
+ #endif
++/* Biff: Maybe INITRD should take precedence over other root devices if 
++         configured?
++*/
++#ifndef CONFIG_BLK_DEV_INITRD
+ #ifdef CONFIG_BLOCK
+ 	create_dev("/dev/root", ROOT_DEV);
+ 	mount_block_root("/dev/root", root_mountflags);
+ #endif
++#endif
+ }
+ 
+ /*
+-- 
+1.6.4
+

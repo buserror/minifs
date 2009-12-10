@@ -1,0 +1,325 @@
+From daa801dafebebccbdf5d391f52282a2002c08374 Mon Sep 17 00:00:00 2001
+From: root <root@cent.localnet>
+Date: Sun, 6 Dec 2009 18:26:48 +0000
+Subject: [PATCH 08/14] sysfs gpio interface
+
+---
+ drivers/gpio/Kconfig        |   17 +++
+ drivers/gpio/Makefile       |    1 +
+ drivers/gpio/rdc321x_gpio.c |  260 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 278 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/gpio/rdc321x_gpio.c
+
+diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
+index 2ad0128..fb3b648 100644
+--- a/drivers/gpio/Kconfig
++++ b/drivers/gpio/Kconfig
+@@ -63,6 +63,20 @@ config GPIO_SYSFS
+ 	  Kernel drivers may also request that a particular GPIO be
+ 	  exported to userspace; this can be useful when debugging.
+ 
++config GPIO_RDC321X
++	tristate "RDC321x GPIO support"
++	depends on X86_RDC321X
++	help
++	  RDC chips have some GPIO pins accessible via PCI configuration
++	  space.  Say yes here to allow access to them.  Note that
++	  just because 59 GPIO pins are available doesn't mean they are
++	  all safe to use.  Most have dual function, and requesting one
++	  that your particular board design already makes use of may lock
++	  your system.
++
++	  If unsure, say N.
++
++
+ # put expanders in the right section, in alphabetical order
+ 
+ comment "Memory mapped GPIO expanders:"
+@@ -231,3 +245,6 @@ config GPIO_UCB1400
+ 	  module will be called ucb1400_gpio.
+ 
+ endif
++
++
++
+diff --git a/drivers/gpio/Makefile b/drivers/gpio/Makefile
+index 00a532c..86823ee 100644
+--- a/drivers/gpio/Makefile
++++ b/drivers/gpio/Makefile
+@@ -13,6 +13,7 @@ obj-$(CONFIG_GPIO_MCP23S08)	+= mcp23s08.o
+ obj-$(CONFIG_GPIO_PCA953X)	+= pca953x.o
+ obj-$(CONFIG_GPIO_PCF857X)	+= pcf857x.o
+ obj-$(CONFIG_GPIO_PL061)	+= pl061.o
++obj-$(CONFIG_GPIO_RDC321X)	+= rdc321x_gpio.o
+ obj-$(CONFIG_GPIO_TWL4030)	+= twl4030-gpio.o
+ obj-$(CONFIG_GPIO_UCB1400)	+= ucb1400_gpio.o
+ obj-$(CONFIG_GPIO_XILINX)	+= xilinx_gpio.o
+diff --git a/drivers/gpio/rdc321x_gpio.c b/drivers/gpio/rdc321x_gpio.c
+new file mode 100644
+index 0000000..444bf06
+--- /dev/null
++++ b/drivers/gpio/rdc321x_gpio.c
+@@ -0,0 +1,260 @@
++/*
++ * RDC GPIO Driver by Mark Kelly <Mark@bifferos.com>, 2009.
++ *
++ */
++
++#include <linux/module.h>
++#include <linux/io.h>
++#include <linux/gpio.h>
++
++
++#define DRIVER_NAME "RDC321x GPIO driver: "
++
++struct rdc321x {
++	struct gpio_chip chip;
++	u32	 	val_data;	/* the last data value written */
++	u32	 	val_control;	/* the last control value written */
++	u32	 	reg_data;	/* PCI addr for data register */
++	u32	 	reg_control;	/* PCI addr for control register */
++	int		loaded;		/* was bank init successful? */
++};
++
++
++static struct rdc321x bank1;
++static struct rdc321x bank2;
++
++
++static DEFINE_SPINLOCK(rdc_lock);
++
++
++static inline void rdc321x_write_control(struct rdc321x *bg)
++{
++	outl(bg->reg_control, 0xcf8);
++	outl(bg->val_control, 0xcfc);
++}
++
++static inline void rdc321x_write_data(struct rdc321x *bg)
++{
++	outl(bg->reg_data, 0xcf8);
++	outl(bg->val_data, 0xcfc);
++}
++
++static inline u32 rdc321x_read_data(struct rdc321x *bg)
++{
++	outl(bg->reg_data, 0xcf8);
++	return inl(0xcfc);
++}
++
++
++static void rdc321x_restore_defaults(struct rdc321x *bg)
++{
++	/* Default control value on start-up, we could read it from the port,
++	 * but another driver might have left it in a mess
++	 */
++	bg->val_control = 0x00000000;
++
++	/* Default data value on start-up.  We can't read this from the port
++	 * because an external device may be pulling the pin low, in which case
++	 * this value will then stick.  RDC always reads back the status of the
++	 * pin, not the last value set.
++	 */
++	bg->val_data = 0xffffffff;
++
++	/* Apply internal values to registers */
++	rdc321x_write_control(bg);
++	rdc321x_write_data(bg);
++}
++
++
++static int rdc321x_gpio_direction_input(struct gpio_chip *chip, unsigned nr)
++{
++	struct rdc321x *bg = container_of(chip, struct rdc321x, chip);
++	u32 mask = (1<<nr);
++
++	unsigned long flags;
++	spin_lock_irqsave(&rdc_lock, flags);
++
++	if (!(bg->val_control & mask)) {
++		bg->val_control |= mask;
++		rdc321x_write_control(bg);
++	}
++
++	/* Bring pin value high to make this port an input */
++	if (!(bg->val_data & mask)) {
++		bg->val_data |= mask;
++		rdc321x_write_data(bg);
++	}
++
++	spin_unlock_irqrestore(&rdc_lock, flags);
++	return 0;
++}
++
++static int rdc321x_gpio_get(struct gpio_chip *gpio, unsigned nr)
++{
++	struct rdc321x *bg = container_of(gpio, struct rdc321x, chip);
++	u32 mask = (1<<nr);
++	int val;
++	unsigned long flags;
++	spin_lock_irqsave(&rdc_lock, flags);
++
++	val = (rdc321x_read_data(bg) & mask) ? 1 : 0;
++
++	spin_unlock_irqrestore(&rdc_lock, flags);
++	return val;
++}
++
++static int rdc321x_gpio_direction_output(struct gpio_chip *chip, unsigned nr,
++								int val)
++{
++	struct rdc321x *bg = container_of(chip, struct rdc321x, chip);
++	u32 mask = (1<<nr);
++	u32 tmp;
++
++	unsigned long flags;
++	spin_lock_irqsave(&rdc_lock, flags);
++
++	tmp = bg->val_data;
++
++	/* enable GPIO function if not already */
++	if (!(bg->val_control & mask)) {
++		bg->val_control |= mask;
++		rdc321x_write_control(bg);
++	}
++
++	/* set value on the port, only update if needed. */
++	if (val)
++		bg->val_data |= mask;
++	else
++		bg->val_data &= ~mask;
++
++	if (tmp != bg->val_data)
++		rdc321x_write_data(bg);
++
++	spin_unlock_irqrestore(&rdc_lock, flags);
++	return 0;
++}
++
++
++static void rdc321x_gpio_set(struct gpio_chip *chip, unsigned nr, int val)
++{
++	struct rdc321x *bg = container_of(chip, struct rdc321x, chip);
++	u32 mask = (1<<nr);
++	u32 tmp;
++
++	unsigned long flags;
++	spin_lock_irqsave(&rdc_lock, flags);
++
++	tmp = bg->val_data;
++
++	if (val)
++		bg->val_data |= mask;
++	else
++		bg->val_data &= ~mask;
++
++	if (tmp != bg->val_data)
++		rdc321x_write_data(bg);
++
++	spin_unlock_irqrestore(&rdc_lock, flags);
++}
++
++
++/* GPIOs announce themselves as 'inputs' when first exported via sysfs - make
++ * sure this is an accurate reflection of state.
++ */
++static int rdc321x_gpio_request(struct gpio_chip *chip, unsigned nr)
++{
++	return rdc321x_gpio_direction_input(chip, nr);
++}
++
++
++static void rdc321x_gpio_free(struct gpio_chip *chip, unsigned nr)
++{
++	struct rdc321x *bg = container_of(chip, struct rdc321x, chip);
++	u32 mask = (1<<nr);
++	/* Return pin to normal function */
++	bg->val_control &= ~mask;
++	rdc321x_write_control(bg);
++	bg->val_data |= mask;
++	rdc321x_write_data(bg);
++}
++
++
++static int rdc321x_gpio_addbank(struct rdc321x *bg, int base, unsigned ngpio,
++				char *label, u32 control, u32 data)
++{
++	struct gpio_chip *c = &bg->chip;
++	int err;
++
++	memset(bg, 0, sizeof(*bg));
++
++	/* PCI cfg register values used to access this bank */
++	bg->reg_control = control;
++	bg->reg_data = data;
++
++	rdc321x_restore_defaults(bg);
++
++	/* init the gpiolib stuff */
++	c->label = label;
++	c->owner = THIS_MODULE;
++	c->request = rdc321x_gpio_request;
++	c->free = rdc321x_gpio_free;
++	c->direction_input = rdc321x_gpio_direction_input;
++	c->get = rdc321x_gpio_get;
++	c->direction_output = rdc321x_gpio_direction_output;
++	c->set = rdc321x_gpio_set;
++	c->ngpio = ngpio;
++	c->can_sleep = 0;
++	c->base = base;
++
++	err = gpiochip_add(&bg->chip);
++	if (err) {
++		pr_err(DRIVER_NAME "Failed to enable '%s'\n", label);
++		return err;
++	}
++
++	pr_info(DRIVER_NAME "'%s' enabled\n", label);
++	bg->loaded = 1;
++
++	return 0;
++}
++
++
++static void rdc321x_gpio_removebank(struct rdc321x *bg)
++{
++	int err;
++
++	if (!bg->loaded)
++		return;
++
++	/* Restore bank to power-on settings */
++	rdc321x_restore_defaults(bg);
++	err = gpiochip_remove(&bg->chip);
++	if (err)
++		pr_err(DRIVER_NAME "Failed to remove '%s'\n", bg->chip.label);
++}
++
++
++static int rdc321x_gpio_init(void)
++{
++	int res1, res2;
++	res1 = rdc321x_gpio_addbank(&bank1, 0, 32, "bank1", 0x80003848,
++								0x8000384c);
++	res2 = rdc321x_gpio_addbank(&bank2, 32, 27, "bank2", 0x80003884,
++								0x80003888);
++	if (res1 && res2)
++		return -ENODEV;  /* Not worth loading the module */
++	return 0;
++}
++module_init(rdc321x_gpio_init)
++
++static void rdc321x_gpio_exit(void)
++{
++	rdc321x_gpio_removebank(&bank1);
++	rdc321x_gpio_removebank(&bank2);
++}
++module_exit(rdc321x_gpio_exit)
++
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Mark Kelly");
++MODULE_DESCRIPTION("Allow access to RDC321x GPIO pins");
+-- 
+1.6.4
+

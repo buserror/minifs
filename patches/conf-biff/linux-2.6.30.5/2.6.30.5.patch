@@ -1,0 +1,3254 @@
+diff --git a/Documentation/gpiommc.txt b/Documentation/gpiommc.txt
+new file mode 100644
+index 0000000..8e53222
+--- /dev/null
++++ b/Documentation/gpiommc.txt
+@@ -0,0 +1,97 @@
++GPIOMMC - Driver for an MMC/SD card on a bitbanging GPIO SPI bus
++================================================================
++
++The gpiommc module hooks up the mmc_spi and spi_gpio modules for running an
++MMC or SD card on GPIO pins.
++
++Two interfaces for registering a new MMC/SD card device are provided:
++A static platform-device based mechanism and a dynamic configfs based interface.
++
++
++Registering devices via platform-device
++=======================================
++
++The platform-device interface is used for registering MMC/SD devices that are
++part of the hardware platform. This is most useful only for embedded machines
++with MMC/SD devices statically connected to the platform GPIO bus.
++
++The data structures are declared in <linux/mmc/gpiommc.h>.
++
++To register a new device, define an instance of struct gpiommc_platform_data.
++This structure holds any information about how the device is hooked up to the
++GPIO pins and what hardware modes the device supports. See the docbook-style
++documentation in the header file for more information on the struct fields.
++
++Then allocate a new instance of a platform device by doing:
++
++	pdev = platform_device_alloc(GPIOMMC_PLATDEV_NAME, gpiommc_next_id());
++
++This will allocate the platform device data structures and hook it up to the
++gpiommc driver.
++Then add the gpiommc_platform_data to the platform device.
++
++	err = platform_device_add_data(pdev, pdata, sizeof(struct gpiommc_platform_data));
++
++You may free the local instance of struct gpiommc_platform_data now. (So the
++struct may be allocated on the stack, too).
++Now simply register the platform device.
++
++	err = platform_device_add(pdev);
++
++Done. The gpiommc probe routine will be invoked now and you should see a kernel
++log message for the added device.
++
++
++Registering devices via configfs
++================================
++
++MMC/SD cards connected via GPIO often are a pretty dynamic thing, as for example
++selfmade hacks for soldering an MMC/SD card to standard GPIO pins on embedded
++hardware are a common situation.
++So we provide a dynamic interface to conveniently handle adding and removing
++devices from userspace, without the need to recompile the kernel.
++
++The "gpiommc" subdirectory at the configfs mountpoint is used for handling
++the dynamic configuration.
++
++To create a new device, it must first be allocated with mkdir.
++The following command will allocate a device named "my_mmc":
++	mkdir /config/gpiommc/my_mmc
++
++There are several configuration files available in the new
++/config/gpiommc/my_mmc/ directory:
++
++gpio_data_in			= The SPI data-IN GPIO pin number.
++gpio_data_out			= The SPI data-OUT GPIO pin number.
++gpio_clock			= The SPI Clock GPIO pin number.
++gpio_chipselect			= The SPI Chipselect GPIO pin number.
++gpio_chipselect_activelow	= Boolean. If 0, Chipselect is active-HIGH.
++				  If 1, Chipselect is active-LOW.
++spi_mode			= The SPI data mode. Can be 0-3.
++spi_delay			= Enable all delays in the lowlevel bitbanging.
++max_bus_speed			= The maximum SPI bus speed. In Hertz.
++
++register			= Not a configuration parameter.
++				  Used to register the configured card
++				  with the kernel.
++
++The device must first get configured and then registered by writing "1" to
++the "register" file.
++The configuration parameters "gpio_data_in", "gpio_data_out", "gpio_clock"
++and "gpio_chipselect" are essential and _must_ be configured before writing
++"1" to the "register" file. The registration will fail, otherwise.
++
++The default values for the other parameters are:
++gpio_chipselect_activelow	= 1		(CS active-LOW)
++spi_mode			= 0		(SPI_MODE_0)
++spi_delay			= 1		(enabled)
++max_bus_speed			= 5000000	(5 Mhz)
++
++Configuration values can not be changed after registration. To unregister
++the device, write a "0" to the "register" file. The configuration can be
++changed again after unregistering.
++
++To completely remove the device, simply rmdir the directory
++(/config/gpiommc/my_mmc in this example).
++There's no need to first unregister the device before removing it. That will
++be done automatically.
+diff --git a/Documentation/watchdog/src/watchdog-simple.c b/Documentation/watchdog/src/watchdog-simple.c
+index 4cf72f3..ec510e5 100644
+--- a/Documentation/watchdog/src/watchdog-simple.c
++++ b/Documentation/watchdog/src/watchdog-simple.c
+@@ -19,7 +19,9 @@ int main(void)
+ 		}
+ 		ret = fsync(fd);
+ 		if (ret)
++		{
+ 			break;
++		}
+ 		sleep(10);
+ 	}
+ 	close(fd);
+diff --git a/Documentation/watchdog/src/watchdog-test.c b/Documentation/watchdog/src/watchdog-test.c
+index 65f6c19..232c429 100644
+--- a/Documentation/watchdog/src/watchdog-test.c
++++ b/Documentation/watchdog/src/watchdog-test.c
+@@ -50,8 +50,14 @@ int main(int argc, char *argv[])
+ 	    fprintf(stderr, "Watchdog card enabled.\n");
+ 	    fflush(stderr);
+ 	    exit(0);
++	} else if (!strncasecmp(argv[1], "-r", 2)) {
++	    fprintf(stderr, "Causing watchdog to reboot machine.\n");
++	    fflush(stderr);
++	    while(1) {
++	      sleep(1);
++	    }
+ 	} else {
+-	    fprintf(stderr, "-d to disable, -e to enable.\n");
++	    fprintf(stderr, "-d to disable, -e to enable, -r to test.\n");
+ 	    fprintf(stderr, "run by itself to tick the card.\n");
+ 	    fflush(stderr);
+ 	    exit(0);
+diff --git a/Documentation/x86/rdc.txt b/Documentation/x86/rdc.txt
+new file mode 100644
+index 0000000..f9591af
+--- /dev/null
++++ b/Documentation/x86/rdc.txt
+@@ -0,0 +1,69 @@
++
++Introduction
++============
++
++RDC (http://www.rdc.com.tw) have been manufacturing x86-compatible SoC
++(system-on-chips) for a number of years.  They are not the fastest of
++CPUs (clock speeds ranging from 133-150MHz) but 486SX compatibility
++coupled with very low power consumption[1] and low cost make them ideal
++for embedded applications.
++
++
++Where to find
++=============
++
++RDC chips show up in numerous embedded devices, but be careful since
++many of them will not run Linux 2.6 without significant expertise.
++
++There are several variants of what the linux kernel refers to generically
++as RDC321X:  R8610, R321x, S3282 and AMRISC20000.
++
++R321x: Found in various routers, see the OpenWrt project for details,
++   http://wiki.openwrt.org/oldwiki/rdcport
++
++R8610: Found on the RDC evaluation board
++   http://www.ivankuten.com/system-on-chip-soc/rdc-r8610/
++
++AMRISC20000: Found in the MGB-100 wireless hard disk
++   http://tintuc.no-ip.com/linux/tipps/mgb100/
++
++S3282: Found in various NAS devices, including the Bifferboard
++   http://www.bifferos.com
++
++
++Kernel Configuration
++====================
++
++Add support for this CPU with CONFIG_X86_RDC321X.  Ensure that maths
++emulation is included (CONFIG_MATH_EMULATION selected) and avoid MCE
++(CONFIG_X86_MCE not selected).
++
++
++CPU detection
++=============
++
++None of these chips support the cpuid instruction, so as with some
++other x86 compatible SoCs, we must check the north bridge and look
++for specific 'signature' PCI device config.
++
++The current detection code has been tested only on the Bifferboard
++(S3282 CPU), please send bug reports or success stories with
++other devices to bifferos@yahoo.co.uk.
++
++
++Credits
++=======
++
++Many thanks to RDC for providing the customer codes to allow
++detection of all known variants, without which this detection code
++would have been very hard to ascertain.
++
++
++References
++==========
++
++[1] S3282 in certain NAS solutions consumes less than 1W
++
++
++mark@bifferos.com 2009
++
+diff --git a/MAINTAINERS b/MAINTAINERS
+index cf4abdd..423cba1 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2504,6 +2504,11 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
+ S:	Maintained
+ F:	drivers/media/video/gspca/
+ 
++GPIOMMC DRIVER
++P:	Michael Buesch
++M:	mb@bu3sch.de
++S:	Maintained
++
+ HARDWARE MONITORING
+ L:	lm-sensors@lm-sensors.org
+ W:	http://www.lm-sensors.org/
+diff --git a/arch/x86/include/asm/processor.h b/arch/x86/include/asm/processor.h
+index c2cceae..6f9f853 100644
+--- a/arch/x86/include/asm/processor.h
++++ b/arch/x86/include/asm/processor.h
+@@ -121,7 +121,8 @@ struct cpuinfo_x86 {
+ #define X86_VENDOR_CENTAUR	5
+ #define X86_VENDOR_TRANSMETA	7
+ #define X86_VENDOR_NSC		8
+-#define X86_VENDOR_NUM		9
++#define X86_VENDOR_RDC		9
++#define X86_VENDOR_NUM		10
+ 
+ #define X86_VENDOR_UNKNOWN	0xff
+ 
+diff --git a/arch/x86/include/asm/virtext.h b/arch/x86/include/asm/virtext.h
+index e0f9aa1..98af57f 100644
+--- a/arch/x86/include/asm/virtext.h
++++ b/arch/x86/include/asm/virtext.h
+@@ -27,8 +27,12 @@
+ 
+ static inline int cpu_has_vmx(void)
+ {
++#ifdef CONFIG_X86_RDC321X
++	return 0;
++#else
+ 	unsigned long ecx = cpuid_ecx(1);
+ 	return test_bit(5, &ecx); /* CPUID.1:ECX.VMX[bit 5] -> VT */
++#endif
+ }
+ 
+ 
+diff --git a/arch/x86/kernel/cpu/Makefile b/arch/x86/kernel/cpu/Makefile
+index 4e242f9..9906064 100644
+--- a/arch/x86/kernel/cpu/Makefile
++++ b/arch/x86/kernel/cpu/Makefile
+@@ -22,6 +22,7 @@ obj-$(CONFIG_CPU_SUP_CYRIX_32)		+= cyrix.o
+ obj-$(CONFIG_CPU_SUP_CENTAUR)		+= centaur.o
+ obj-$(CONFIG_CPU_SUP_TRANSMETA_32)	+= transmeta.o
+ obj-$(CONFIG_CPU_SUP_UMC_32)		+= umc.o
++obj-$(CONFIG_X86_RDC321X)		+= rdc.o
+ 
+ obj-$(CONFIG_X86_MCE)	+= mcheck/
+ obj-$(CONFIG_MTRR)	+= mtrr/
+diff --git a/arch/x86/kernel/cpu/bugs.c b/arch/x86/kernel/cpu/bugs.c
+index c8e315f..2d137e7 100644
+--- a/arch/x86/kernel/cpu/bugs.c
++++ b/arch/x86/kernel/cpu/bugs.c
+@@ -55,8 +55,9 @@ static void __init check_fpu(void)
+ 	if (!boot_cpu_data.hard_math) {
+ #ifndef CONFIG_MATH_EMULATION
+ 		printk(KERN_EMERG "No coprocessor found and no math emulation present.\n");
+-		printk(KERN_EMERG "Giving up.\n");
+-		for (;;) ;
++// Biff:  Without math emu we can continue here and get a boot.
++//		printk(KERN_EMERG "Giving up.\n");
++//		for (;;) ;
+ #endif
+ 		return;
+ 	}
+diff --git a/arch/x86/kernel/cpu/rdc.c b/arch/x86/kernel/cpu/rdc.c
+new file mode 100644
+index 0000000..6b02166
+--- /dev/null
++++ b/arch/x86/kernel/cpu/rdc.c
+@@ -0,0 +1,74 @@
++/*
++   See Documentation/x86/rdc.txt
++
++   mark@bifferos.com
++*/
++
++#include <linux/pci.h>
++#include <asm/pci-direct.h>
++#include "cpu.h"
++
++
++static void __cpuinit rdc_identify(struct cpuinfo_x86 *c)
++{
++	u16 vendor, device;
++	u32 customer_id;
++
++	/* RDC CPU is SoC (system-on-chip), Northbridge is always present. */
++	vendor = read_pci_config_16(0, 0, 0, PCI_VENDOR_ID);
++	device = read_pci_config_16(0, 0, 0, PCI_DEVICE_ID);
++
++	if (vendor != PCI_VENDOR_ID_RDC || device != PCI_DEVICE_ID_RDC_R6020)
++		return;  /* not RDC */
++
++	/* NB: We could go on and check other devices, e.g. r6040 NIC, but
++	   that's probably overkill */
++
++	strcpy(c->x86_vendor_id, "RDC");
++	c->x86_vendor = X86_VENDOR_RDC;
++
++	customer_id = read_pci_config(0, 0, 0, 0x90);
++
++	switch (customer_id) {
++		/* id names are from RDC */
++	case 0x00321000:
++		strcpy(c->x86_model_id, "R3210/R3211");
++		break;
++	case 0x00321001:
++		strcpy(c->x86_model_id, "AMITRISC20000/20010");
++		break;
++	case 0x00321002:
++		strcpy(c->x86_model_id, "R3210X/Edimax");
++		break;
++	case 0x00321003:
++		strcpy(c->x86_model_id, "R3210/Kcodes");
++		break;
++	case 0x00321004:  /* tested */
++		strcpy(c->x86_model_id, "S3282/CodeTek");
++		break;
++	case 0x00321007:
++		strcpy(c->x86_model_id, "R8610");
++		break;
++	default:
++		printk(KERN_INFO "Unrecognised Customer ID (0x%x) please "
++			"report to bifferos@yahoo.co.uk\n", customer_id);
++
++		/* We'll default to the R321x since that's mentioned
++		   elsewhere in the kernel sources */
++		strcpy(c->x86_model_id, "R321x");
++
++		/* blank the vendor_id, so we get a warning that this
++		   is unsupported, your system may be unstable etc...
++		   Is there a better way? */
++		strcpy(c->x86_vendor_id, "");
++	}
++}
++
++static const struct cpu_dev __cpuinitconst rdc_cpu_dev = {
++	.c_vendor	= "RDC",
++	.c_ident	= { "RDC" },
++	.c_identify	= rdc_identify,
++	.c_x86_vendor	= X86_VENDOR_RDC,
++};
++
++cpu_dev_register(rdc_cpu_dev);
+diff --git a/arch/x86/kernel/relocate_kernel_32.S b/arch/x86/kernel/relocate_kernel_32.S
+index 4123553..f5a44d2 100644
+--- a/arch/x86/kernel/relocate_kernel_32.S
++++ b/arch/x86/kernel/relocate_kernel_32.S
+@@ -54,8 +54,10 @@ relocate_kernel:
+ 	movl	%eax, CR0(%edi)
+ 	movl	%cr3, %eax
+ 	movl	%eax, CR3(%edi)
++#ifndef CONFIG_X86_RDC321X
+ 	movl	%cr4, %eax
+ 	movl	%eax, CR4(%edi)
++#endif
+ 
+ 	/* read the arguments and say goodbye to the stack */
+ 	movl  20+4(%esp), %ebx /* page_list */
+@@ -122,7 +124,9 @@ identity_mapped:
+ 	 * Setting everything to zero seems safe.
+ 	 */
+ 	xorl	%eax, %eax
++#ifndef CONFIG_X86_RDC321X
+ 	movl	%eax, %cr4
++#endif
+ 
+ 	jmp 1f
+ 1:
+@@ -193,8 +197,10 @@ identity_mapped:
+ 	ret
+ 
+ virtual_mapped:
++#ifndef CONFIG_X86_RDC321X
+ 	movl	CR4(%edi), %eax
+ 	movl	%eax, %cr4
++#endif
+ 	movl	CR3(%edi), %eax
+ 	movl	%eax, %cr3
+ 	movl	CR0(%edi), %eax
+diff --git a/drivers/char/Kconfig b/drivers/char/Kconfig
+index 735bbe2..5be5093 100644
+--- a/drivers/char/Kconfig
++++ b/drivers/char/Kconfig
+@@ -4,6 +4,18 @@
+ 
+ menu "Character devices"
+ 
++config MINIFSCONFIG
++	tristate "Bifferboard config block support"
++	depends on X86_RDC321X && CONFIGFS_FS && CRYPTO_MD5
++	---help---
++	  This driver creates a device file /dev/biffconfig which then 
++	  allows update of the Biffboot flash config block.  THIS DRIVER 
++	  IS HIGHLY EXPERIMENTAL AND NOT COMPLETE!!!!  Use only if you 
++	  have the Bifferboard JTAG cable and software.  Requires CONFIGFS.
++
++	  To compile this driver as module, choose M here: the
++	  module will be called biffconfig.
++
+ config VT
+ 	bool "Virtual terminal" if EMBEDDED
+ 	depends on !S390
+diff --git a/drivers/char/Makefile b/drivers/char/Makefile
+index 9caf5b5..8703b18 100644
+--- a/drivers/char/Makefile
++++ b/drivers/char/Makefile
+@@ -9,6 +9,7 @@ FONTMAPFILE = cp437.uni
+ 
+ obj-y	 += mem.o random.o tty_io.o n_tty.o tty_ioctl.o tty_ldisc.o tty_buffer.o tty_port.o
+ 
++obj-$(CONFIG_MINIFSCONFIG)        += biffconfig.o
+ obj-$(CONFIG_LEGACY_PTYS)	+= pty.o
+ obj-$(CONFIG_UNIX98_PTYS)	+= pty.o
+ obj-y				+= misc.o
+diff --git a/drivers/char/biffconfig.c b/drivers/char/biffconfig.c
+new file mode 100644
+index 0000000..8d655f3
+--- /dev/null
++++ b/drivers/char/biffconfig.c
+@@ -0,0 +1,535 @@
++/*
++ * Flash driver, by Bifferos, bifferos@yahoo.co.uk
++ */
++
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/configfs.h>
++#include <linux/mutex.h>
++#include <linux/fs.h>
++#include <linux/delay.h>
++#include <linux/io.h>
++#include <linux/err.h>
++#include <linux/scatterlist.h>
++#include <linux/crypto.h>
++#include <asm/uaccess.h>
++#include <asm/atomic.h>
++
++
++
++MODULE_AUTHOR("bifferos");
++MODULE_LICENSE("GPL");
++
++#define PFX "biffconfig: "
++
++#define CONFIG_OFFSET 0x4000
++#define CONFIG_SIZE 0x2000
++
++
++static DEFINE_SPINLOCK(config_lock);
++
++// our item
++static struct configfs_subsystem biffconfig_subsys;
++
++
++// The entire 8k config block
++typedef struct _cfg
++{
++  unsigned char buffer[0x1ff0];
++  unsigned char digest[0x10];
++} cfg_t;
++
++
++struct _cfg_vals
++{
++  int version;       // one for first version
++  unsigned char bootsource;   // 0=flash, 1=MMC 2=NET 3=USB  (0)
++  unsigned char console; // 0 = no console output, 1= console output (1)
++  unsigned char nic; // 0 = no nic, 1= nic init  (1)
++  unsigned char boottype;  // 1 == linux, 0 == flat bin
++  unsigned long loadaddress;  // load address of payload (0x400000 def.)
++  char cmndline[1024];  // null term, 1023 chars max
++};
++
++
++static unsigned g_flash_base=0;
++
++/* keep copy of values in memory */
++static struct _cfg_vals cfg_vals;
++
++
++
++static void WriteFLASH(unsigned long addr, unsigned char data)
++{
++  *(volatile unsigned char *)(g_flash_base+addr) = data;
++}
++static void WriteFLASH16(unsigned long addr, unsigned short data)
++{
++  *(volatile unsigned short *)(g_flash_base+addr) = data;
++}
++
++
++static unsigned char ReadFLASH(unsigned long addr, int delay)
++{
++  unsigned char val;
++  int i;
++  if (addr>(CONFIG_OFFSET+CONFIG_SIZE)) {
++    printk(KERN_ERR PFX "Error reading flash, value too large\n");
++    return 0;
++  }
++  val = *(volatile unsigned char *)(g_flash_base+addr);
++  
++  for (i=0;i<delay;i++)
++  {};
++  return val;
++}
++
++
++static int biffconfig_EraseSector(void)
++{
++  int prev, cur, count = 0;
++  unsigned long flags;
++
++  spin_lock_irqsave(&config_lock, flags);
++  
++  WriteFLASH(0xAAA,0xAA);
++  WriteFLASH(0x555,0x55);
++  WriteFLASH(0xAAA,0x80);
++  WriteFLASH(0xAAA,0xAA);
++  WriteFLASH(0x555,0x55);
++  WriteFLASH(CONFIG_OFFSET,0x30);   // offset
++
++  prev = ReadFLASH(CONFIG_OFFSET,8);
++  prev &= 0x40;
++
++  cur  = ReadFLASH(CONFIG_OFFSET,8);
++  cur  &= 0x40;
++
++  while (prev != cur)
++  {
++    prev = ReadFLASH(CONFIG_OFFSET,8);
++    prev &= 0x40;
++
++    cur  = ReadFLASH(CONFIG_OFFSET,8);
++    cur  &= 0x40;
++
++    if (cur & 0x20)  // DQ5==1
++    {
++      prev = ReadFLASH(CONFIG_OFFSET,8) & 0x40;
++      cur  = ReadFLASH(CONFIG_OFFSET,8) & 0x40;
++      if (prev!=cur) count = 0xffffff;
++      break;
++    }
++    cur &= 0x40;
++    if (count++ > 0x100000) break;   // taken too long
++  }
++
++  spin_unlock_irqrestore(&config_lock, flags);
++
++  if (count>0x100000)
++  {
++    printk(KERN_ERR PFX "Timeout erasing sector\n");
++    return -1;   // timeout?
++  } else {
++    printk(KERN_INFO PFX "Sector erased in %d ticks\n", count);
++    return count;
++  }
++}
++
++
++static int biffconfig_ProgramWord(unsigned long addr, unsigned short val)
++{
++  int prev, cur;
++  unsigned long count = 0;
++  unsigned long flags;
++
++  spin_lock_irqsave(&config_lock, flags);
++  
++  WriteFLASH(0xAAA,0xAA);
++  WriteFLASH(0x555,0x55);
++  WriteFLASH(0xAAA,0xA0);
++  WriteFLASH16(addr,val);
++  prev = ReadFLASH(addr,1) & 0x40;
++  cur  = ReadFLASH(addr,1) & 0x40;
++  while (prev != cur)
++  {
++    prev = ReadFLASH(addr,1) & 0x40;
++    cur  = ReadFLASH(addr,1);
++    if (cur & 0x20)  // DQ5==1
++    {
++      prev = ReadFLASH(addr,1) & 0x40;
++      cur  = ReadFLASH(addr,1) & 0x40;
++      if (prev!=cur) count = 0xffffff;
++      break;
++    }
++    cur &= 0x40;
++    if (count++ > 0x100000) break;   // way too long.
++  }
++
++  spin_unlock_irqrestore(&config_lock, flags);
++
++  if (count>0x10000)
++    return -1;  // error
++
++  return count;
++}
++
++
++static int do_md5(const unsigned char* data, size_t length, unsigned char* digest, size_t dlen)
++{
++  struct scatterlist sg;
++  char result[128];
++  struct crypto_hash *tfm;
++  struct hash_desc desc;
++  int err = 0;
++
++  // calculate the md5 digest, to keep the bootloader happy
++  tfm = crypto_alloc_hash("md5", 0, CRYPTO_ALG_ASYNC);
++  if (IS_ERR(tfm))
++    return -1;  // error
++
++  desc.tfm = tfm;
++  desc.flags = 0;
++
++  sg_init_one(&sg, data, length);
++  
++  if (crypto_hash_digest(&desc, &sg, sg.length, result))
++    err = -1;
++    
++  crypto_free_hash(tfm);
++  
++  if (!err) {
++    memcpy(digest, result, dlen);
++  }
++
++  return err;
++}
++
++
++/*
++static void biffconfig_DumpDigest(void)
++{
++  int i;
++  unsigned char digest[0x10];
++
++  for (i=0;i<sizeof(digest);i++)
++  {
++    digest[i] = ReadFLASH(i+CONFIG_OFFSET+CONFIG_SIZE-0x10, 8);
++  }
++
++  printk("flash md5: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x \n",
++	digest[0],	digest[1],	digest[2],	digest[3],
++	digest[4],	digest[5],	digest[6],	digest[7],
++	digest[8],	digest[9],	digest[10],	digest[11],
++	digest[12],	digest[13],	digest[14],	digest[15]);
++
++}
++*/
++
++static int biffconfig_commit(void)
++{
++  cfg_t *pcfg;
++  int err = 0;
++  unsigned long i;
++  unsigned short val;
++  
++  pcfg = (cfg_t*)kzalloc(sizeof(cfg_t), GFP_KERNEL);
++  if (!pcfg) {
++    printk(KERN_ERR PFX "Error allocating buffer\n");
++    return -1;
++  }
++
++  // Set any unused bits to 0xff, to minimise write time and flash wear-and-tear.
++  memset(pcfg, 0xff, sizeof(*pcfg));
++  // now copy the cfg block here
++  memcpy(pcfg, &cfg_vals, sizeof(cfg_vals));
++  // Set the md5 sum of the block correctly
++  err = do_md5(pcfg->buffer, sizeof(pcfg->buffer), pcfg->digest, sizeof(pcfg->digest));
++    
++  if (!err) {
++    // actually do the flash writing
++    for (i=0;i<CONFIG_SIZE;i+=2)
++    {
++      val = *((unsigned short*)&pcfg->buffer[i]);
++      err = biffconfig_ProgramWord(CONFIG_OFFSET + i, val);
++      if (err<0)
++      {
++        printk(KERN_ERR PFX "Error programming word at %lx\n", CONFIG_OFFSET+i);
++        break;
++      }
++    }
++  }
++
++  if (err>=0)
++    printk(KERN_ERR PFX "Flash config block updated\n");
++//    printk("RAM md5: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x \n",
++//	pcfg->digest[0],	pcfg->digest[1],	pcfg->digest[2],	pcfg->digest[3],
++//	pcfg->digest[4],	pcfg->digest[5],	pcfg->digest[6],	pcfg->digest[7],
++//	pcfg->digest[8],	pcfg->digest[9],	pcfg->digest[10],	pcfg->digest[11],
++//	pcfg->digest[12],	pcfg->digest[13],	pcfg->digest[14],	pcfg->digest[15]);
++//
++//	DumpDigest();
++
++  kfree(pcfg);
++  return err;
++}
++
++
++
++static struct configfs_attribute biffconfig_attr_DESCRIPTION = {
++  .ca_owner = THIS_MODULE,
++  .ca_name = "description",
++  .ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute biffconfig_attr_COMMIT = {
++  .ca_owner = THIS_MODULE,
++  .ca_name = "commit",
++  .ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute biffconfig_attr_BOOTSOURCE = {
++  .ca_owner = THIS_MODULE,
++  .ca_name = "bootsource",
++  .ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute biffconfig_attr_CONSOLE = {
++  .ca_owner = THIS_MODULE,
++  .ca_name = "console",
++  .ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute biffconfig_attr_NIC = {
++  .ca_owner = THIS_MODULE,
++  .ca_name = "nic",
++  .ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute biffconfig_attr_BOOTTYPE = {
++  .ca_owner = THIS_MODULE,
++  .ca_name = "boottype",
++  .ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute biffconfig_attr_LOADADDRESS = {
++  .ca_owner = THIS_MODULE,
++  .ca_name = "loadaddress",
++  .ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute biffconfig_attr_CMNDLINE = {
++  .ca_owner = THIS_MODULE,
++  .ca_name = "cmndline",
++  .ca_mode = S_IRUGO | S_IWUSR,
++};
++
++
++static ssize_t biffconfig_attr_show(struct config_item *item,
++                                           struct configfs_attribute *attr,
++                                           char *page)
++{
++  ssize_t c = 0;
++  char* ptr;
++  
++  if (attr == &biffconfig_attr_DESCRIPTION) {
++    c = snprintf(page, PAGE_SIZE, 
++      "Change the Bifferboard configuration values by echoing new values to them\n"
++      "echo something to 'commit' to write the changes to flash\n"
++      "cat the values to see the available options\n"
++    );
++  } else if (attr == &biffconfig_attr_BOOTSOURCE) {
++    switch (cfg_vals.bootsource) {
++      case 0:
++        ptr = "Flash";
++        break;
++      case 1:
++        ptr = "MMC";
++        break;
++      case 2:
++        ptr = "Network";
++        break;
++      case 3:
++        ptr = "USB";
++        break;
++      default:
++        ptr = "invalid";
++    } 
++    c = snprintf(page, PAGE_SIZE, "%s (Flash|MMC|Network|USB)\n", ptr);
++  } else if (attr == &biffconfig_attr_CONSOLE) {
++    ptr = cfg_vals.console ? "enabled" : "disabled";
++    c = snprintf(page, PAGE_SIZE, "%s (enabled|disabled)\n", ptr);
++  } else if (attr == &biffconfig_attr_NIC) {
++    ptr = cfg_vals.nic ? "enabled" : "disabled";
++    c = snprintf(page, PAGE_SIZE, "%s (enabled|disabled)\n", ptr);  
++  } else if (attr == &biffconfig_attr_BOOTTYPE) {
++    ptr = cfg_vals.boottype ? "linux" : "simple";
++    c = snprintf(page, PAGE_SIZE, "%s (linux|simple)\n", ptr);
++  } else if (attr == &biffconfig_attr_LOADADDRESS) {
++    c = snprintf(page, PAGE_SIZE, "0x%lx\n", cfg_vals.loadaddress );  
++  } else if (attr == &biffconfig_attr_CMNDLINE) {
++    c = snprintf(page, PAGE_SIZE, "%s\n", cfg_vals.cmndline );
++  } else {
++    return -ENOSYS;
++  }
++  
++  // Newline
++  if (c) {
++    if ((c+2)<PAGE_SIZE)
++      strcat(page, "\n");
++  }
++  
++  return c ? c : -ENOSYS;
++}
++
++
++static ssize_t biffconfig_attr_store(struct config_item *item,
++                                           struct configfs_attribute *attr,
++                                           const char *page, size_t count)
++{
++  int err=0;
++  size_t remain, stored;
++  const char* ptr;
++  
++  if (attr == &biffconfig_attr_COMMIT) {
++    biffconfig_EraseSector();
++    biffconfig_commit();
++  } else if (attr == &biffconfig_attr_BOOTSOURCE) {
++    if (strnicmp(page,"flash",5)==0) {
++      cfg_vals.bootsource = 0;
++    } else if (strnicmp(page,"MMC",3)==0) {
++      cfg_vals.bootsource = 1;
++    } else if (strnicmp(page,"Network",7)==0) {
++      cfg_vals.bootsource = 2;
++    } else if (strnicmp(page,"USB",3)==0) {
++      cfg_vals.bootsource = 3;    
++    } else {
++      cfg_vals.bootsource = 0xff;
++    }
++  } else if (attr == &biffconfig_attr_CONSOLE) {
++    if (strnicmp(page, "disabled",8)==0) {
++      cfg_vals.console = 0;
++    } else {
++      cfg_vals.console = 1;
++    }
++  } else if (attr == &biffconfig_attr_NIC) {
++    if (strnicmp(page, "disabled",8)==0) {
++      cfg_vals.nic = 0;
++    } else {
++      cfg_vals.nic = 1;
++    }
++  } else if (attr == &biffconfig_attr_BOOTTYPE) {
++    if (strnicmp(page, "simple",6)==0) {
++      cfg_vals.nic = 0;
++    } else {
++      cfg_vals.nic = 1;
++    }
++  } else if (attr == &biffconfig_attr_LOADADDRESS) {
++    if (strncmp(page, "0x", 2)==0) {
++      sscanf(page+2,"%lx", &(cfg_vals.loadaddress));
++    }
++  } else if (attr == &biffconfig_attr_CMNDLINE) {
++    remain = count;
++    stored = 0;
++    ptr = page;
++    while ( remain && (stored<(sizeof(cfg_vals.cmndline)-1)) )
++    {
++      if (!(*ptr)) break;   // end of the string.
++      if (((*ptr) > 31) && ((*ptr) < 127)) {
++        // printable, store it.
++        cfg_vals.cmndline[stored] = *ptr;
++        stored++;
++      }
++      remain--;
++      ptr++;
++    }
++    // Ensure termination
++    cfg_vals.cmndline[stored] = 0;  // terminate
++  } else {
++    err = -ENOSYS;
++  }
++  return err ? err : count;
++}
++
++
++static struct configfs_attribute *biffconfig_attrs[] = {
++  &biffconfig_attr_DESCRIPTION,
++  &biffconfig_attr_COMMIT,
++  &biffconfig_attr_BOOTSOURCE,
++  &biffconfig_attr_CONSOLE,
++  &biffconfig_attr_NIC,
++  &biffconfig_attr_BOOTTYPE,
++  &biffconfig_attr_LOADADDRESS,
++  &biffconfig_attr_CMNDLINE,
++  NULL,
++};
++
++static struct configfs_item_operations biffconfig_item_ops = {
++  .show_attribute = biffconfig_attr_show,
++  .store_attribute = biffconfig_attr_store,
++};
++
++static struct config_item_type biffconfig_ci_type = {
++  .ct_item_ops = &biffconfig_item_ops,
++  .ct_attrs = biffconfig_attrs,
++  .ct_owner = THIS_MODULE,
++};
++
++static struct configfs_subsystem biffconfig_subsys = {
++  .su_group = {
++    .cg_item = {
++      .ci_namebuf = "bifferboard",
++      .ci_type = &biffconfig_ci_type,
++    },
++  },
++};
++
++
++static int __init biffconfig_init(void)
++{
++  int err=0;
++  int i;
++  unsigned long src;
++  char* dest;
++  
++  // Register config interface.
++  struct configfs_subsystem *s = &biffconfig_subsys;
++  config_group_init(&s->su_group);
++  mutex_init(&s->su_mutex);
++  
++  err = configfs_register_subsystem(s);
++  
++  if (err) {
++    printk(KERN_ERR PFX "registering configfs subsystem\n");
++    return err;
++  }
++
++  // The area of interest starts at 0x4000, for config operations
++  g_flash_base = (unsigned)ioremap(0xfff00000, CONFIG_OFFSET+CONFIG_SIZE);
++  
++  // Make a copy of the flash area to our internal buffer so we can change it
++
++  src = CONFIG_OFFSET;
++  dest = (char*)&cfg_vals;  
++  for (i=0;i<sizeof(cfg_vals);i++)
++  {
++    *(dest++) = ReadFLASH(src++, 8);
++  }
++  
++  printk(KERN_INFO PFX "mapped flash to 0x%x.\n", g_flash_base);	
++  printk(KERN_INFO PFX "(v1.0) by bifferos, loaded.\n");
++  return 0;
++}
++
++
++static void __exit biffconfig_exit(void)
++{
++  configfs_unregister_subsystem(&biffconfig_subsys);
++  printk(KERN_INFO "biffconfig driver (v1.0) by bifferos, unloaded.\n");
++}
++
++
++module_init(biffconfig_init);
++module_exit(biffconfig_exit);
++
+diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
+index edb0253..2a281e3 100644
+--- a/drivers/gpio/Kconfig
++++ b/drivers/gpio/Kconfig
+@@ -63,6 +63,20 @@ config GPIO_SYSFS
+ 	  Kernel drivers may also request that a particular GPIO be
+ 	  exported to userspace; this can be useful when debugging.
+ 
++config GPIO_RDC321X
++	tristate "RDC321x GPIO support"
++	depends on X86_RDC321X
++	help
++	  RDC chips have some GPIO pins accessible via PCI configuration
++	  space.  Say yes here to allow access to them.  Note that
++	  just because 59 GPIO pins are available doesn't mean they are
++	  all safe to use.  Most have dual function, and requesting one
++	  that your particular board design already makes use of may lock
++	  your system.
++
++	  If unsure, say N.
++
++
+ # put expanders in the right section, in alphabetical order
+ 
+ comment "Memory mapped GPIO expanders:"
+@@ -177,3 +191,6 @@ config GPIO_MCP23S08
+ 	  a GPIO interface supporting inputs and outputs.
+ 
+ endif
++
++
++
+diff --git a/drivers/gpio/Makefile b/drivers/gpio/Makefile
+index 49ac64e..2d44457 100644
+--- a/drivers/gpio/Makefile
++++ b/drivers/gpio/Makefile
+@@ -4,6 +4,7 @@ ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
+ 
+ obj-$(CONFIG_GPIOLIB)		+= gpiolib.o
+ 
++obj-$(CONFIG_GPIO_RDC321X)	+= rdc321x_gpio.o
+ obj-$(CONFIG_GPIO_MAX7301)	+= max7301.o
+ obj-$(CONFIG_GPIO_MAX732X)	+= max732x.o
+ obj-$(CONFIG_GPIO_MCP23S08)	+= mcp23s08.o
+diff --git a/drivers/gpio/rdc321x_gpio.c b/drivers/gpio/rdc321x_gpio.c
+new file mode 100644
+index 0000000..444bf06
+--- /dev/null
++++ b/drivers/gpio/rdc321x_gpio.c
+@@ -0,0 +1,260 @@
++/*
++ * RDC GPIO Driver by Mark Kelly <Mark@bifferos.com>, 2009.
++ *
++ */
++
++#include <linux/module.h>
++#include <linux/io.h>
++#include <linux/gpio.h>
++
++
++#define DRIVER_NAME "RDC321x GPIO driver: "
++
++struct rdc321x {
++	struct gpio_chip chip;
++	u32	 	val_data;	/* the last data value written */
++	u32	 	val_control;	/* the last control value written */
++	u32	 	reg_data;	/* PCI addr for data register */
++	u32	 	reg_control;	/* PCI addr for control register */
++	int		loaded;		/* was bank init successful? */
++};
++
++
++static struct rdc321x bank1;
++static struct rdc321x bank2;
++
++
++static DEFINE_SPINLOCK(rdc_lock);
++
++
++static inline void rdc321x_write_control(struct rdc321x *bg)
++{
++	outl(bg->reg_control, 0xcf8);
++	outl(bg->val_control, 0xcfc);
++}
++
++static inline void rdc321x_write_data(struct rdc321x *bg)
++{
++	outl(bg->reg_data, 0xcf8);
++	outl(bg->val_data, 0xcfc);
++}
++
++static inline u32 rdc321x_read_data(struct rdc321x *bg)
++{
++	outl(bg->reg_data, 0xcf8);
++	return inl(0xcfc);
++}
++
++
++static void rdc321x_restore_defaults(struct rdc321x *bg)
++{
++	/* Default control value on start-up, we could read it from the port,
++	 * but another driver might have left it in a mess
++	 */
++	bg->val_control = 0x00000000;
++
++	/* Default data value on start-up.  We can't read this from the port
++	 * because an external device may be pulling the pin low, in which case
++	 * this value will then stick.  RDC always reads back the status of the
++	 * pin, not the last value set.
++	 */
++	bg->val_data = 0xffffffff;
++
++	/* Apply internal values to registers */
++	rdc321x_write_control(bg);
++	rdc321x_write_data(bg);
++}
++
++
++static int rdc321x_gpio_direction_input(struct gpio_chip *chip, unsigned nr)
++{
++	struct rdc321x *bg = container_of(chip, struct rdc321x, chip);
++	u32 mask = (1<<nr);
++
++	unsigned long flags;
++	spin_lock_irqsave(&rdc_lock, flags);
++
++	if (!(bg->val_control & mask)) {
++		bg->val_control |= mask;
++		rdc321x_write_control(bg);
++	}
++
++	/* Bring pin value high to make this port an input */
++	if (!(bg->val_data & mask)) {
++		bg->val_data |= mask;
++		rdc321x_write_data(bg);
++	}
++
++	spin_unlock_irqrestore(&rdc_lock, flags);
++	return 0;
++}
++
++static int rdc321x_gpio_get(struct gpio_chip *gpio, unsigned nr)
++{
++	struct rdc321x *bg = container_of(gpio, struct rdc321x, chip);
++	u32 mask = (1<<nr);
++	int val;
++	unsigned long flags;
++	spin_lock_irqsave(&rdc_lock, flags);
++
++	val = (rdc321x_read_data(bg) & mask) ? 1 : 0;
++
++	spin_unlock_irqrestore(&rdc_lock, flags);
++	return val;
++}
++
++static int rdc321x_gpio_direction_output(struct gpio_chip *chip, unsigned nr,
++								int val)
++{
++	struct rdc321x *bg = container_of(chip, struct rdc321x, chip);
++	u32 mask = (1<<nr);
++	u32 tmp;
++
++	unsigned long flags;
++	spin_lock_irqsave(&rdc_lock, flags);
++
++	tmp = bg->val_data;
++
++	/* enable GPIO function if not already */
++	if (!(bg->val_control & mask)) {
++		bg->val_control |= mask;
++		rdc321x_write_control(bg);
++	}
++
++	/* set value on the port, only update if needed. */
++	if (val)
++		bg->val_data |= mask;
++	else
++		bg->val_data &= ~mask;
++
++	if (tmp != bg->val_data)
++		rdc321x_write_data(bg);
++
++	spin_unlock_irqrestore(&rdc_lock, flags);
++	return 0;
++}
++
++
++static void rdc321x_gpio_set(struct gpio_chip *chip, unsigned nr, int val)
++{
++	struct rdc321x *bg = container_of(chip, struct rdc321x, chip);
++	u32 mask = (1<<nr);
++	u32 tmp;
++
++	unsigned long flags;
++	spin_lock_irqsave(&rdc_lock, flags);
++
++	tmp = bg->val_data;
++
++	if (val)
++		bg->val_data |= mask;
++	else
++		bg->val_data &= ~mask;
++
++	if (tmp != bg->val_data)
++		rdc321x_write_data(bg);
++
++	spin_unlock_irqrestore(&rdc_lock, flags);
++}
++
++
++/* GPIOs announce themselves as 'inputs' when first exported via sysfs - make
++ * sure this is an accurate reflection of state.
++ */
++static int rdc321x_gpio_request(struct gpio_chip *chip, unsigned nr)
++{
++	return rdc321x_gpio_direction_input(chip, nr);
++}
++
++
++static void rdc321x_gpio_free(struct gpio_chip *chip, unsigned nr)
++{
++	struct rdc321x *bg = container_of(chip, struct rdc321x, chip);
++	u32 mask = (1<<nr);
++	/* Return pin to normal function */
++	bg->val_control &= ~mask;
++	rdc321x_write_control(bg);
++	bg->val_data |= mask;
++	rdc321x_write_data(bg);
++}
++
++
++static int rdc321x_gpio_addbank(struct rdc321x *bg, int base, unsigned ngpio,
++				char *label, u32 control, u32 data)
++{
++	struct gpio_chip *c = &bg->chip;
++	int err;
++
++	memset(bg, 0, sizeof(*bg));
++
++	/* PCI cfg register values used to access this bank */
++	bg->reg_control = control;
++	bg->reg_data = data;
++
++	rdc321x_restore_defaults(bg);
++
++	/* init the gpiolib stuff */
++	c->label = label;
++	c->owner = THIS_MODULE;
++	c->request = rdc321x_gpio_request;
++	c->free = rdc321x_gpio_free;
++	c->direction_input = rdc321x_gpio_direction_input;
++	c->get = rdc321x_gpio_get;
++	c->direction_output = rdc321x_gpio_direction_output;
++	c->set = rdc321x_gpio_set;
++	c->ngpio = ngpio;
++	c->can_sleep = 0;
++	c->base = base;
++
++	err = gpiochip_add(&bg->chip);
++	if (err) {
++		pr_err(DRIVER_NAME "Failed to enable '%s'\n", label);
++		return err;
++	}
++
++	pr_info(DRIVER_NAME "'%s' enabled\n", label);
++	bg->loaded = 1;
++
++	return 0;
++}
++
++
++static void rdc321x_gpio_removebank(struct rdc321x *bg)
++{
++	int err;
++
++	if (!bg->loaded)
++		return;
++
++	/* Restore bank to power-on settings */
++	rdc321x_restore_defaults(bg);
++	err = gpiochip_remove(&bg->chip);
++	if (err)
++		pr_err(DRIVER_NAME "Failed to remove '%s'\n", bg->chip.label);
++}
++
++
++static int rdc321x_gpio_init(void)
++{
++	int res1, res2;
++	res1 = rdc321x_gpio_addbank(&bank1, 0, 32, "bank1", 0x80003848,
++								0x8000384c);
++	res2 = rdc321x_gpio_addbank(&bank2, 32, 27, "bank2", 0x80003884,
++								0x80003888);
++	if (res1 && res2)
++		return -ENODEV;  /* Not worth loading the module */
++	return 0;
++}
++module_init(rdc321x_gpio_init)
++
++static void rdc321x_gpio_exit(void)
++{
++	rdc321x_gpio_removebank(&bank1);
++	rdc321x_gpio_removebank(&bank2);
++}
++module_exit(rdc321x_gpio_exit)
++
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Mark Kelly");
++MODULE_DESCRIPTION("Allow access to RDC321x GPIO pins");
+diff --git a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
+index f1c6ca7..12d36bb 100644
+--- a/drivers/i2c/busses/Kconfig
++++ b/drivers/i2c/busses/Kconfig
+@@ -334,6 +334,13 @@ config I2C_GPIO
+ 	  This is a very simple bitbanging I2C driver utilizing the
+ 	  arch-neutral GPIO API to control the SCL and SDA lines.
+ 
++config I2C_GPIO_CUSTOM
++	tristate "GPIO-based bitbanging I2C"
++	depends on I2C_GPIO
++	help
++	  This is module allows configuration of GPIO pins for i2c
++	  via the kernel command-line or module loading parameters.
++
+ config I2C_HIGHLANDER
+ 	tristate "Highlander FPGA SMBus interface"
+ 	depends on SH_HIGHLANDER
+diff --git a/drivers/i2c/busses/Makefile b/drivers/i2c/busses/Makefile
+index 776acb6..dac7340 100644
+--- a/drivers/i2c/busses/Makefile
++++ b/drivers/i2c/busses/Makefile
+@@ -31,6 +31,7 @@ obj-$(CONFIG_I2C_BLACKFIN_TWI)	+= i2c-bfin-twi.o
+ obj-$(CONFIG_I2C_CPM)		+= i2c-cpm.o
+ obj-$(CONFIG_I2C_DAVINCI)	+= i2c-davinci.o
+ obj-$(CONFIG_I2C_GPIO)		+= i2c-gpio.o
++obj-$(CONFIG_I2C_GPIO_CUSTOM)	+= i2c-gpio-custom.o
+ obj-$(CONFIG_I2C_HIGHLANDER)	+= i2c-highlander.o
+ obj-$(CONFIG_I2C_IBM_IIC)	+= i2c-ibm_iic.o
+ obj-$(CONFIG_I2C_IMX)		+= i2c-imx.o
+diff --git a/drivers/i2c/busses/i2c-gpio-custom.c b/drivers/i2c/busses/i2c-gpio-custom.c
+new file mode 100644
+index 0000000..76ab5f3
+--- /dev/null
++++ b/drivers/i2c/busses/i2c-gpio-custom.c
+@@ -0,0 +1,198 @@
++/*
++ *  Custom GPIO-based I2C driver
++ *
++ *  Copyright (C) 2007-2008 Gabor Juhos <juhosg@openwrt.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License version 2 as
++ *  published by the Free Software Foundation.
++ *
++ * ---------------------------------------------------------------------------
++ *
++ *  The behaviour of this driver can be altered by setting some parameters
++ *  from the insmod command line.
++ *
++ *  The following parameters are adjustable:
++ *
++ *	bus0	These four arguments can be arrays of
++ *	bus1	1-8 unsigned integers as follows:
++ *	bus2
++ *	bus3	<id>,<sda>,<scl>,<udelay>,<timeout>,<sda_od>,<scl_od>,<scl_oo>
++ *
++ *  where:
++ *
++ *  <id>	ID to used as device_id for the corresponding bus (required)
++ *  <sda>	GPIO pin ID to used for SDA (required)
++ *  <scl>	GPIO pin ID to used for SCL (required)
++ *  <udelay>	signal toggle delay.
++ *  <timeout>	clock stretching timeout.
++ *  <sda_od>	SDA is configured as open drain.
++ *  <scl_od>	SCL is configured as open drain.
++ *  <scl_oo>	SCL output drivers cannot be turned off.
++ *
++ *  See include/i2c-gpio.h for more information about the parameters.
++ *
++ *  If this driver is built into the kernel, you can use the following kernel
++ *  command line parameters, with the same values as the corresponding module
++ *  parameters listed above:
++ *
++ *	i2c-gpio-custom.bus0
++ *	i2c-gpio-custom.bus1
++ *	i2c-gpio-custom.bus2
++ *	i2c-gpio-custom.bus3
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++
++#include <linux/i2c-gpio.h>
++
++#define DRV_NAME	"i2c-gpio-custom"
++#define DRV_DESC	"Custom GPIO-based I2C driver"
++#define DRV_VERSION	"0.1.1"
++
++#define PFX		DRV_NAME ": "
++
++#define BUS_PARAM_ID		0
++#define BUS_PARAM_SDA		1
++#define BUS_PARAM_SCL		2
++#define BUS_PARAM_UDELAY	3
++#define BUS_PARAM_TIMEOUT	4
++#define BUS_PARAM_SDA_OD	5
++#define BUS_PARAM_SCL_OD	6
++#define BUS_PARAM_SCL_OO	7
++
++#define BUS_PARAM_REQUIRED	3
++#define BUS_PARAM_COUNT		8
++#define BUS_COUNT_MAX		4
++
++static unsigned int bus0[BUS_PARAM_COUNT] __initdata;
++static unsigned int bus1[BUS_PARAM_COUNT] __initdata;
++static unsigned int bus2[BUS_PARAM_COUNT] __initdata;
++static unsigned int bus3[BUS_PARAM_COUNT] __initdata;
++
++static unsigned int bus_nump[BUS_COUNT_MAX] __initdata;
++
++#define BUS_PARM_DESC \
++	" config -> id,sda,scl[,udelay,timeout,sda_od,scl_od,scl_oo]"
++
++module_param_array(bus0, uint, &bus_nump[0], 0);
++MODULE_PARM_DESC(bus0, "bus0" BUS_PARM_DESC);
++module_param_array(bus1, uint, &bus_nump[1], 0);
++MODULE_PARM_DESC(bus1, "bus1" BUS_PARM_DESC);
++module_param_array(bus2, uint, &bus_nump[2], 0);
++MODULE_PARM_DESC(bus2, "bus2" BUS_PARM_DESC);
++module_param_array(bus3, uint, &bus_nump[3], 0);
++MODULE_PARM_DESC(bus3, "bus3" BUS_PARM_DESC);
++
++static struct platform_device *devices[BUS_COUNT_MAX];
++static unsigned int nr_devices;
++
++static void i2c_gpio_custom_cleanup(void)
++{
++	int i;
++
++	for (i = 0; i < nr_devices; i++)
++		if (devices[i])
++			platform_device_put(devices[i]);
++}
++
++static int __init i2c_gpio_custom_add_one(unsigned int id, unsigned int *params)
++{
++	struct platform_device *pdev;
++	struct i2c_gpio_platform_data pdata;
++	int err;
++
++	if (!bus_nump[id])
++		return 0;
++
++	if (bus_nump[id] < BUS_PARAM_REQUIRED) {
++		printk(KERN_ERR PFX "not enough parameters for bus%d\n", id);
++		err = -EINVAL;
++		goto err;
++	}
++
++	pdev = platform_device_alloc("i2c-gpio", params[BUS_PARAM_ID]);
++	if (!pdev) {
++		err = -ENOMEM;
++		goto err;
++	}
++
++	pdata.sda_pin = params[BUS_PARAM_SDA];
++	pdata.scl_pin = params[BUS_PARAM_SCL];
++	pdata.udelay = params[BUS_PARAM_UDELAY];
++	pdata.timeout = params[BUS_PARAM_TIMEOUT];
++	pdata.sda_is_open_drain = params[BUS_PARAM_SDA_OD] != 0;
++	pdata.scl_is_open_drain = params[BUS_PARAM_SCL_OD] != 0;
++	pdata.scl_is_output_only = params[BUS_PARAM_SCL_OO] != 0;
++
++	err = platform_device_add_data(pdev, &pdata, sizeof(pdata));
++	if (err)
++		goto err_put;
++
++	err = platform_device_add(pdev);
++	if (err)
++		goto err_put;
++
++	devices[nr_devices++] = pdev;
++	return 0;
++
++err_put:
++	platform_device_put(pdev);
++err:
++	return err;
++}
++
++static int __init i2c_gpio_custom_probe(void)
++{
++	int err;
++
++	printk(KERN_INFO DRV_DESC " version " DRV_VERSION "\n");
++
++	err = i2c_gpio_custom_add_one(0, bus0);
++	if (err) goto err;
++
++	err = i2c_gpio_custom_add_one(1, bus1);
++	if (err) goto err;
++
++	err = i2c_gpio_custom_add_one(2, bus2);
++	if (err) goto err;
++
++	err = i2c_gpio_custom_add_one(3, bus3);
++	if (err) goto err;
++
++	if (!nr_devices) {
++		printk(KERN_ERR PFX "no bus parameter(s) specified\n");
++		err = -ENODEV;
++		goto err;
++	}
++
++	return 0;
++
++err:
++	i2c_gpio_custom_cleanup();
++	return err;
++}
++
++#ifdef MODULE
++static int __init i2c_gpio_custom_init(void)
++{
++	return i2c_gpio_custom_probe();
++}
++module_init(i2c_gpio_custom_init);
++
++static void __exit i2c_gpio_custom_exit(void)
++{
++	i2c_gpio_custom_cleanup();
++}
++module_exit(i2c_gpio_custom_exit);
++#else
++subsys_initcall(i2c_gpio_custom_probe);
++#endif /* MODULE*/
++
++MODULE_LICENSE("GPL v2");
++MODULE_AUTHOR("Gabor Juhos <juhosg@openwrt.org >");
++MODULE_DESCRIPTION(DRV_DESC);
++MODULE_VERSION(DRV_VERSION);
+diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
+index b4cf691..567c177 100644
+--- a/drivers/mmc/host/Kconfig
++++ b/drivers/mmc/host/Kconfig
+@@ -241,3 +241,28 @@ config MMC_TMIO
+ 	help
+ 	  This provides support for the SD/MMC cell found in TC6393XB,
+ 	  T7L66XB and also ipaq ASIC3
++
++config GPIOMMC
++	tristate "MMC/SD over GPIO-based SPI"
++	depends on MMC && MMC_SPI && SPI_GPIO
++	help
++	  This driver hooks up the mmc_spi and spi_gpio modules so that
++	  MMC/SD cards can be used on a GPIO based bus by bitbanging
++	  the SPI protocol in software.
++
++	  This driver provides a configfs interface to dynamically create
++	  and destroy GPIO-based MMC/SD card devices. It also provides
++	  a platform device interface API.
++	  See Documentation/gpiommc.txt for details.
++
++	  The module will be called gpiommc.
++
++	  If unsure, say N.
++
++config GPIOMMC_CONFIGFS
++	bool
++	depends on GPIOMMC && CONFIGFS_FS
++	default y
++	help
++	  This option automatically enables configfs support for gpiommc
++	  if configfs is available.
+diff --git a/drivers/mmc/host/Makefile b/drivers/mmc/host/Makefile
+index 970a997..c579916 100644
+--- a/drivers/mmc/host/Makefile
++++ b/drivers/mmc/host/Makefile
+@@ -29,4 +29,5 @@ endif
+ obj-$(CONFIG_MMC_S3C)   	+= s3cmci.o
+ obj-$(CONFIG_MMC_SDRICOH_CS)	+= sdricoh_cs.o
+ obj-$(CONFIG_MMC_TMIO)		+= tmio_mmc.o
++obj-$(CONFIG_GPIOMMC)		+= gpiommc.o
+ 
+diff --git a/drivers/mmc/host/gpiommc.c b/drivers/mmc/host/gpiommc.c
+new file mode 100644
+index 0000000..13b1c5e
+--- /dev/null
++++ b/drivers/mmc/host/gpiommc.c
+@@ -0,0 +1,619 @@
++/*
++ * Driver an MMC/SD card on a bitbanging GPIO SPI bus.
++ * This module hooks up the mmc_spi and spi_gpio modules and also
++ * provides a configfs interface.
++ *
++ * Copyright 2008 Michael Buesch <mb@bu3sch.de>
++ *
++ * Licensed under the GNU/GPL. See COPYING for details.
++ */
++
++#include <linux/mmc/gpiommc.h>
++#include <linux/platform_device.h>
++#include <linux/list.h>
++#include <linux/mutex.h>
++#include <linux/spi/spi_gpio_old.h>
++#include <linux/configfs.h>
++#include <linux/gpio.h>
++#include <asm/atomic.h>
++
++
++#define PFX				"gpio-mmc: "
++
++
++struct gpiommc_device {
++	struct platform_device *pdev;
++	struct platform_device *spi_pdev;
++	struct spi_board_info boardinfo;
++};
++
++
++MODULE_DESCRIPTION("GPIO based MMC driver");
++MODULE_AUTHOR("Michael Buesch");
++MODULE_LICENSE("GPL");
++
++
++static int gpiommc_boardinfo_setup(struct spi_board_info *bi,
++				   struct spi_master *master,
++				   void *data)
++{
++	struct gpiommc_device *d = data;
++	struct gpiommc_platform_data *pdata = d->pdev->dev.platform_data;
++
++	/* Bind the SPI master to the MMC-SPI host driver. */
++	strlcpy(bi->modalias, "mmc_spi", sizeof(bi->modalias));
++
++	bi->max_speed_hz = pdata->max_bus_speed;
++	bi->bus_num = master->bus_num;
++	bi->mode = pdata->mode;
++
++	return 0;
++}
++
++static int gpiommc_probe(struct platform_device *pdev)
++{
++	struct gpiommc_platform_data *mmc_pdata = pdev->dev.platform_data;
++	struct spi_gpio_platform_data spi_pdata;
++	struct gpiommc_device *d;
++	int err;
++
++	err = -ENXIO;
++	if (!mmc_pdata)
++		goto error;
++
++#ifdef CONFIG_MMC_SPI_MODULE
++	err = request_module("mmc_spi");
++	if (err) {
++		printk(KERN_WARNING PFX
++		       "Failed to request mmc_spi module.\n");
++	}
++#endif /* CONFIG_MMC_SPI_MODULE */
++
++	/* Allocate the GPIO-MMC device */
++	err = -ENOMEM;
++	d = kzalloc(sizeof(*d), GFP_KERNEL);
++	if (!d)
++		goto error;
++	d->pdev = pdev;
++
++	/* Create the SPI-GPIO device */
++	d->spi_pdev = platform_device_alloc(SPI_GPIO_PLATDEV_NAME,
++					    spi_gpio_next_id());
++	if (!d->spi_pdev)
++		goto err_free_d;
++
++	memset(&spi_pdata, 0, sizeof(spi_pdata));
++	spi_pdata.pin_clk = mmc_pdata->pins.gpio_clk;
++	spi_pdata.pin_miso = mmc_pdata->pins.gpio_do;
++	spi_pdata.pin_mosi = mmc_pdata->pins.gpio_di;
++	spi_pdata.pin_cs = mmc_pdata->pins.gpio_cs;
++	spi_pdata.cs_activelow = mmc_pdata->pins.cs_activelow;
++	spi_pdata.no_spi_delay = mmc_pdata->no_spi_delay;
++	spi_pdata.boardinfo_setup = gpiommc_boardinfo_setup;
++	spi_pdata.boardinfo_setup_data = d;
++
++	err = platform_device_add_data(d->spi_pdev, &spi_pdata,
++				       sizeof(spi_pdata));
++	if (err)
++		goto err_free_pdev;
++	err = platform_device_add(d->spi_pdev);
++	if (err)
++		goto err_free_pdata;
++	platform_set_drvdata(pdev, d);
++
++	printk(KERN_INFO PFX "MMC-Card \"%s\" "
++	       "attached to GPIO pins di=%u, do=%u, clk=%u, cs=%u\n",
++	       mmc_pdata->name, mmc_pdata->pins.gpio_di,
++	       mmc_pdata->pins.gpio_do,
++	       mmc_pdata->pins.gpio_clk,
++	       mmc_pdata->pins.gpio_cs);
++
++	return 0;
++
++err_free_pdata:
++	kfree(d->spi_pdev->dev.platform_data);
++	d->spi_pdev->dev.platform_data = NULL;
++err_free_pdev:
++	platform_device_put(d->spi_pdev);
++err_free_d:
++	kfree(d);
++error:
++	return err;
++}
++
++static int gpiommc_remove(struct platform_device *pdev)
++{
++	struct gpiommc_device *d = platform_get_drvdata(pdev);
++	struct gpiommc_platform_data *pdata = d->pdev->dev.platform_data;
++
++	platform_device_unregister(d->spi_pdev);
++	printk(KERN_INFO PFX "GPIO based MMC-Card \"%s\" removed\n",
++	       pdata->name);
++	platform_device_put(d->spi_pdev);
++
++	return 0;
++}
++
++#ifdef CONFIG_GPIOMMC_CONFIGFS
++
++/* A device that was created through configfs */
++struct gpiommc_configfs_device {
++	struct config_item item;
++	/* The platform device, after registration. */
++	struct platform_device *pdev;
++	/* The configuration */
++	struct gpiommc_platform_data pdata;
++	/* Mutex to protect this structure */
++	struct mutex mutex;
++};
++
++#define GPIO_INVALID	-1
++
++static inline bool gpiommc_is_registered(struct gpiommc_configfs_device *dev)
++{
++	return (dev->pdev != NULL);
++}
++
++static inline struct gpiommc_configfs_device *ci_to_gpiommc(struct config_item *item)
++{
++	return item ? container_of(item, struct gpiommc_configfs_device, item) : NULL;
++}
++
++static struct configfs_attribute gpiommc_attr_DI = {
++	.ca_owner = THIS_MODULE,
++	.ca_name = "gpio_data_in",
++	.ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute gpiommc_attr_DO = {
++	.ca_owner = THIS_MODULE,
++	.ca_name = "gpio_data_out",
++	.ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute gpiommc_attr_CLK = {
++	.ca_owner = THIS_MODULE,
++	.ca_name = "gpio_clock",
++	.ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute gpiommc_attr_CS = {
++	.ca_owner = THIS_MODULE,
++	.ca_name = "gpio_chipselect",
++	.ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute gpiommc_attr_CS_activelow = {
++	.ca_owner = THIS_MODULE,
++	.ca_name = "gpio_chipselect_activelow",
++	.ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute gpiommc_attr_spimode = {
++	.ca_owner = THIS_MODULE,
++	.ca_name = "spi_mode",
++	.ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute gpiommc_attr_spidelay = {
++	.ca_owner = THIS_MODULE,
++	.ca_name = "spi_delay",
++	.ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute gpiommc_attr_max_bus_speed = {
++	.ca_owner = THIS_MODULE,
++	.ca_name = "max_bus_speed",
++	.ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute gpiommc_attr_register = {
++	.ca_owner = THIS_MODULE,
++	.ca_name = "register",
++	.ca_mode = S_IRUGO | S_IWUSR,
++};
++
++static struct configfs_attribute *gpiommc_config_attrs[] = {
++	&gpiommc_attr_DI,
++	&gpiommc_attr_DO,
++	&gpiommc_attr_CLK,
++	&gpiommc_attr_CS,
++	&gpiommc_attr_CS_activelow,
++	&gpiommc_attr_spimode,
++	&gpiommc_attr_spidelay,
++	&gpiommc_attr_max_bus_speed,
++	&gpiommc_attr_register,
++	NULL,
++};
++
++static ssize_t gpiommc_config_attr_show(struct config_item *item,
++					struct configfs_attribute *attr,
++					char *page)
++{
++	struct gpiommc_configfs_device *dev = ci_to_gpiommc(item);
++	ssize_t count = 0;
++	unsigned int gpio;
++	int err = 0;
++
++	mutex_lock(&dev->mutex);
++
++	if (attr == &gpiommc_attr_DI) {
++		gpio = dev->pdata.pins.gpio_di;
++		if (gpio == GPIO_INVALID)
++			count = snprintf(page, PAGE_SIZE, "not configured\n");
++		else
++			count = snprintf(page, PAGE_SIZE, "%u\n", gpio);
++		goto out;
++	}
++	if (attr == &gpiommc_attr_DO) {
++		gpio = dev->pdata.pins.gpio_do;
++		if (gpio == GPIO_INVALID)
++			count = snprintf(page, PAGE_SIZE, "not configured\n");
++		else
++			count = snprintf(page, PAGE_SIZE, "%u\n", gpio);
++		goto out;
++	}
++	if (attr == &gpiommc_attr_CLK) {
++		gpio = dev->pdata.pins.gpio_clk;
++		if (gpio == GPIO_INVALID)
++			count = snprintf(page, PAGE_SIZE, "not configured\n");
++		else
++			count = snprintf(page, PAGE_SIZE, "%u\n", gpio);
++		goto out;
++	}
++	if (attr == &gpiommc_attr_CS) {
++		gpio = dev->pdata.pins.gpio_cs;
++		if (gpio == GPIO_INVALID)
++			count = snprintf(page, PAGE_SIZE, "not configured\n");
++		else
++			count = snprintf(page, PAGE_SIZE, "%u\n", gpio);
++		goto out;
++	}
++	if (attr == &gpiommc_attr_CS_activelow) {
++		count = snprintf(page, PAGE_SIZE, "%u\n",
++				 dev->pdata.pins.cs_activelow);
++		goto out;
++	}
++	if (attr == &gpiommc_attr_spimode) {
++		count = snprintf(page, PAGE_SIZE, "%u\n",
++				 dev->pdata.mode);
++		goto out;
++	}
++	if (attr == &gpiommc_attr_spidelay) {
++		count = snprintf(page, PAGE_SIZE, "%u\n",
++				 !dev->pdata.no_spi_delay);
++		goto out;
++	}
++	if (attr == &gpiommc_attr_max_bus_speed) {
++		count = snprintf(page, PAGE_SIZE, "%u\n",
++				 dev->pdata.max_bus_speed);
++		goto out;
++	}
++	if (attr == &gpiommc_attr_register) {
++		count = snprintf(page, PAGE_SIZE, "%u\n",
++				 gpiommc_is_registered(dev));
++		goto out;
++	}
++	WARN_ON(1);
++	err = -ENOSYS;
++out:
++	mutex_unlock(&dev->mutex);
++
++	return err ? err : count;
++}
++
++static int gpiommc_do_register(struct gpiommc_configfs_device *dev,
++			       const char *name)
++{
++	int err;
++
++	if (gpiommc_is_registered(dev))
++		return 0;
++
++	if (!gpio_is_valid(dev->pdata.pins.gpio_di) ||
++	    !gpio_is_valid(dev->pdata.pins.gpio_do) ||
++	    !gpio_is_valid(dev->pdata.pins.gpio_clk) ||
++	    !gpio_is_valid(dev->pdata.pins.gpio_cs)) {
++		printk(KERN_ERR PFX
++		       "configfs: Invalid GPIO pin number(s)\n");
++		return -EINVAL;
++	}
++
++	strlcpy(dev->pdata.name, name,
++		sizeof(dev->pdata.name));
++
++	dev->pdev = platform_device_alloc(GPIOMMC_PLATDEV_NAME,
++					  gpiommc_next_id());
++	if (!dev->pdev)
++		return -ENOMEM;
++	err = platform_device_add_data(dev->pdev, &dev->pdata,
++				       sizeof(dev->pdata));
++	if (err) {
++		platform_device_put(dev->pdev);
++		return err;
++	}
++	err = platform_device_add(dev->pdev);
++	if (err) {
++		platform_device_put(dev->pdev);
++		return err;
++	}
++
++	return 0;
++}
++
++static void gpiommc_do_unregister(struct gpiommc_configfs_device *dev)
++{
++	if (!gpiommc_is_registered(dev))
++		return;
++
++	platform_device_unregister(dev->pdev);
++	dev->pdev = NULL;
++}
++
++static ssize_t gpiommc_config_attr_store(struct config_item *item,
++					 struct configfs_attribute *attr,
++					 const char *page, size_t count)
++{
++	struct gpiommc_configfs_device *dev = ci_to_gpiommc(item);
++	int err = -EINVAL;
++	unsigned long data;
++
++	mutex_lock(&dev->mutex);
++
++	if (attr == &gpiommc_attr_register) {
++		err = strict_strtoul(page, 10, &data);
++		if (err)
++			goto out;
++		err = -EINVAL;
++		if (data == 1)
++			err = gpiommc_do_register(dev, item->ci_name);
++		if (data == 0) {
++			gpiommc_do_unregister(dev);
++			err = 0;
++		}
++		goto out;
++	}
++
++	if (gpiommc_is_registered(dev)) {
++		/* The rest of the config parameters can only be set
++		 * as long as the device is not registered, yet. */
++		err = -EBUSY;
++		goto out;
++	}
++
++	if (attr == &gpiommc_attr_DI) {
++		err = strict_strtoul(page, 10, &data);
++		if (err)
++			goto out;
++		err = -EINVAL;
++		if (!gpio_is_valid(data))
++			goto out;
++		dev->pdata.pins.gpio_di = data;
++		err = 0;
++		goto out;
++	}
++	if (attr == &gpiommc_attr_DO) {
++		err = strict_strtoul(page, 10, &data);
++		if (err)
++			goto out;
++		err = -EINVAL;
++		if (!gpio_is_valid(data))
++			goto out;
++		dev->pdata.pins.gpio_do = data;
++		err = 0;
++		goto out;
++	}
++	if (attr == &gpiommc_attr_CLK) {
++		err = strict_strtoul(page, 10, &data);
++		if (err)
++			goto out;
++		err = -EINVAL;
++		if (!gpio_is_valid(data))
++			goto out;
++		dev->pdata.pins.gpio_clk = data;
++		err = 0;
++		goto out;
++	}
++	if (attr == &gpiommc_attr_CS) {
++		err = strict_strtoul(page, 10, &data);
++		if (err)
++			goto out;
++		err = -EINVAL;
++		if (!gpio_is_valid(data))
++			goto out;
++		dev->pdata.pins.gpio_cs = data;
++		err = 0;
++		goto out;
++	}
++	if (attr == &gpiommc_attr_CS_activelow) {
++		err = strict_strtoul(page, 10, &data);
++		if (err)
++			goto out;
++		err = -EINVAL;
++		if (data != 0 && data != 1)
++			goto out;
++		dev->pdata.pins.cs_activelow = data;
++		err = 0;
++		goto out;
++	}
++	if (attr == &gpiommc_attr_spimode) {
++		err = strict_strtoul(page, 10, &data);
++		if (err)
++			goto out;
++		err = -EINVAL;
++		switch (data) {
++		case 0:
++			dev->pdata.mode = SPI_MODE_0;
++			break;
++		case 1:
++			dev->pdata.mode = SPI_MODE_1;
++			break;
++		case 2:
++			dev->pdata.mode = SPI_MODE_2;
++			break;
++		case 3:
++			dev->pdata.mode = SPI_MODE_3;
++			break;
++		default:
++			goto out;
++		}
++		err = 0;
++		goto out;
++	}
++	if (attr == &gpiommc_attr_spidelay) {
++		err = strict_strtoul(page, 10, &data);
++		if (err)
++			goto out;
++		err = -EINVAL;
++		if (data != 0 && data != 1)
++			goto out;
++		dev->pdata.no_spi_delay = !data;
++		err = 0;
++		goto out;
++	}
++	if (attr == &gpiommc_attr_max_bus_speed) {
++		err = strict_strtoul(page, 10, &data);
++		if (err)
++			goto out;
++		err = -EINVAL;
++		if (data > UINT_MAX)
++			goto out;
++		dev->pdata.max_bus_speed = data;
++		err = 0;
++		goto out;
++	}
++	WARN_ON(1);
++	err = -ENOSYS;
++out:
++	mutex_unlock(&dev->mutex);
++
++	return err ? err : count;
++}
++
++static void gpiommc_config_item_release(struct config_item *item)
++{
++	struct gpiommc_configfs_device *dev = ci_to_gpiommc(item);
++
++	kfree(dev);
++}
++
++static struct configfs_item_operations gpiommc_config_item_ops = {
++	.release		= gpiommc_config_item_release,
++	.show_attribute		= gpiommc_config_attr_show,
++	.store_attribute	= gpiommc_config_attr_store,
++};
++
++static struct config_item_type gpiommc_dev_ci_type = {
++	.ct_item_ops	= &gpiommc_config_item_ops,
++	.ct_attrs	= gpiommc_config_attrs,
++	.ct_owner	= THIS_MODULE,
++};
++
++static struct config_item *gpiommc_make_item(struct config_group *group,
++					     const char *name)
++{
++	struct gpiommc_configfs_device *dev;
++
++	if (strlen(name) > GPIOMMC_MAX_NAMELEN) {
++		printk(KERN_ERR PFX "configfs: device name too long\n");
++		return NULL;
++	}
++
++	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
++	if (!dev)
++		return NULL;
++
++	mutex_init(&dev->mutex);
++	config_item_init_type_name(&dev->item, name,
++				   &gpiommc_dev_ci_type);
++
++	/* Assign default configuration */
++	dev->pdata.pins.gpio_di = GPIO_INVALID;
++	dev->pdata.pins.gpio_do = GPIO_INVALID;
++	dev->pdata.pins.gpio_clk = GPIO_INVALID;
++	dev->pdata.pins.gpio_cs = GPIO_INVALID;
++	dev->pdata.pins.cs_activelow = 1;
++	dev->pdata.mode = SPI_MODE_0;
++	dev->pdata.no_spi_delay = 0;
++	dev->pdata.max_bus_speed = 5000000; /* 5 MHz */
++
++	return &(dev->item);
++}
++
++static void gpiommc_drop_item(struct config_group *group,
++			      struct config_item *item)
++{
++	struct gpiommc_configfs_device *dev = ci_to_gpiommc(item);
++
++	gpiommc_do_unregister(dev);
++	kfree(dev);
++}
++
++static struct configfs_group_operations gpiommc_ct_group_ops = {
++	.make_item	= gpiommc_make_item,
++	.drop_item	= gpiommc_drop_item,
++};
++
++static struct config_item_type gpiommc_ci_type = {
++	.ct_group_ops	= &gpiommc_ct_group_ops,
++	.ct_owner	= THIS_MODULE,
++};
++
++static struct configfs_subsystem gpiommc_subsys = {
++	.su_group = {
++		.cg_item = {
++			.ci_namebuf = GPIOMMC_PLATDEV_NAME,
++			.ci_type = &gpiommc_ci_type,
++		},
++	},
++	.su_mutex = __MUTEX_INITIALIZER(gpiommc_subsys.su_mutex),
++};
++
++#endif /* CONFIG_GPIOMMC_CONFIGFS */
++
++static struct platform_driver gpiommc_plat_driver = {
++	.probe	= gpiommc_probe,
++	.remove	= gpiommc_remove,
++	.driver	= {
++		.name	= GPIOMMC_PLATDEV_NAME,
++		.owner	= THIS_MODULE,
++	},
++};
++
++int gpiommc_next_id(void)
++{
++	static atomic_t counter = ATOMIC_INIT(-1);
++
++	return atomic_inc_return(&counter);
++}
++EXPORT_SYMBOL(gpiommc_next_id);
++
++static int __init gpiommc_modinit(void)
++{
++	int err;
++
++	err = platform_driver_register(&gpiommc_plat_driver);
++	if (err)
++		return err;
++
++#ifdef CONFIG_GPIOMMC_CONFIGFS
++	config_group_init(&gpiommc_subsys.su_group);
++	err = configfs_register_subsystem(&gpiommc_subsys);
++	if (err) {
++		platform_driver_unregister(&gpiommc_plat_driver);
++		return err;
++	}
++#endif /* CONFIG_GPIOMMC_CONFIGFS */
++
++	return 0;
++}
++module_init(gpiommc_modinit);
++
++static void __exit gpiommc_modexit(void)
++{
++#ifdef CONFIG_GPIOMMC_CONFIGFS
++	configfs_unregister_subsystem(&gpiommc_subsys);
++#endif
++	platform_driver_unregister(&gpiommc_plat_driver);
++}
++module_exit(gpiommc_modexit);
+diff --git a/drivers/net/r6040.c b/drivers/net/r6040.c
+index 6f97b47..2ae020b 100644
+--- a/drivers/net/r6040.c
++++ b/drivers/net/r6040.c
+@@ -1079,6 +1079,8 @@ static int __devinit r6040_init_one(struct pci_dev *pdev,
+ 	long pioaddr;
+ 	u16 *adrp;
+ 
++	if (!card_idx) return 0;   // no 2nd nic
++	
+ 	printk(KERN_INFO "%s\n", version);
+ 
+ 	err = pci_enable_device(pdev);
+diff --git a/drivers/spi/Kconfig b/drivers/spi/Kconfig
+index 83a185d..cfbcae8 100644
+--- a/drivers/spi/Kconfig
++++ b/drivers/spi/Kconfig
+@@ -116,6 +116,15 @@ config SPI_GPIO
+ 	  GPIO operations, you should be able to leverage that for better
+ 	  speed with a custom version of this driver; see the source code.
+ 
++config SPI_GPIO_OLD
++	tristate "Old GPIO API based bitbanging SPI controller (DEPRECATED)"
++	depends on SPI_MASTER && GENERIC_GPIO
++	select SPI_BITBANG
++	help
++	  This code is deprecated. Please use the new mainline SPI-GPIO driver.
++
++	  If unsure, say N.
++
+ config SPI_IMX
+ 	tristate "Freescale iMX SPI controller"
+ 	depends on ARCH_IMX && EXPERIMENTAL
+diff --git a/drivers/spi/Makefile b/drivers/spi/Makefile
+index 5d04519..9eea3e9 100644
+--- a/drivers/spi/Makefile
++++ b/drivers/spi/Makefile
+@@ -17,6 +17,7 @@ obj-$(CONFIG_SPI_BITBANG)		+= spi_bitbang.o
+ obj-$(CONFIG_SPI_AU1550)		+= au1550_spi.o
+ obj-$(CONFIG_SPI_BUTTERFLY)		+= spi_butterfly.o
+ obj-$(CONFIG_SPI_GPIO)			+= spi_gpio.o
++obj-$(CONFIG_SPI_GPIO_OLD)		+= spi_gpio_old.o
+ obj-$(CONFIG_SPI_IMX)			+= spi_imx.o
+ obj-$(CONFIG_SPI_LM70_LLP)		+= spi_lm70llp.o
+ obj-$(CONFIG_SPI_PXA2XX)		+= pxa2xx_spi.o
+diff --git a/drivers/spi/spi_gpio_old.c b/drivers/spi/spi_gpio_old.c
+new file mode 100644
+index 0000000..d931229
+--- /dev/null
++++ b/drivers/spi/spi_gpio_old.c
+@@ -0,0 +1,251 @@
++/*
++ * Bitbanging SPI bus driver using GPIO API
++ *
++ * Copyright (c) 2008 Piotr Skamruk
++ * Copyright (c) 2008 Michael Buesch
++ *
++ * based on spi_s3c2410_gpio.c
++ *   Copyright (c) 2006 Ben Dooks
++ *   Copyright (c) 2006 Simtec Electronics
++ * and on i2c-gpio.c
++ *   Copyright (C) 2007 Atmel Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/delay.h>
++#include <linux/spinlock.h>
++#include <linux/workqueue.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/spi/spi.h>
++#include <linux/spi/spi_bitbang.h>
++#include <linux/spi/spi_gpio_old.h>
++#include <linux/gpio.h>
++#include <asm/atomic.h>
++
++
++struct spi_gpio {
++	struct spi_bitbang bitbang;
++	struct spi_gpio_platform_data *info;
++	struct platform_device *pdev;
++	struct spi_board_info bi;
++};
++
++
++static inline struct spi_gpio *spidev_to_sg(struct spi_device *dev)
++{
++	return dev->controller_data;
++}
++
++static inline void setsck(struct spi_device *dev, int val)
++{
++	struct spi_gpio *sp = spidev_to_sg(dev);
++	gpio_set_value(sp->info->pin_clk, val ? 1 : 0);
++}
++
++static inline void setmosi(struct spi_device *dev, int val)
++{
++	struct spi_gpio *sp = spidev_to_sg(dev);
++	gpio_set_value(sp->info->pin_mosi, val ? 1 : 0);
++}
++
++static inline u32 getmiso(struct spi_device *dev)
++{
++	struct spi_gpio *sp = spidev_to_sg(dev);
++	return gpio_get_value(sp->info->pin_miso) ? 1 : 0;
++}
++
++static inline void do_spidelay(struct spi_device *dev, unsigned nsecs)
++{
++	struct spi_gpio *sp = spidev_to_sg(dev);
++
++	if (!sp->info->no_spi_delay)
++		ndelay(nsecs);
++}
++
++#define spidelay(nsecs) do {					\
++	/* Steal the spi_device pointer from our caller.	\
++	 * The bitbang-API should probably get fixed here... */	\
++	do_spidelay(spi, nsecs);				\
++  } while (0)
++
++#define EXPAND_BITBANG_TXRX
++#include <linux/spi/spi_bitbang.h>
++
++static u32 spi_gpio_txrx_mode0(struct spi_device *spi,
++			       unsigned nsecs, u32 word, u8 bits)
++{
++	return bitbang_txrx_be_cpha0(spi, nsecs, 0, word, bits);
++}
++
++static u32 spi_gpio_txrx_mode1(struct spi_device *spi,
++			       unsigned nsecs, u32 word, u8 bits)
++{
++	return bitbang_txrx_be_cpha1(spi, nsecs, 0, word, bits);
++}
++
++static u32 spi_gpio_txrx_mode2(struct spi_device *spi,
++			       unsigned nsecs, u32 word, u8 bits)
++{
++	return bitbang_txrx_be_cpha0(spi, nsecs, 1, word, bits);
++}
++
++static u32 spi_gpio_txrx_mode3(struct spi_device *spi,
++			       unsigned nsecs, u32 word, u8 bits)
++{
++	return bitbang_txrx_be_cpha1(spi, nsecs, 1, word, bits);
++}
++
++static void spi_gpio_chipselect(struct spi_device *dev, int on)
++{
++	struct spi_gpio *sp = spidev_to_sg(dev);
++
++	if (sp->info->cs_activelow)
++		on = !on;
++	gpio_set_value(sp->info->pin_cs, on ? 1 : 0);
++}
++
++static int spi_gpio_probe(struct platform_device *pdev)
++{
++	struct spi_master *master;
++	struct spi_gpio_platform_data *pdata;
++	struct spi_gpio *sp;
++	struct spi_device *spidev;
++	int err;
++
++	pdata = pdev->dev.platform_data;
++	if (!pdata)
++		return -ENXIO;
++
++	err = -ENOMEM;
++	master = spi_alloc_master(&pdev->dev, sizeof(struct spi_gpio));
++	if (!master)
++		goto err_alloc_master;
++
++	sp = spi_master_get_devdata(master);
++	platform_set_drvdata(pdev, sp);
++	sp->info = pdata;
++
++	err = gpio_request(pdata->pin_clk, "spi_clock");
++	if (err)
++		goto err_request_clk;
++	err = gpio_request(pdata->pin_mosi, "spi_mosi");
++	if (err)
++		goto err_request_mosi;
++	err = gpio_request(pdata->pin_miso, "spi_miso");
++	if (err)
++		goto err_request_miso;
++	err = gpio_request(pdata->pin_cs, "spi_cs");
++	if (err)
++		goto err_request_cs;
++
++	sp->bitbang.master = spi_master_get(master);
++	sp->bitbang.master->bus_num = -1;
++	sp->bitbang.master->num_chipselect = 1;
++	sp->bitbang.chipselect = spi_gpio_chipselect;
++	sp->bitbang.txrx_word[SPI_MODE_0] = spi_gpio_txrx_mode0;
++	sp->bitbang.txrx_word[SPI_MODE_1] = spi_gpio_txrx_mode1;
++	sp->bitbang.txrx_word[SPI_MODE_2] = spi_gpio_txrx_mode2;
++	sp->bitbang.txrx_word[SPI_MODE_3] = spi_gpio_txrx_mode3;
++
++	gpio_direction_output(pdata->pin_clk, 0);
++	gpio_direction_output(pdata->pin_mosi, 0);
++	gpio_direction_output(pdata->pin_cs,
++			      pdata->cs_activelow ? 1 : 0);
++	gpio_direction_input(pdata->pin_miso);
++
++	err = spi_bitbang_start(&sp->bitbang);
++	if (err)
++		goto err_no_bitbang;
++	err = pdata->boardinfo_setup(&sp->bi, master,
++				     pdata->boardinfo_setup_data);
++	if (err)
++		goto err_bi_setup;
++	sp->bi.controller_data = sp;
++	spidev = spi_new_device(master, &sp->bi);
++	if (!spidev)
++		goto err_new_dev;
++
++	return 0;
++
++err_new_dev:
++err_bi_setup:
++	spi_bitbang_stop(&sp->bitbang);
++err_no_bitbang:
++	spi_master_put(sp->bitbang.master);
++	gpio_free(pdata->pin_cs);
++err_request_cs:
++	gpio_free(pdata->pin_miso);
++err_request_miso:
++	gpio_free(pdata->pin_mosi);
++err_request_mosi:
++	gpio_free(pdata->pin_clk);
++err_request_clk:
++	kfree(master);
++
++err_alloc_master:
++	return err;
++}
++
++static int __devexit spi_gpio_remove(struct platform_device *pdev)
++{
++	struct spi_gpio *sp;
++	struct spi_gpio_platform_data *pdata;
++
++	pdata = pdev->dev.platform_data;
++	sp = platform_get_drvdata(pdev);
++
++	gpio_free(pdata->pin_clk);
++	gpio_free(pdata->pin_mosi);
++	gpio_free(pdata->pin_miso);
++	gpio_free(pdata->pin_cs);
++	spi_bitbang_stop(&sp->bitbang);
++	spi_master_put(sp->bitbang.master);
++
++	return 0;
++}
++
++static struct platform_driver spi_gpio_driver = {
++	.driver		= {
++		.name	= SPI_GPIO_PLATDEV_NAME,
++		.owner	= THIS_MODULE,
++	},
++	.probe		= spi_gpio_probe,
++	.remove		= __devexit_p(spi_gpio_remove),
++};
++
++int spi_gpio_next_id(void)
++{
++	static atomic_t counter = ATOMIC_INIT(-1);
++
++	return atomic_inc_return(&counter);
++}
++EXPORT_SYMBOL(spi_gpio_next_id);
++
++static int __init spi_gpio_init(void)
++{
++	int err;
++
++	err = platform_driver_register(&spi_gpio_driver);
++	if (err)
++		printk(KERN_ERR "spi-gpio: register failed: %d\n", err);
++
++	return err;
++}
++module_init(spi_gpio_init);
++
++static void __exit spi_gpio_exit(void)
++{
++	platform_driver_unregister(&spi_gpio_driver);
++}
++module_exit(spi_gpio_exit);
++
++MODULE_AUTHOR("Piot Skamruk <piotr.skamruk at gmail.com>");
++MODULE_AUTHOR("Michael Buesch");
++MODULE_DESCRIPTION("Platform independent GPIO bitbanging SPI driver");
++MODULE_LICENSE("GPL v2");
+diff --git a/drivers/w1/masters/Kconfig b/drivers/w1/masters/Kconfig
+index 96d2f8e..a760b82 100644
+--- a/drivers/w1/masters/Kconfig
++++ b/drivers/w1/masters/Kconfig
+@@ -58,6 +58,17 @@ config W1_MASTER_GPIO
+ 	  This support is also available as a module.  If so, the module
+ 	  will be called w1-gpio.ko.
+ 
++config W1_MASTER_GPIO_CUSTOM
++	tristate "Set 1-wire pin from kernel command-line"
++	depends on W1_MASTER_GPIO
++	help
++	  Say Y here if you want to be able to configure the GPIO pins
++	  used by W1_MASTER_GPIO via kernel command-line or module 
++	  parameters.
++
++	  This support is also available as a module.  If so, the module
++	  will be called w1-gpio-custom.ko.
++
+ config HDQ_MASTER_OMAP
+ 	tristate "OMAP HDQ driver"
+ 	depends on ARCH_OMAP2430 || ARCH_OMAP34XX
+diff --git a/drivers/w1/masters/Makefile b/drivers/w1/masters/Makefile
+index c5a3e96..62702ab 100644
+--- a/drivers/w1/masters/Makefile
++++ b/drivers/w1/masters/Makefile
+@@ -9,4 +9,5 @@ obj-$(CONFIG_W1_MASTER_MXC)		+= mxc_w1.o
+ 
+ obj-$(CONFIG_W1_MASTER_DS1WM)		+= ds1wm.o
+ obj-$(CONFIG_W1_MASTER_GPIO)		+= w1-gpio.o
++obj-$(CONFIG_W1_MASTER_GPIO_CUSTOM)	+= w1-gpio-custom.o
+ obj-$(CONFIG_HDQ_MASTER_OMAP)		+= omap_hdq.o
+diff --git a/drivers/w1/masters/w1-gpio-custom.c b/drivers/w1/masters/w1-gpio-custom.c
+new file mode 100644
+index 0000000..3b41022
+--- /dev/null
++++ b/drivers/w1/masters/w1-gpio-custom.c
+@@ -0,0 +1,184 @@
++/*
++ *  Custom GPIO-based W1 driver
++ *
++ *  Copyright (C) 2007 Gabor Juhos <juhosg at openwrt.org>
++ *  Copyright (C) 2008 Bifferos <bifferos at yahoo.co.uk>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License version 2 as
++ *  published by the Free Software Foundation.
++ *
++ * ---------------------------------------------------------------------------
++ *
++ *  The behaviour of this driver can be altered by setting some parameters
++ *  from the insmod command line.
++ *
++ *  The following parameters are adjustable:
++ *
++ *	bus0	These four arguments must be arrays of
++ *	bus1	3 unsigned integers as follows:
++ *	bus2
++ *	bus3	<id>,<pin>,<od>
++ *
++ *  where:
++ *
++ *  <id>	ID to used as device_id for the corresponding bus (required)
++ *  <sda>	GPIO pin ID of data pin (required)
++ *  <od>	Pin is configured as open drain.
++ *
++ *  See include/w1-gpio.h for more information about the parameters.
++ *
++ *  If this driver is built into the kernel, you can use the following kernel
++ *  command line parameters, with the same values as the corresponding module
++ *  parameters listed above:
++ *
++ *	w1-gpio-custom.bus0
++ *	w1-gpio-custom.bus1
++ *	w1-gpio-custom.bus2
++ *	w1-gpio-custom.bus3
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++
++#include <linux/w1-gpio.h>
++
++#define DRV_NAME	"w1-gpio-custom"
++#define DRV_DESC	"Custom GPIO-based W1 driver"
++#define DRV_VERSION	"0.1.0"
++
++#define PFX		DRV_NAME ": "
++
++#define BUS_PARAM_ID		0
++#define BUS_PARAM_PIN		1
++#define BUS_PARAM_OD		2
++
++#define BUS_PARAM_REQUIRED	3
++#define BUS_PARAM_COUNT		3
++#define BUS_COUNT_MAX		4
++
++static unsigned int bus0[BUS_PARAM_COUNT] __initdata;
++static unsigned int bus1[BUS_PARAM_COUNT] __initdata;
++static unsigned int bus2[BUS_PARAM_COUNT] __initdata;
++static unsigned int bus3[BUS_PARAM_COUNT] __initdata;
++
++static unsigned int bus_nump[BUS_COUNT_MAX] __initdata;
++
++#define BUS_PARM_DESC " config -> id,pin,od"
++
++module_param_array(bus0, uint, &bus_nump[0], 0);
++MODULE_PARM_DESC(bus0, "bus0" BUS_PARM_DESC);
++module_param_array(bus1, uint, &bus_nump[1], 0);
++MODULE_PARM_DESC(bus1, "bus1" BUS_PARM_DESC);
++module_param_array(bus2, uint, &bus_nump[2], 0);
++MODULE_PARM_DESC(bus2, "bus2" BUS_PARM_DESC);
++module_param_array(bus3, uint, &bus_nump[3], 0);
++MODULE_PARM_DESC(bus3, "bus3" BUS_PARM_DESC);
++
++static struct platform_device *devices[BUS_COUNT_MAX];
++static unsigned int nr_devices;
++
++static void w1_gpio_custom_cleanup(void)
++{
++	int i;
++
++	for (i = 0; i < nr_devices; i++)
++		if (devices[i])
++			platform_device_put(devices[i]);
++}
++
++static int __init w1_gpio_custom_add_one(unsigned int id, unsigned int *params)
++{
++	struct platform_device *pdev;
++	struct w1_gpio_platform_data pdata;
++	int err;
++
++	if (!bus_nump[id])
++		return 0;
++
++	if (bus_nump[id] < BUS_PARAM_REQUIRED) {
++		printk(KERN_ERR PFX "not enough parameters for bus%d\n", id);
++		err = -EINVAL;
++		goto err_put;
++	}
++
++	
++	pdev = platform_device_alloc("w1-gpio", params[BUS_PARAM_ID]);
++	if (!pdev) {
++		err = -ENOMEM;
++		goto err_put;
++	}
++	
++	pdata.pin = params[BUS_PARAM_PIN];
++	pdata.is_open_drain = params[BUS_PARAM_OD] ? 1:0;
++
++	err = platform_device_add_data(pdev, &pdata, sizeof(pdata));
++	if (err)
++		goto err_put;
++
++	err = platform_device_add(pdev);
++	if (err)
++		goto err_put;
++
++	devices[nr_devices++] = pdev;
++
++	return 0;
++
++err_put:
++	return err;
++}
++
++static int __init w1_gpio_custom_probe(void)
++{
++	int err;
++
++	nr_devices = 0;
++	printk(KERN_INFO DRV_DESC " version " DRV_VERSION "\n");
++
++	err = w1_gpio_custom_add_one(0, bus0);
++	if (err) goto err;
++
++	err = w1_gpio_custom_add_one(1, bus1);
++	if (err) goto err;
++
++	err = w1_gpio_custom_add_one(2, bus2);
++	if (err) goto err;
++
++	err = w1_gpio_custom_add_one(3, bus3);
++	if (err) goto err;
++
++	if (!nr_devices) {
++		printk(KERN_ERR PFX "no bus parameter(s) specified\n");
++		err = -ENODEV;
++		goto err;
++	}
++
++	return 0;
++
++err:
++	w1_gpio_custom_cleanup();
++	return err;
++}
++
++#ifdef MODULE
++static int __init w1_gpio_custom_init(void)
++{
++	return w1_gpio_custom_probe();
++}
++module_init(w1_gpio_custom_init);
++
++static void __exit w1_gpio_custom_exit(void)
++{
++	w1_gpio_custom_cleanup();
++}
++module_exit(w1_gpio_custom_exit);
++#else
++subsys_initcall(w1_gpio_custom_probe);
++#endif /* MODULE*/
++
++MODULE_LICENSE("GPL v2");
++MODULE_AUTHOR("Bifferos <bifferos at yahoo.co.uk >");
++MODULE_DESCRIPTION(DRV_DESC);
++MODULE_VERSION(DRV_VERSION);
+diff --git a/drivers/w1/masters/w1-gpio.c b/drivers/w1/masters/w1-gpio.c
+index a411702..3c33c99 100644
+--- a/drivers/w1/masters/w1-gpio.c
++++ b/drivers/w1/masters/w1-gpio.c
+@@ -58,6 +58,7 @@ static int __init w1_gpio_probe(struct platform_device *pdev)
+ 	err = gpio_request(pdata->pin, "w1");
+ 	if (err)
+ 		goto free_master;
++	printk("w1 gpio_request: got pin %d\n", pdata->pin);
+ 
+ 	master->data = pdata;
+ 	master->read_bit = w1_gpio_read_bit;
+@@ -75,7 +76,7 @@ static int __init w1_gpio_probe(struct platform_device *pdev)
+ 		goto free_gpio;
+ 
+ 	platform_set_drvdata(pdev, master);
+-
++	printk("Probed w1-gpio OK\n");
+ 	return 0;
+ 
+  free_gpio:
+diff --git a/drivers/watchdog/rdc321x_wdt.c b/drivers/watchdog/rdc321x_wdt.c
+index 36e221b..11ccbcf 100644
+--- a/drivers/watchdog/rdc321x_wdt.c
++++ b/drivers/watchdog/rdc321x_wdt.c
+@@ -1,210 +1,78 @@
+ /*
+- * RDC321x watchdog driver
+- *
+- * Copyright (C) 2007 Florian Fainelli <florian@openwrt.org>
+- *
+- * This driver is highly inspired from the cpu5_wdt driver
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- *
++ * Trivial RDC321x hardware watchdog driver, by Bifferos, bifferos@yahoo.co.uk
++ * ~5 second timout.
+  */
+ 
+ #include <linux/module.h>
+-#include <linux/moduleparam.h>
+-#include <linux/types.h>
+-#include <linux/errno.h>
+ #include <linux/miscdevice.h>
+ #include <linux/fs.h>
+-#include <linux/init.h>
+-#include <linux/ioport.h>
+-#include <linux/timer.h>
+-#include <linux/completion.h>
+-#include <linux/jiffies.h>
+-#include <linux/platform_device.h>
+ #include <linux/watchdog.h>
+ #include <linux/io.h>
+-#include <linux/uaccess.h>
+ 
+-#include <asm/rdc321x_defs.h>
++#define PFX "rdc321x watchdog: "
+ 
+-#define RDC_WDT_MASK	0x80000000 /* Mask */
+-#define RDC_WDT_EN	0x00800000 /* Enable bit */
+-#define RDC_WDT_WTI	0x00200000 /* Generate CPU reset/NMI/WDT on timeout */
+-#define RDC_WDT_RST	0x00100000 /* Reset bit */
+-#define RDC_WDT_WIF	0x00040000 /* WDT IRQ Flag */
+-#define RDC_WDT_IRT	0x00000100 /* IRQ Routing table */
+-#define RDC_WDT_CNT	0x00000001 /* WDT count */
+-
+-#define RDC_CLS_TMR	0x80003844 /* Clear timer */
+-
+-#define RDC_WDT_INTERVAL	(HZ/10+1)
+-
+-static int ticks = 1000;
++/* 
++ * Experiment with other values lower than 7 for shorter delays 
++ * 7 works out at approx 5 seconds
++ */
++#define WDT_TIMEOUT (1<<7)
+ 
+-/* some device data */
++/* Also doubles as 'enable' */
++#define WDT_RESET (1<<23)|(1<<20)|(1<<19)|(1<<18)|WDT_TIMEOUT
+ 
+-static struct {
+-	struct completion stop;
+-	int running;
+-	struct timer_list timer;
+-	int queue;
+-	int default_ticks;
+-	unsigned long inuse;
+-	spinlock_t lock;
+-} rdc321x_wdt_device;
++/* Write this value to disable */
++#define WDT_DISABLE (1<<20)|(1<<19)|(1<<18)|WDT_TIMEOUT
+ 
+-/* generic helper functions */
++static spinlock_t g_lock;
+ 
+-static void rdc321x_wdt_trigger(unsigned long unused)
++static inline void wdt_write(u32 val)
+ {
+ 	unsigned long flags;
+-
+-	if (rdc321x_wdt_device.running)
+-		ticks--;
+-
+-	/* keep watchdog alive */
+-	spin_lock_irqsave(&rdc321x_wdt_device.lock, flags);
+-	outl(RDC_WDT_EN | inl(RDC3210_CFGREG_DATA),
+-		RDC3210_CFGREG_DATA);
+-	spin_unlock_irqrestore(&rdc321x_wdt_device.lock, flags);
+-
+-	/* requeue?? */
+-	if (rdc321x_wdt_device.queue && ticks)
+-		mod_timer(&rdc321x_wdt_device.timer,
+-				jiffies + RDC_WDT_INTERVAL);
+-	else {
+-		/* ticks doesn't matter anyway */
+-		complete(&rdc321x_wdt_device.stop);
+-	}
+-
++	spin_lock_irqsave(&g_lock, flags);
++	outl(0x80003844, 0xcf8);
++	outl(val, 0xcfc);
++	spin_unlock_irqrestore(&g_lock, flags);
+ }
+ 
+-static void rdc321x_wdt_reset(void)
+-{
+-	ticks = rdc321x_wdt_device.default_ticks;
+-}
+-
+-static void rdc321x_wdt_start(void)
++static inline u32 wdt_read(void)
+ {
+ 	unsigned long flags;
+-
+-	if (!rdc321x_wdt_device.queue) {
+-		rdc321x_wdt_device.queue = 1;
+-
+-		/* Clear the timer */
+-		spin_lock_irqsave(&rdc321x_wdt_device.lock, flags);
+-		outl(RDC_CLS_TMR, RDC3210_CFGREG_ADDR);
+-
+-		/* Enable watchdog and set the timeout to 81.92 us */
+-		outl(RDC_WDT_EN | RDC_WDT_CNT, RDC3210_CFGREG_DATA);
+-		spin_unlock_irqrestore(&rdc321x_wdt_device.lock, flags);
+-
+-		mod_timer(&rdc321x_wdt_device.timer,
+-				jiffies + RDC_WDT_INTERVAL);
+-	}
+-
+-	/* if process dies, counter is not decremented */
+-	rdc321x_wdt_device.running++;
++	u32 ret;
++	spin_lock_irqsave(&g_lock, flags);
++	outl(0x80003844, 0xcf8);
++	ret = inl(0xcfc);
++	spin_unlock_irqrestore(&g_lock, flags);
++	return ret;
+ }
+ 
+-static int rdc321x_wdt_stop(void)
+-{
+-	if (rdc321x_wdt_device.running)
+-		rdc321x_wdt_device.running = 0;
+-
+-	ticks = rdc321x_wdt_device.default_ticks;
+-
+-	return -EIO;
+-}
+ 
+-/* filesystem operations */
+ static int rdc321x_wdt_open(struct inode *inode, struct file *file)
+ {
+-	if (test_and_set_bit(0, &rdc321x_wdt_device.inuse))
+-		return -EBUSY;
+-
++	wdt_write(WDT_RESET);
+ 	return nonseekable_open(inode, file);
+ }
+ 
+-static int rdc321x_wdt_release(struct inode *inode, struct file *file)
+-{
+-	clear_bit(0, &rdc321x_wdt_device.inuse);
+-	return 0;
+-}
+-
+-static long rdc321x_wdt_ioctl(struct file *file, unsigned int cmd,
+-				unsigned long arg)
+-{
+-	void __user *argp = (void __user *)arg;
+-	unsigned int value;
+-	static struct watchdog_info ident = {
+-		.options = WDIOF_CARDRESET,
+-		.identity = "RDC321x WDT",
+-	};
+-	unsigned long flags;
+-
+-	switch (cmd) {
+-	case WDIOC_KEEPALIVE:
+-		rdc321x_wdt_reset();
+-		break;
+-	case WDIOC_GETSTATUS:
+-		/* Read the value from the DATA register */
+-		spin_lock_irqsave(&rdc321x_wdt_device.lock, flags);
+-		value = inl(RDC3210_CFGREG_DATA);
+-		spin_unlock_irqrestore(&rdc321x_wdt_device.lock, flags);
+-		if (copy_to_user(argp, &value, sizeof(int)))
+-			return -EFAULT;
+-		break;
+-	case WDIOC_GETSUPPORT:
+-		if (copy_to_user(argp, &ident, sizeof(ident)))
+-			return -EFAULT;
+-		break;
+-	case WDIOC_SETOPTIONS:
+-		if (copy_from_user(&value, argp, sizeof(int)))
+-			return -EFAULT;
+-		switch (value) {
+-		case WDIOS_ENABLECARD:
+-			rdc321x_wdt_start();
+-			break;
+-		case WDIOS_DISABLECARD:
+-			return rdc321x_wdt_stop();
+-		default:
+-			return -EINVAL;
+-		}
+-		break;
+-	default:
+-		return -ENOTTY;
+-	}
+-	return 0;
+-}
+ 
+ static ssize_t rdc321x_wdt_write(struct file *file, const char __user *buf,
+ 				size_t count, loff_t *ppos)
+ {
+ 	if (!count)
+ 		return -EIO;
+-
+-	rdc321x_wdt_reset();
+-
++	wdt_write(WDT_RESET);
+ 	return count;
+ }
+ 
++static int rdc321x_wdt_release(struct inode *inode, struct file *file)
++{
++#ifndef CONFIG_WATCHDOG_NOWAYOUT
++	wdt_write(WDT_DISABLE);
++#endif
++	return 0;
++}
++
+ static const struct file_operations rdc321x_wdt_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= no_llseek,
+-	.unlocked_ioctl	= rdc321x_wdt_ioctl,
+ 	.open		= rdc321x_wdt_open,
+ 	.write		= rdc321x_wdt_write,
+ 	.release	= rdc321x_wdt_release,
+@@ -216,70 +84,42 @@ static struct miscdevice rdc321x_wdt_misc = {
+ 	.fops	= &rdc321x_wdt_fops,
+ };
+ 
+-static int __devinit rdc321x_wdt_probe(struct platform_device *pdev)
++static int __init rdc321x_wdt_init(void)
+ {
+-	int err;
+-
+-	err = misc_register(&rdc321x_wdt_misc);
++	unsigned long flags;
++	u32 tmp;
++	int err = misc_register(&rdc321x_wdt_misc);
+ 	if (err < 0) {
+-		printk(KERN_ERR PFX "watchdog misc_register failed\n");
++		printk(KERN_ERR PFX "misc_register failed\n");
+ 		return err;
+ 	}
+ 
+-	spin_lock_init(&rdc321x_wdt_device.lock);
+-
+-	/* Reset the watchdog */
+-	outl(RDC_WDT_RST, RDC3210_CFGREG_DATA);
+-
+-	init_completion(&rdc321x_wdt_device.stop);
+-	rdc321x_wdt_device.queue = 0;
+-
+-	clear_bit(0, &rdc321x_wdt_device.inuse);
+-
+-	setup_timer(&rdc321x_wdt_device.timer, rdc321x_wdt_trigger, 0);
+-
+-	rdc321x_wdt_device.default_ticks = ticks;
+-
+-	printk(KERN_INFO PFX "watchdog init success\n");
+-
+-	return 0;
+-}
+-
+-static int rdc321x_wdt_remove(struct platform_device *pdev)
+-{
+-	if (rdc321x_wdt_device.queue) {
+-		rdc321x_wdt_device.queue = 0;
+-		wait_for_completion(&rdc321x_wdt_device.stop);
+-	}
+-
+-	misc_deregister(&rdc321x_wdt_misc);
+-
++	spin_lock_init(&g_lock);
++	
++	spin_lock_irqsave(&g_lock, flags);
++	outl(0x80003840, 0xcf8);
++	tmp = inl(0xcfc);
++	/* link PCIRST_n to soft reset, so something actually happens 
++	 * when the WDT fires!
++	 */
++	tmp |= 0x1000;  
++	outl(tmp, 0xcfc);
++	spin_unlock_irqrestore(&g_lock, flags);
++	
++	pr_info(PFX "Loaded\n");
+ 	return 0;
+ }
+ 
+-static struct platform_driver rdc321x_wdt_driver = {
+-	.probe = rdc321x_wdt_probe,
+-	.remove = rdc321x_wdt_remove,
+-	.driver = {
+-		.owner = THIS_MODULE,
+-		.name = "rdc321x-wdt",
+-	},
+-};
+-
+-static int __init rdc321x_wdt_init(void)
+-{
+-	return platform_driver_register(&rdc321x_wdt_driver);
+-}
+-
+ static void __exit rdc321x_wdt_exit(void)
+ {
+-	platform_driver_unregister(&rdc321x_wdt_driver);
++	misc_deregister(&rdc321x_wdt_misc);
++	pr_info(PFX "Unloaded\n");
+ }
+ 
+ module_init(rdc321x_wdt_init);
+ module_exit(rdc321x_wdt_exit);
+ 
+-MODULE_AUTHOR("Florian Fainelli <florian@openwrt.org>");
++MODULE_AUTHOR("Bifferos <bifferos@yahoo.co.uk>");
+ MODULE_DESCRIPTION("RDC321x watchdog driver");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
+diff --git a/include/linux/mmc/gpiommc.h b/include/linux/mmc/gpiommc.h
+new file mode 100644
+index 0000000..5c11b09
+--- /dev/null
++++ b/include/linux/mmc/gpiommc.h
+@@ -0,0 +1,71 @@
++/*
++ * Device driver for MMC/SD cards driven over a GPIO bus.
++ *
++ * Copyright (c) 2008 Michael Buesch
++ *
++ * Licensed under the GNU/GPL version 2.
++ */
++#ifndef LINUX_GPIOMMC_H_
++#define LINUX_GPIOMMC_H_
++
++#include <linux/types.h>
++
++
++#define GPIOMMC_MAX_NAMELEN		15
++#define GPIOMMC_MAX_NAMELEN_STR		__stringify(GPIOMMC_MAX_NAMELEN)
++
++/**
++ * struct gpiommc_pins - Hardware pin assignments
++ *
++ * @gpio_di: The GPIO number of the DATA IN pin
++ * @gpio_do: The GPIO number of the DATA OUT pin
++ * @gpio_clk: The GPIO number of the CLOCK pin
++ * @gpio_cs: The GPIO number of the CHIPSELECT pin
++ * @cs_activelow: If true, the chip is considered selected if @gpio_cs is low.
++ */
++struct gpiommc_pins {
++	unsigned int gpio_di;
++	unsigned int gpio_do;
++	unsigned int gpio_clk;
++	unsigned int gpio_cs;
++	bool cs_activelow;
++};
++
++/**
++ * struct gpiommc_platform_data - Platform data for a MMC-over-SPI-GPIO device.
++ *
++ * @name: The unique name string of the device.
++ * @pins: The hardware pin assignments.
++ * @mode: The hardware mode. This is either SPI_MODE_0,
++ *        SPI_MODE_1, SPI_MODE_2 or SPI_MODE_3. See the SPI documentation.
++ * @no_spi_delay: Do not use delays in the lowlevel SPI bitbanging code.
++ *                This is not standards compliant, but may be required for some
++ *                embedded machines to gain reasonable speed.
++ * @max_bus_speed: The maximum speed of the SPI bus, in Hertz.
++ */
++struct gpiommc_platform_data {
++	char name[GPIOMMC_MAX_NAMELEN + 1];
++	struct gpiommc_pins pins;
++	u8 mode;
++	bool no_spi_delay;
++	unsigned int max_bus_speed;
++};
++
++/**
++ * GPIOMMC_PLATDEV_NAME - The platform device name string.
++ *
++ * The name string that has to be used for platform_device_alloc
++ * when allocating a gpiommc device.
++ */
++#define GPIOMMC_PLATDEV_NAME	"gpiommc"
++
++/**
++ * gpiommc_next_id - Get another platform device ID number.
++ *
++ * This returns the next platform device ID number that has to be used
++ * for platform_device_alloc. The ID is opaque and should not be used for
++ * anything else.
++ */
++int gpiommc_next_id(void);
++
++#endif /* LINUX_GPIOMMC_H_ */
+diff --git a/include/linux/spi/spi_gpio_old.h b/include/linux/spi/spi_gpio_old.h
+new file mode 100644
+index 0000000..5fc2cd6
+--- /dev/null
++++ b/include/linux/spi/spi_gpio_old.h
+@@ -0,0 +1,73 @@
++/*
++ * spi_gpio interface to platform code
++ *
++ * Copyright (c) 2008 Piotr Skamruk
++ * Copyright (c) 2008 Michael Buesch
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#ifndef _LINUX_SPI_SPI_GPIO
++#define _LINUX_SPI_SPI_GPIO
++
++#include <linux/types.h>
++#include <linux/spi/spi.h>
++
++
++/**
++ * struct spi_gpio_platform_data - Data definitions for a SPI-GPIO device.
++ *
++ * This structure holds information about a GPIO-based SPI device.
++ *
++ * @pin_clk: The GPIO pin number of the CLOCK pin.
++ *
++ * @pin_miso: The GPIO pin number of the MISO pin.
++ *
++ * @pin_mosi: The GPIO pin number of the MOSI pin.
++ *
++ * @pin_cs: The GPIO pin number of the CHIPSELECT pin.
++ *
++ * @cs_activelow: If true, the chip is selected when the CS line is low.
++ *
++ * @no_spi_delay: If true, no delay is done in the lowlevel bitbanging.
++ *                Note that doing no delay is not standards compliant,
++ *                but it might be needed to speed up transfers on some
++ *                slow embedded machines.
++ *
++ * @boardinfo_setup: This callback is called after the
++ *                   SPI master device was registered, but before the
++ *                   device is registered.
++ * @boardinfo_setup_data: Data argument passed to boardinfo_setup().
++ */
++struct spi_gpio_platform_data {
++	unsigned int pin_clk;
++	unsigned int pin_miso;
++	unsigned int pin_mosi;
++	unsigned int pin_cs;
++	bool cs_activelow;
++	bool no_spi_delay;
++	int (*boardinfo_setup)(struct spi_board_info *bi,
++			       struct spi_master *master,
++			       void *data);
++	void *boardinfo_setup_data;
++};
++
++/**
++ * SPI_GPIO_PLATDEV_NAME - The platform device name string.
++ *
++ * The name string that has to be used for platform_device_alloc
++ * when allocating a spi-gpio device.
++ */
++#define SPI_GPIO_PLATDEV_NAME	"spi-gpio"
++
++/**
++ * spi_gpio_next_id - Get another platform device ID number.
++ *
++ * This returns the next platform device ID number that has to be used
++ * for platform_device_alloc. The ID is opaque and should not be used for
++ * anything else.
++ */
++int spi_gpio_next_id(void);
++
++#endif /* _LINUX_SPI_SPI_GPIO */
+diff --git a/init/do_mounts.c b/init/do_mounts.c
+index dd7ee5f..b6f31ae 100644
+--- a/init/do_mounts.c
++++ b/init/do_mounts.c
+@@ -352,10 +352,15 @@ void __init mount_root(void)
+ 			change_floppy("root floppy");
+ 	}
+ #endif
++/* Biff: Maybe INITRD should take precedence over other root devices if 
++         configured?
++*/
++#ifndef CONFIG_BLK_DEV_INITRD
+ #ifdef CONFIG_BLOCK
+ 	create_dev("/dev/root", ROOT_DEV);
+ 	mount_block_root("/dev/root", root_mountflags);
+ #endif
++#endif
+ }
+ 
+ /*

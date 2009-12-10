@@ -1,0 +1,143 @@
+From 2c668a2ff992af3155181da650c88f768c313022 Mon Sep 17 00:00:00 2001
+From: root <root@cent.localnet>
+Date: Sun, 6 Dec 2009 20:08:13 +0000
+Subject: [PATCH 14/14] diagnostic LED flipper
+
+---
+ arch/x86/boot/compressed/head_32.S |   35 +++++++++++++++++++++++++++++++++++
+ arch/x86/kernel/early_printk.c     |    9 +++++++++
+ kernel/printk.c                    |   33 ++++++++++++++++++++++++++++++++-
+ 3 files changed, 76 insertions(+), 1 deletions(-)
+
+diff --git a/arch/x86/boot/compressed/head_32.S b/arch/x86/boot/compressed/head_32.S
+index f543b70..660a64d 100644
+--- a/arch/x86/boot/compressed/head_32.S
++++ b/arch/x86/boot/compressed/head_32.S
+@@ -32,6 +32,40 @@
+ 
+ 	__HEAD
+ ENTRY(startup_32)
++	/*
++	 * Switch on the LED as the first thing we do eax appears free, as 
++	 * does dx, hope nobody minds if we trash them here.
++	 */
++
++#define RDC_CONTROL 0x80003848
++#define RDC_DATA    0x8000384c
++#define BIFF_LED    (1<<16)
++	
++	/* select control register */
++	movl	$RDC_CONTROL, %eax
++	mov	$0xcf8, %dx
++	outl	%eax, %dx
++
++	/* Set LED line to GPIO */
++	mov	$0xcfc, %dx
++	inl	%dx, %eax
++	orl	$BIFF_LED, %eax
++	outl	%eax, %dx
++
++	/* Select data register */
++	movl	$RDC_DATA, %eax
++	mov	$0xcf8, %dx
++	outl	%eax, %dx
++
++	/* Pull only led low */
++	movl	$~BIFF_LED, %eax
++	mov	$0xcfc, %dx
++	outl	%eax, %dx
++
++	/*
++	 * All that, just to switch a LED on!  :).
++	 */
++
+ 	cld
+ 	/*
+ 	 * Test KEEP_SEGMENTS flag to see if the bootloader is asking
+@@ -41,6 +75,7 @@ ENTRY(startup_32)
+ 	jnz	1f
+ 
+ 	cli
++
+ 	movl	$__BOOT_DS, %eax
+ 	movl	%eax, %ds
+ 	movl	%eax, %es
+diff --git a/arch/x86/kernel/early_printk.c b/arch/x86/kernel/early_printk.c
+index b9c830c..05fd111 100644
+--- a/arch/x86/kernel/early_printk.c
++++ b/arch/x86/kernel/early_printk.c
+@@ -93,11 +93,20 @@ static int early_serial_putc(unsigned char ch)
+ 	return timeout ? 0 : -1;
+ }
+ 
++
++void bifferboard_led_flipper(void);
++//extern(bifferboard_led_flipper);
++
+ static void early_serial_write(struct console *con, const char *s, unsigned n)
+ {
+ 	while (*s && n-- > 0) {
+ 		if (*s == '\n')
++		{
+ 			early_serial_putc('\r');
++#ifdef CONFIG_X86_RDC321X
++			bifferboard_led_flipper();
++#endif
++		}
+ 		early_serial_putc(*s);
+ 		s++;
+ 	}
+diff --git a/kernel/printk.c b/kernel/printk.c
+index f38b07f..daa7613 100644
+--- a/kernel/printk.c
++++ b/kernel/printk.c
+@@ -564,6 +564,35 @@ static int have_callable_console(void)
+ 	return 0;
+ }
+ 
++
++/* Flip the state of the LED every other line of output 
++ * to tell the user something is happening.
++ */
++
++#define RDC_CONTROL 0x80003848
++#define RDC_DATA    0x8000384c
++#define BIFF_LED    (1<<16)
++
++void bifferboard_led_flipper(void)
++{
++	static int led_state = 0;
++	ulong gpio_state;
++	outl(RDC_CONTROL, 0xcf8);  /* select control register */
++	gpio_state = inl(0xcfc);
++	outl(gpio_state|BIFF_LED, 0xcfc);  /* ensure LED pin is GPIO */
++
++	outl(RDC_DATA, 0xcf8);  /* select data register */
++	
++	if (led_state) {
++		led_state = 0;
++		outl(~BIFF_LED, 0xcfc);  /* LED pin is low (LED on) */
++	} else {
++		led_state = 1;
++		outl(0xffffffff, 0xcfc);  /* All pins as input (LED off) */
++	}
++}
++
++
+ /**
+  * printk - print a kernel message
+  * @fmt: format string
+@@ -594,7 +623,9 @@ asmlinkage int printk(const char *fmt, ...)
+ 	va_start(args, fmt);
+ 	r = vprintk(fmt, args);
+ 	va_end(args);
+-
++#ifdef CONFIG_X86_RDC321X
++	bifferboard_led_flipper();
++#endif
+ 	return r;
+ }
+ 
+-- 
+1.6.4
+
