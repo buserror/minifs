@@ -3,7 +3,7 @@
 TARGET_ARCH=arm
 TARGET_FULL_ARCH=$TARGET_ARCH-minifs-linux-uclibcgnueabi
 TARGET_KERNEL_NAME=uImage
-TARGET_CFLAGS="-O3 -march=armv4t -mtune=arm920t"
+TARGET_CFLAGS="-Os -march=armv4t -mtune=arm920t -mthumb-interwork -mthumb "
 
 function board_prepare() {
 	true
