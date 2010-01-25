@@ -1,0 +1,11 @@
+diff -ru crosstool.orig/scripts/crosstool-NG.sh.in crosstool-ng-1.5.3/scripts/crosstool-NG.sh.in
+--- crosstool.orig/scripts/crosstool-NG.sh.in	2010-01-09 17:37:14.000000000 +0000
++++ crosstool-ng-1.5.3/scripts/crosstool-NG.sh.in	2010-01-25 12:27:15.000000000 +0000
+@@ -449,6 +449,7 @@
+     # Some makeinfo versions are a pain in [put your most sensible body part here].
+     # Go ahead with those, by creating a wrapper that keeps partial files, and that
+     # never fails:
++    rm -f "${CT_PREFIX_DIR}/buildtools/makeinfo"
+     CT_DoLog DEBUG "  'makeinfo' -> '$(CT_Which makeinfo)'"
+     printf "#${BANG}${CT_SHELL}\n$(CT_Which makeinfo) --force \"\${@}\"\ntrue\n" >"${CT_PREFIX_DIR}/buildtools/makeinfo"
+     CT_DoExecLog ALL chmod 700 "${CT_PREFIX_DIR}/buildtools/makeinfo"

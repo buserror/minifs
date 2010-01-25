@@ -32,7 +32,7 @@
 # this is the board we are making. Several boards can co-exist, the toolchains
 # are "compatible" and live in the toolchain/ subdirectory. Several board of the
 # same arch can also coexist, sharing the same toolchain
-TARGET_BOARD="mini2440"
+TARGET_BOARD="df3120"
 
 COMMAND=$1
 
@@ -67,8 +67,8 @@ rm -rf "$ROOTFS"/*
 pushd download
 
 VERSION_busybox=1.15.2
-VERSION_linux=2.6.32
-VERSION_crosstools=1.5.2
+VERSION_linux=2.6.32.2
+VERSION_crosstools=1.5.3
 
 url=(
 	"http://busybox.net/downloads/busybox-${VERSION_busybox}.tar.bz2" 
@@ -186,8 +186,14 @@ if [ ! -f "$GCC" ]; then
 	fi
 	pushd "$BUILD"/toolchain
 		cp config_crosstools.conf .config
-		"$STAGING"/bin/ct-ng build.4
+		"$STAGING"/bin/ct-ng build
+		#"$STAGING"/bin/ct-ng build.4
 	popd
+fi
+
+if [ ! -f "$GCC" ]; then 
+	echo "GCC doesn't exists!!"
+	exit 1
 fi
 
 echo "####  Building kernel modules"
