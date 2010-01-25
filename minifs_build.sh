@@ -62,6 +62,12 @@ mkdir -p download "$KERNEL" "$ROOTFS" "$STAGING" toolchain
 # Allways regenerate the rootfs
 rm -rf "$ROOTFS"/* 
 
+TARGET_INITRD=1
+TARGET_FS_MIN_SQUASH=0
+TARGET_FS_MIN_EXT=0
+TARGET_FS_SQUASH=1
+TARGET_FS_EXT=1
+
 # 
 # Download stuff, decompresses, install and patch
 pushd download
@@ -257,10 +263,16 @@ pushd "$BUILD"/busybox
 popd
 
 echo "#### Copying files"
-rsync -a "$KERNEL"/lib "$ROOTFS/"
 rsync -a files/ "$ROOTFS/"
+if [ -d "$CONFIG/files" ]; then
+	echo "#### Installing overrides"
+	(cd "$CONFIG/files"; tar cf - .)|(cd "$ROOTFS"; tar xf -)
+fi
 echo "#### Striping"
-find "$ROOTFS"/lib/modules/ -name \*.ko | xargs "${CROSS}-strip" -R .note -R .comment --strip-unneeded
+if [ -d "$ROOTFS"/lib/modules/ ]; then
+	rsync -a "$KERNEL"/lib "$ROOTFS/"
+	find "$ROOTFS"/lib/modules/ -name \*.ko | xargs "${CROSS}-strip" -R .note -R .comment --strip-unneeded
+fi
 "${CROSS}-strip" "$ROOTFS"/bin/* "$ROOTFS"/sbin/* "$ROOTFS"/usr/bin/* 2>/dev/null
 
 #######################################################################
@@ -270,16 +282,19 @@ find "$ROOTFS"/lib/modules/ -name \*.ko | xargs "${CROSS}-strip" -R .note -R .co
 echo "#### Generating root filesystems"
 
 rm -f "$BUILD"/minifs*.img
-
-mksquashfs "$ROOTFS" "$BUILD"/minifs-squashfs.img \
-	-all-root \
-	-pf "$BUILD"/special_file_table.txt
-genext2fs -d "$ROOTFS" \
-	-U \
-	-D "$BUILD"/special_file_table.txt \
-	-b 8192 \
-	"$BUILD"/minifs-ext.img &&
-		$TUNEFS -j "$BUILD"/minifs-ext.img
+if [ $TARGET_FS_MIN_SQUASH = 1 ]; then
+	mksquashfs "$ROOTFS" "$BUILD"/minifs-squashfs.img \
+		-all-root \
+		-pf "$BUILD"/special_file_table.txt
+fi
+if [ $TARGET_FS_MIN_EXT = 1 ]; then
+	genext2fs -d "$ROOTFS" \
+		-U \
+		-D "$BUILD"/special_file_table.txt \
+		-b 8192 \
+		"$BUILD"/minifs-ext.img &&
+			$TUNEFS -j "$BUILD"/minifs-ext.img
+fi
 
 echo "#### Generating Bare Kernel"
 pushd "$BUILD"/linux
@@ -301,11 +316,13 @@ pushd "$BUILD"/linux
 			of="$BUILD"/kernel.ub \
 			bs=128k conv=sync
 
-		mkimage -A $TARGET_ARCH -O linux -T multi -C none \
-			-a 0x30008000 -e 0x30008000 \
-			-n "kernel and squashfs initrd" \
-			-d "$BUILD/linux-obj/arch/$TARGET_ARCH/boot/zImage:$BUILD/minifs-squashfs.img" \
-				"$BUILD"/kernel-squashfs.ub
+		if [ $TARGET_FS_MIN_SQUASH = 1 ]; then
+			mkimage -A $TARGET_ARCH -O linux -T multi -C none \
+				-a 0x30008000 -e 0x30008000 \
+				-n "kernel and squashfs initrd" \
+				-d "$BUILD/linux-obj/arch/$TARGET_ARCH/boot/zImage:$BUILD/minifs-squashfs.img" \
+					"$BUILD"/kernel-squashfs.ub
+		fi
 	fi
 popd
 
@@ -319,38 +336,44 @@ board_compile
 
 "${CROSS}-strip" "$ROOTFS"/bin/* "$ROOTFS"/sbin/* "$ROOTFS"/usr/bin/* 2>/dev/null
 
-mksquashfs "$ROOTFS" "$BUILD"/minifs-full-squashfs.img \
-	-all-root \
-	-pf "$BUILD"/special_file_table.txt
-genext2fs -d "$ROOTFS" \
-	-U \
-	-D "$BUILD"/special_file_table.txt \
-	-b 8192 \
-	"$BUILD"/minifs-full-ext.img &&
-		$TUNEFS -j "$BUILD"/minifs-full-ext.img
+if [ $TARGET_FS_SQUASH = 1 ]; then
+	mksquashfs "$ROOTFS" "$BUILD"/minifs-full-squashfs.img \
+		-all-root \
+		-pf "$BUILD"/special_file_table.txt
+fi
+if [ $TARGET_FS_EXT = 1 ]; then
+	genext2fs -d "$ROOTFS" \
+		-U \
+		-D "$BUILD"/special_file_table.txt \
+		-b 8192 \
+		"$BUILD"/minifs-full-ext.img &&
+			$TUNEFS -j "$BUILD"/minifs-full-ext.img
+fi
 
-echo "#### Generating Kernel with initrd"
-cp "$CONFIG"/config_kernel.conf  "$BUILD"/linux-obj/.config
-pushd "$BUILD"/linux
-	$MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
-		CROSS_COMPILE="${CROSS}-" \
-			oldconfig && \
-	$MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
-		CROSS_COMPILE="${CROSS}-" \
-			$TARGET_KERNEL_NAME -j4 &&
-	$MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
-		CROSS_COMPILE="${CROSS}-" \
-		INSTALL_PATH="$KERNEL" INSTALL_MOD_PATH="$KERNEL" \
-			install
+if [ $TARGET_INITRD = 1 ]; then
+	echo "#### Generating Kernel with initrd"
+	cp "$CONFIG"/config_kernel.conf  "$BUILD"/linux-obj/.config
+	pushd "$BUILD"/linux
+		$MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
+			CROSS_COMPILE="${CROSS}-" \
+				oldconfig && \
+		$MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
+			CROSS_COMPILE="${CROSS}-" \
+				$TARGET_KERNEL_NAME -j4 &&
+		$MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
+			CROSS_COMPILE="${CROSS}-" \
+			INSTALL_PATH="$KERNEL" INSTALL_MOD_PATH="$KERNEL" \
+				install
 
-	if [ -f "$KERNEL"/vmlinuz ]; then
-		cp "$KERNEL"/vmlinuz "$BUILD"/vmlinuz-full.bin
-	elif [ -f "$BUILD"/linux-obj/arch/$TARGET_ARCH/boot/uImage ]; then
-		dd if="$BUILD"/linux-obj/arch/arm/boot/uImage \
-			of="$BUILD"/kernel-initrd.ub \
-			bs=128k conv=sync
-	fi
-popd
+		if [ -f "$KERNEL"/vmlinuz ]; then
+			cp "$KERNEL"/vmlinuz "$BUILD"/vmlinuz-full.bin
+		elif [ -f "$BUILD"/linux-obj/arch/$TARGET_ARCH/boot/uImage ]; then
+			dd if="$BUILD"/linux-obj/arch/arm/boot/uImage \
+				of="$BUILD"/kernel-initrd.ub \
+				bs=128k conv=sync
+		fi
+	popd
+fi
 
 # in minifs-script
 board_finish

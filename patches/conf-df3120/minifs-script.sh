@@ -9,6 +9,8 @@ TARGET_CFLAGS="-Os -march=armv4t -mtune=arm920t -mthumb-interwork -mthumb "
 
 function board_prepare() {
 	echo "board_prepare"
+	TARGET_FS_SQUASH=0
+	TARGET_INITRD=0
 }
 
 board_finish() {
@@ -17,4 +19,6 @@ board_finish() {
 
 board_compile() {
 	echo "board_compile"
+
+	cp "$BUILD"/kernel.ub "$ROOTFS"/linux
 }
