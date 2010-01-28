@@ -1190,7 +1190,7 @@ index 530ec46..4a25707 100644
 +obj-$(CONFIG_MACH_DF3120)	+= mach-df3120.o
 diff --git a/arch/arm/mach-s3c2412/mach-df3120.c b/arch/arm/mach-s3c2412/mach-df3120.c
 new file mode 100644
-index 0000000..804e028
+index 0000000..d17a59a
 --- /dev/null
 +++ b/arch/arm/mach-s3c2412/mach-df3120.c
 @@ -0,0 +1,406 @@
@@ -1620,6 +1620,26 @@ index bef39f7..5e55db7 100644
  };
  
  /* uart registration process */
+diff --git a/arch/arm/plat-s3c/Kconfig b/arch/arm/plat-s3c/Kconfig
+index 8931c5f..358f995 100644
+--- a/arch/arm/plat-s3c/Kconfig
++++ b/arch/arm/plat-s3c/Kconfig
+@@ -115,6 +115,15 @@ config S3C_LOWLEVEL_UART_PORT
+ 	  this configuration should be between zero and two. The port
+ 	  must have been initialised by the boot-loader before use.
+ 
++config S3C_STD_UART_NAMES
++	bool "Name S3C UART device files as ttySACx"
++	default n
++	help
++	  The kernel and most other SoC use the ttySACx naming scheme
++	  for UART device file naming. The default for S3C is to use
++	  s3c2410_serialX, and it confuses a lot of distros; it is also
++	  inconsistent with the console= kernel parameter.
++
+ # options for gpiolib support
+ 
+ config S3C_GPIO_SPACE
 diff --git a/arch/arm/tools/mach-types b/arch/arm/tools/mach-types
 index 07b976d..b32d4b1 100644
 --- a/arch/arm/tools/mach-types
@@ -1642,16 +1662,30 @@ index 6e057d8..1b188e8 100644
  	.rx_fifoshift	= S3C2440_UFSTAT_RXSHIFT,
  	.rx_fifofull	= S3C2440_UFSTAT_RXFULL,
 diff --git a/drivers/serial/samsung.c b/drivers/serial/samsung.c
-index 1523e8d..bc2d431 100644
+index 1523e8d..e2bc7d3 100644
 --- a/drivers/serial/samsung.c
 +++ b/drivers/serial/samsung.c
-@@ -878,7 +878,8 @@ static struct uart_ops s3c24xx_serial_ops = {
+@@ -55,7 +55,14 @@
+ 
+ /* UART name and device definitions */
+ 
++#ifdef CONFIG_S3C_STD_UART_NAMES
++/* All other SoC use this naming sheme, 
++   including the kernel earlier at boot time */
+ #define S3C24XX_SERIAL_NAME	"ttySAC"
++#else
++/* Legacy option */
++#define S3C24XX_SERIAL_NAME	"s3c2410_serial"
++#endif
+ #define S3C24XX_SERIAL_MAJOR	204
+ #define S3C24XX_SERIAL_MINOR	64
+ 
+@@ -878,7 +885,7 @@ static struct uart_ops s3c24xx_serial_ops = {
  
  static struct uart_driver s3c24xx_uart_drv = {
  	.owner		= THIS_MODULE,
 -	.dev_name	= "s3c2410_serial",
 +	.dev_name	= S3C24XX_SERIAL_NAME,
-+//	.dev_name	= "s3c2410_serial",
  	.nr		= CONFIG_SERIAL_SAMSUNG_UARTS,
  	.cons		= S3C24XX_SERIAL_CONSOLE,
  	.driver_name	= S3C24XX_SERIAL_NAME,
