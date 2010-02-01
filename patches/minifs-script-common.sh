@@ -1,4 +1,59 @@
 
+
+#######################################################################
+## zlib
+#######################################################################
+
+if [ -d "$BUILD/zlib" ]; then
+echo "#### building zlib"
+pushd "$BUILD/zlib"
+	./configure \
+		--prefix="$STAGING"  &&
+	$MAKE -j8 PATH="$STAGING/bin:$PATH" \
+		CC="$GCC" && 
+	$MAKE install PATH="$STAGING/bin:$PATH" \
+		CC="$GCC"
+popd
+fi
+
+
+#######################################################################
+## lzo (for mtd-utils)
+#######################################################################
+
+if [ -d "$BUILD/lzo" ]; then
+echo "#### building lzo"
+pushd "$BUILD/lzo"
+	./configure \
+		--prefix="$STAGING" \
+		--host=$TARGET_FULL_ARCH \
+		--enable-static --disable-shared  &&
+	$MAKE -j8 PATH="$STAGING/bin:$PATH" \
+		CC="$GCC" && 
+	$MAKE install PATH="$STAGING/bin:$PATH" \
+		CC="$GCC"
+popd
+fi
+
+#######################################################################
+## e2fdlibs (for mtd-utils)
+#######################################################################
+
+if [ -d "$BUILD/e2fsprogs" ]; then
+echo "#### building e2fsprogs"
+pushd "$BUILD/e2fsprogs"
+	./configure \
+		--prefix="$STAGING" \
+		--disable-tls \
+		--host=$TARGET_FULL_ARCH \
+		--enable-static --disable-shared  &&
+	$MAKE -j8 PATH="$STAGING/bin:$PATH" \
+		CC="$GCC" && 
+	$MAKE install PATH="$STAGING/bin:$PATH" \
+		CC="$GCC"
+popd
+fi
+
 #######################################################################
 ## screen
 #######################################################################
@@ -47,6 +102,18 @@ popd
 fi
 
 #######################################################################
+## mtd_utils
+#######################################################################
+if [ -d "$BUILD/mtd_utils" ]; then
+echo "#### building mtd_utils"
+pushd "$BUILD/mtd_utils"
+	$MAKE CC="$GCC" CFLAGS="-Os $TARGET_CFLAGS -I$STAGING/include -DWITHOUT_XATTR" \
+		LDFLAGS="-L$STAGING/lib -static" &&
+	cp nandwrite mtd_debug  "$ROOTFS/bin/"
+popd
+fi
+
+#######################################################################
 ## libftdi
 #######################################################################
 if [ -d "$BUILD/libftdi" ]; then
@@ -66,20 +133,8 @@ popd
 fi
 
 #######################################################################
-## zlib and dropbear
+## dropbear
 #######################################################################
-
-if [ -d "$BUILD/zlib" ]; then
-echo "#### building zlib"
-pushd "$BUILD/zlib"
-	./configure \
-		--prefix="$STAGING"  &&
-	$MAKE -j8 PATH="$STAGING/bin:$PATH" \
-		CC="$GCC" && 
-	$MAKE install PATH="$STAGING/bin:$PATH" \
-		CC="$GCC"
-popd
-fi
 
 if [ -d "$BUILD/dropbear" ]; then
 echo "#### building dropbear"

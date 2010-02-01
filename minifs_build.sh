@@ -32,7 +32,7 @@
 # this is the board we are making. Several boards can co-exist, the toolchains
 # are "compatible" and live in the toolchain/ subdirectory. Several board of the
 # same arch can also coexist, sharing the same toolchain
-TARGET_BOARD="df3120"
+TARGET_BOARD="mini2440"
 
 COMMAND=$1
 
@@ -72,7 +72,7 @@ TARGET_FS_EXT=1
 # Download stuff, decompresses, install and patch
 pushd download
 
-VERSION_busybox=1.15.2
+VERSION_busybox=1.16.0
 VERSION_linux=2.6.32.2
 VERSION_crosstools=1.5.3
 
@@ -91,6 +91,9 @@ url=(
 	#"http://ffmpeg.org/releases/ffmpeg-0.5.tar.bz2"
 	# url getter doesn't work.
 	#"http://git.infradead.org/mtd-utils.git/snapshot/230b13b2d9b109b5c166b4b0334609b52b452d12.tar.gz#mtd-utils.tgz"
+	"http://www.oberhumer.com/opensource/lzo/download/lzo-2.03.tar.gz"
+	"http://heanet.dl.sourceforge.net/project/e2fsprogs/e2fsprogs/1.41.9/e2fsprogs-libs-1.41.9.tar.gz"
+	"http://git.infradead.org/mtd-utils.git/snapshot/a67747b7a314e685085b62e8239442ea54959dbc.tar.gz#mtd_utils.tgz"
 )
 
 # in minifs-script
@@ -101,23 +104,23 @@ for fil in "${url[@]}" ; do
 	fil=${fil/*+}
 	base=${fil/*\//}
 	typ=${fil/*.}
-	if [ ! -f "$base" ]; then
-		url=${base/\#*}
-		loc=${base/*#/}
+	url=${base/\#*}
+	loc=${base/*#/}
+	if [ ! -f "$loc" ]; then
 		$WGET "$fil" -O "$loc"
 	fi
-	baseroot=${base/-*/}
+	baseroot=${loc/-*/}
 	baseroot=${baseroot/.*/}	
 	if [ ! -d "$BUILD/$baseroot" ]; then
-		echo "####  Extracting $base to $BUILD/$baseroot ($typ)"
+		echo "####  Extracting $loc to $BUILD/$baseroot ($typ)"
 		mkdir -p "$BUILD/$baseroot"
 
 		case "$typ" in
 			bz2)
-				tar jx -C "$BUILD/$baseroot" --strip 1 -f "$base"
+				tar jx -C "$BUILD/$baseroot" --strip 1 -f "$loc"
 				;;
-			gz)
-				tar zx -C "$BUILD/$baseroot" --strip 1 -f "$base"
+			gz|tgz)
+				tar zx -C "$BUILD/$baseroot" --strip 1 -f "$loc"
 				;;
 			*)
 				echo ### error file format '$typ' ($base) not supported"
