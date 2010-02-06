@@ -6,6 +6,7 @@ TARGET_KERNEL_NAME=uImage
 TARGET_CFLAGS="-Os -march=armv4t -mtune=arm920t -mthumb-interwork -mthumb "
 
 function board_prepare() {
+	VERSION_linux=2.6.32.7
 	true
 }
 

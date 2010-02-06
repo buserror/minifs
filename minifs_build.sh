@@ -76,6 +76,9 @@ VERSION_busybox=1.16.0
 VERSION_linux=2.6.32.2
 VERSION_crosstools=1.5.3
 
+# in minifs-script
+board_prepare
+
 url=(
 	"http://busybox.net/downloads/busybox-${VERSION_busybox}.tar.bz2" 
 	"http://www.kernel.org/pub/linux/kernel/v2.6/linux-${VERSION_linux}.tar.bz2" 
@@ -95,9 +98,6 @@ url=(
 	"http://heanet.dl.sourceforge.net/project/e2fsprogs/e2fsprogs/1.41.9/e2fsprogs-libs-1.41.9.tar.gz"
 	"http://git.infradead.org/mtd-utils.git/snapshot/a67747b7a314e685085b62e8239442ea54959dbc.tar.gz#mtd_utils.tgz"
 )
-
-# in minifs-script
-board_prepare
 
 for fil in "${url[@]}" ; do
 	proto=${fil/+*}
