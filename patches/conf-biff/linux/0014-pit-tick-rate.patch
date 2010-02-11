@@ -1,0 +1,14 @@
+--- linux/include/linux/timex.h	2009-12-27 14:31:00.550030859 +0000
++++ linux/include/linux/timex.h	2009-12-27 14:32:20.517019232 +0000
+@@ -281,7 +281,11 @@ extern int do_adjtimex(struct timex *);
+ int read_current_timer(unsigned long *timer_val);
+ 
+ /* The clock frequency of the i8253/i8254 PIT */
++#ifdef CONFIG_X86_RDC321X
++#define PIT_TICK_RATE 1041816ul
++#else
+ #define PIT_TICK_RATE 1193182ul
++#endif
+ 
+ #endif /* KERNEL */
+ 
