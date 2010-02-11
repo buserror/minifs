@@ -1,0 +1,12 @@
+diff -urw mDNSResponder-107.6.orig/mDNSPosix/Makefile mDNSResponder-107.6/mDNSPosix/Makefile
+--- mDNSResponder-107.6.orig/mDNSPosix/Makefile	2006-06-21 00:07:04.000000000 +0100
++++ mDNSResponder-107.6/mDNSPosix/Makefile	2010-02-10 16:41:04.000000000 +0000
+@@ -431,7 +431,7 @@
+ endif
+ endif
+ 
+-CFLAGS = $(CFLAGS_COMMON) $(CFLAGS_OS) $(CFLAGS_DEBUG)
++CFLAGS = $(CFLAGS_CROSS) $(CFLAGS_COMMON) $(CFLAGS_OS) $(CFLAGS_DEBUG)
+ 
+ #############################################################################
+ 

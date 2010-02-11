@@ -5,15 +5,14 @@
 #######################################################################
 
 if [ -d "$BUILD/zlib" ]; then
-echo "#### building zlib"
-pushd "$BUILD/zlib"
-	./configure \
+package zlib
+	configure ./configure \
 		--prefix="$STAGING"  &&
-	$MAKE -j8 PATH="$STAGING/bin:$PATH" \
-		CC="$GCC" && 
-	$MAKE install PATH="$STAGING/bin:$PATH" \
+	compile $MAKE -j8 PATH="$STAGING/bin:$PATH" \
+		CC="$GCC" CFLAGS="$TARGET_CFLAGS" && 
+	install $MAKE install PATH="$STAGING/bin:$PATH" \
 		CC="$GCC"
-popd
+end_package
 fi
 
 
@@ -22,17 +21,17 @@ fi
 #######################################################################
 
 if [ -d "$BUILD/lzo" ]; then
-echo "#### building lzo"
-pushd "$BUILD/lzo"
-	./configure \
+package lzo
+	configure ./configure \
 		--prefix="$STAGING" \
 		--host=$TARGET_FULL_ARCH \
-		--enable-static --disable-shared  &&
-	$MAKE -j8 PATH="$STAGING/bin:$PATH" \
+		--enable-static --disable-shared \
+		CC="$GCC" CFLAGS="$TARGET_CFLAGS" &&
+	compile $MAKE -j8 PATH="$STAGING/bin:$PATH" \
 		CC="$GCC" && 
-	$MAKE install PATH="$STAGING/bin:$PATH" \
+	install $MAKE install PATH="$STAGING/bin:$PATH" \
 		CC="$GCC"
-popd
+end_package
 fi
 
 #######################################################################
@@ -40,18 +39,18 @@ fi
 #######################################################################
 
 if [ -d "$BUILD/e2fsprogs" ]; then
-echo "#### building e2fsprogs"
-pushd "$BUILD/e2fsprogs"
-	./configure \
+package e2fsprogs
+	configure ./configure \
 		--prefix="$STAGING" \
 		--disable-tls \
 		--host=$TARGET_FULL_ARCH \
-		--enable-static --disable-shared  &&
-	$MAKE -j8 PATH="$STAGING/bin:$PATH" \
+		--enable-static --disable-shared \
+		CC="$GCC" CFLAGS="$TARGET_CFLAGS"  &&
+	compile $MAKE -j8 PATH="$STAGING/bin:$PATH" \
 		CC="$GCC" && 
-	$MAKE install PATH="$STAGING/bin:$PATH" \
+	install $MAKE install PATH="$STAGING/bin:$PATH" \
 		CC="$GCC"
-popd
+end_package
 fi
 
 #######################################################################
@@ -59,77 +58,70 @@ fi
 #######################################################################
 
 if [ -d "$BUILD/screen" ]; then
-echo "#### building screen"
-pushd "$BUILD/screen"
-	./configure --enable-static --disable-shared \
+package screen
+	configure ./configure --enable-static --disable-shared \
 		--prefix="$ROOTFS" \
-		--target=$TARGET_FULL_ARCH \
-		--host=i386-unknown-linux-uclibc \
-		--build=i386 \
-		PATH="$STAGING/bin:$PATH" &&
-	$MAKE -j8 PATH="$STAGING/bin:$PATH" && 
-	$MAKE install PATH="$STAGING/bin:$PATH"
-popd
+		--host=$TARGET_FULL_ARCH \
+		PATH="$STAGING/bin:$PATH" \
+		CC="$GCC" CFLAGS="$TARGET_CFLAGS" &&
+	compile $MAKE -j8 PATH="$STAGING/bin:$PATH" && 
+	install $MAKE install PATH="$STAGING/bin:$PATH"
+end_package
 fi
 
 #######################################################################
 ## i2c-tools
 #######################################################################
 if [ -d "$BUILD/i2c" ]; then
-echo "#### building i2c"
-pushd "$BUILD/i2c"
-	$MAKE CC="$GCC" CFLAGS="-Os $TARGET_CFLAGS" LDFLAGS="-static" &&
-	cp ./tools/i2c{detect,dump,get,set} "$ROOTFS/bin/"
-popd
+package i2c
+	configure echo Done &&
+	compile $MAKE CC="$GCC" CFLAGS="$TARGET_CFLAGS" LDFLAGS="-static" &&
+	install cp ./tools/i2c{detect,dump,get,set} "$ROOTFS/bin/"
+end_package
 fi
 
 #######################################################################
 ## libusb
 #######################################################################
 if [ -d "$BUILD/libusb" ]; then
-echo "#### building libusb"
-pushd "$BUILD/libusb"
-	./configure --enable-static --disable-shared \
+package libusb
+	configure ./configure --enable-static --disable-shared \
 		--prefix="$STAGING" \
-		--target=$TARGET_FULL_ARCH \
-		--host=i386-unknown-linux-uclibc 
-		--build=i386 \
-		PATH="$STAGING/bin:$PATH" CFLAGS="$TARGET_CFLAGS" &&
-	$MAKE -j8 PATH="$STAGING/bin:$PATH" && 
-	$MAKE install PATH="$STAGING/bin:$PATH"
+		--host=$TARGET_FULL_ARCH \
+		PATH="$STAGING/bin:$PATH" \
+		CC="$GCC" CFLAGS="$TARGET_CFLAGS" &&
+	compile $MAKE -j8 PATH="$STAGING/bin:$PATH" && 
+	install $MAKE install PATH="$STAGING/bin:$PATH"
 #	cp "$STAGING/include/libusb*/libusb.h" "$STAGING"/include/usb.h
-popd
+end_package
 fi
 
 #######################################################################
 ## mtd_utils
 #######################################################################
 if [ -d "$BUILD/mtd_utils" ]; then
-echo "#### building mtd_utils"
-pushd "$BUILD/mtd_utils"
-	$MAKE CC="$GCC" CFLAGS="-Os $TARGET_CFLAGS -I$STAGING/include -DWITHOUT_XATTR" \
+package mtd_utils
+	configure echo Done &&
+	compile $MAKE CC="$GCC" CFLAGS="$TARGET_CFLAGS -I$STAGING/include -DWITHOUT_XATTR" \
 		LDFLAGS="-L$STAGING/lib -static" &&
-	cp nandwrite mtd_debug  "$ROOTFS/bin/"
-popd
+	install cp nandwrite mtd_debug  "$ROOTFS/bin/"
+end_package
 fi
 
 #######################################################################
 ## libftdi
 #######################################################################
 if [ -d "$BUILD/libftdi" ]; then
-echo "#### building libftdi"
-pushd "$BUILD/libftdi"
-	CPPFLAGS="-I$STAGING/include"  \
-	./configure --enable-static --disable-shared \
+package libftdi
+	configure  ./configure --enable-static --disable-shared \
 		--prefix="$STAGING" \
-		--target=$TARGET_FULL_ARCH \
-		--host=i386-unknown-linux-uclibc \
-		--build=i386 \
+		--host=$TARGET_FULL_ARCH \
 		--disable-libftdipp --with-async-mode \
-		PATH="$STAGING/bin:$PATH" &&
-	$MAKE -j8 PATH="$STAGING/bin:$PATH" && 
-	$MAKE install PATH="$STAGING/bin:$PATH"
-popd
+		PATH="$STAGING/bin:$PATH" \
+		CC="$GCC" CFLAGS="$TARGET_CFLAGS" CPPFLAGS="-I$STAGING/include" &&
+	compile $MAKE -j8 PATH="$STAGING/bin:$PATH" && 
+	install $MAKE install PATH="$STAGING/bin:$PATH"
+end_package
 fi
 
 #######################################################################
@@ -137,30 +129,28 @@ fi
 #######################################################################
 
 if [ -d "$BUILD/dropbear" ]; then
-echo "#### building dropbear"
-pushd "$BUILD/dropbear"
-	./configure --enable-static --disable-shared \
+package dropbear
+	configure ./configure --enable-static --disable-shared \
 		--prefix="$ROOTFS" \
-		--target=$TARGET_FULL_ARCH \
-		--host=i386-unknown-linux-uclibc \
-		--build=i386 \
+		--host=$TARGET_FULL_ARCH \
 		--with-zlib="$STAGING" \
 		PATH="$STAGING/bin:$PATH" \
+		CC="$GCC" \
 		CFLAGS="-static -Os ${TARGET_CFLAGS}" \
 		LDFLAGS="-static" &&
-	$MAKE -j8 PATH="$STAGING/bin:$PATH" && 
-	$MAKE install PATH="$STAGING/bin:$PATH"
+	compile $MAKE -j8 PATH="$STAGING/bin:$PATH" && 
+	install $MAKE install PATH="$STAGING/bin:$PATH"
 
 	mkdir -p "$ROOTFS/etc/dropbear"
 	if [ $TARGET_ARCH = "i386" ]; then	
-		if [ ! -f "$CONF"/dropbear_dss_host_key ]; then
+		if [ ! -f "$BUILD"/dropbear_dss_host_key ]; then
 			echo "#### generating new dropbear keys"
-			"$ROOTFS"/bin/dropbearkey -t dss -f "$CONF"/dropbear_dss_host_key
-			"$ROOTFS"/bin/dropbearkey -t rsa -f "$CONF"/dropbear_rsa_host_key
+			"$ROOTFS"/bin/dropbearkey -t dss -f "$BUILD"/dropbear_dss_host_key
+			"$ROOTFS"/bin/dropbearkey -t rsa -f "$BUILD"/dropbear_rsa_host_key
 		fi
 	fi
-	cp "$CONF"/dropbear_*_host_key "$ROOTFS"/etc/dropbear/
-popd
+	cp "$BUILD"/dropbear_*_host_key "$ROOTFS"/etc/dropbear/
+end_package
 fi
 
 #######################################################################
@@ -168,24 +158,20 @@ fi
 #######################################################################
 
 if [ -d "$BUILD/jpegsrc" ]; then
-echo "#### building libjpeg"
-pushd "$BUILD/jpegsrc"
-	./configure --enable-static --disable-shared \
+package jpegsrc
+	configure ./configure --enable-static --disable-shared \
 		--prefix="$STAGING" \
-		--target=$TARGET_FULL_ARCH \
-		--host=i386-unknown-linux-uclibc \
-		--build=i386 \
-		PATH="$STAGING/bin:$PATH" &&
-	$MAKE -j8 PATH="$STAGING/bin:$PATH" && 
-	$MAKE install PATH="$STAGING/bin:$PATH"
-popd
+		--host=$TARGET_FULL_ARCH \
+		PATH="$STAGING/bin:$PATH" \
+		CC="$GCC" CFLAGS="$TARGET_CFLAGS"  &&
+	compile $MAKE -j8 PATH="$STAGING/bin:$PATH" && 
+	install $MAKE install PATH="$STAGING/bin:$PATH"
+end_package
 fi
 
 if [ -d "$BUILD/ffmpeg" ]; then
-echo "#### building ffmpeg"
-pushd "$BUILD/ffmpeg"
-	PATH="$STAGING/bin:$PATH" \
-	./configure --enable-static --disable-shared \
+package ffmpeg
+	configure ./configure --enable-static --disable-shared \
 		--prefix="$STAGING" \
 		--enable-cross-compile \
 		--sysroot="$STAGING" \
@@ -197,22 +183,22 @@ pushd "$BUILD/ffmpeg"
 		--enable-fastdiv --enable-small \
 		--enable-hardcoded-tables  \
 		 --disable-mmx --disable-mmx2  --disable-sse --disable-ssse3 \
-		 &&
-	$MAKE -j8 PATH="$STAGING/bin:$PATH" && 
-	$MAKE install PATH="$STAGING/bin:$PATH"
-	
-popd
+		 CC="$GCC" \
+		 PATH="$STAGING/bin:$PATH" CFLAGS="$TARGET_CFLAGS" &&
+	compile $MAKE -j8 PATH="$STAGING/bin:$PATH" && 
+	install $MAKE install PATH="$STAGING/bin:$PATH"
+end_package
 fi
 
 if [ -d "$BUILD/mjpg" ]; then
-echo "#### Building mjpg-streamer"
-mkdir -p "$ROOTFS"/opt/
-pushd "$BUILD/mjpg"
-	$MAKE CC="$GCC" \
+package mjpg
+	mkdir -p "$ROOTFS"/opt/
+	configure echo Done &&
+	compile $MAKE CC="$GCC" \
 		EXTRA_LDFLAGS="-L $STAGING/lib" \
-		EXTRA_CFLAGS="-Os -I$STAGING/include" \
+		EXTRA_CFLAGS="-Os -I$STAGING/include $TARGET_CFLAGS" \
 		STATIC=1 &&
-	cp -ra mjpg_streamer www "$ROOTFS"/opt/ &&
+	install cp -ra mjpg_streamer www "$ROOTFS"/opt/ &&
 	"${CROSS}-strip" "$ROOTFS"/opt/mjpg_streamer
 
 	cat >>"$ROOTFS"/etc/init.d/rcS <<-EOF
@@ -225,6 +211,19 @@ pushd "$BUILD/mjpg"
 /^# LOAD MODULES/ a\
 modprobe uvcvideo >/dev/null 2>&1
 ' "$ROOTFS"/etc/init.d/rcS
-popd
+end_package
+fi
+
+#######################################################################
+## mDSNResponder
+#######################################################################
+if [ -d "$BUILD/mDNSResponder" ]; then
+package mDNSResponder
+	configure echo Done &&
+	compile $MAKE os=linux CC="$GCC" SAResponder \
+		CFLAGS_CROSS="-Os $TARGET_CFLAGS -I$STAGING/include" \
+		LINKOPTS="-L$STAGING/lib -static" &&
+	install cp build/prod/mDNSResponderPosix  "$ROOTFS/bin/"
+end_package
 fi
 
