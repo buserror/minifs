@@ -9,7 +9,6 @@ mkdir /dev/pts
 mount -t devpts devpts /dev/pts
 mkdir /dev/shm
 mount -t tmpfs none /dev/shm
-mount -t configfs configfs /config
 
 echo "* Starting system loggers..."
 syslogd -C16
@@ -24,7 +23,7 @@ ifconfig lo 127.0.0.1
 
 echo "* Configuring network with DHCP..."
 ifconfig eth0 up
-udhcpc
+udhcpc -b
 
 echo "* Setting hostname..."
 hostname minifs
