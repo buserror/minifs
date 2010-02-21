@@ -32,7 +32,7 @@
 # this is the board we are making. Several boards can co-exist, the toolchains
 # are "compatible" and live in the toolchain/ subdirectory. Several board of the
 # same arch can also coexist, sharing the same toolchain
-TARGET_BOARD="biff"
+TARGET_BOARD="mini2440"
 
 COMMAND=$1
 
@@ -48,7 +48,8 @@ CONFIG="$PATCHES/conf-$TARGET_BOARD"
 source "$PATCHES"/minifs-script-utils.sh
 source "$CONFIG"/minifs-script.sh
 
-CROSS="$BASE/toolchain/bin/$TARGET_FULL_ARCH"
+TOOLCHAIN="$BASE/toolchain"
+CROSS="$TOOLCHAIN/bin/$TARGET_FULL_ARCH"
 GCC="${CROSS}-gcc"
 
 TUNEFS=/sbin/tune2fs
@@ -64,10 +65,10 @@ mkdir -p download "$KERNEL" "$ROOTFS" "$STAGING" toolchain
 rm -rf "$ROOTFS"/* 
 
 TARGET_INITRD=1
-TARGET_FS_MIN_SQUASH=0
-TARGET_FS_MIN_EXT=0
 TARGET_FS_SQUASH=1
 TARGET_FS_EXT=1
+# only set this if you /know/ the parameters for your NAND
+# TARGET_FS_JFFS2="-q -l -p -e 0x20000 -s 0x800"
 
 # 
 # Download stuff, decompresses, install and patch
@@ -90,8 +91,8 @@ url=(
 	#"http://ftp.gnu.org/gnu/screen/screen-4.0.3.tar.gz" 
 	"http://dl.lm-sensors.org/i2c-tools/releases/i2c-tools-3.0.2.tar.bz2"
 	# this can get compiled and installed im staging
-	#"http://kent.dl.sourceforge.net/project/libusb/libusb-0.1%20%28LEGACY%29/0.1.12/libusb-0.1.12.tar.gz"
-	#"http://www.intra2net.com/en/developer/libftdi/download/libftdi-0.16.tar.gz"
+	"http://kent.dl.sourceforge.net/project/libusb/libusb-0.1%20%28LEGACY%29/0.1.12/libusb-0.1.12.tar.gz"
+	"http://www.intra2net.com/en/developer/libftdi/download/libftdi-0.16.tar.gz"
 	#"http://ffmpeg.org/releases/ffmpeg-0.5.tar.bz2"
 	"http://www.oberhumer.com/opensource/lzo/download/lzo-2.03.tar.gz"
 	"http://heanet.dl.sourceforge.net/project/e2fsprogs/e2fsprogs/1.41.9/e2fsprogs-libs-1.41.9.tar.gz"
@@ -138,9 +139,9 @@ for fil in "${url[@]}" ; do
 done
 popd
 
-echo "####  Configuring kernel"
+echo "#### Configuring kernel"
 mkdir -p "$BUILD/linux-obj"
-echo "####  Installing default kernel config"
+# Installing default kernel config
 cp "$CONFIG/config_kernel.conf"  "$BUILD/linux-obj"/.config
 package linux
 	PACKAGE="linux-headers"
@@ -208,9 +209,19 @@ if [ ! -f "$GCC" ]; then
 	exit 1
 fi
 
-echo "####  Building kernel modules"
+export PATH="$TOOLCHAIN/bin:$STAGING/bin:$PATH"
+export CC="$TARGET_FULL_ARCH-gcc"
+export CXX="$TARGET_FULL_ARCH-g++"
+
+export CPPFLAGS="-I$STAGING/include" 
+export LDFLAGS="-L$STAGING/lib -static"
+export CFLAGS="-Os $TARGET_CFLAGS" 
+export CXXFLAGS="$CFLAGS" 
+
+echo "#### Building kernel modules [if any]"
 package linux
 	PACKAGE="linux-modules"
+	rm -rf "$KERNEL"/lib 
 	configure echo Done &&
 	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE="${CROSS}-" \
@@ -271,40 +282,6 @@ package busybox
 	install $MAKE CROSS_COMPILE="${CROSS}-" CFLAGS="$BUSY_CFLAGS" CONFIG_PREFIX="$ROOTFS" install
 end_package
 
-echo "#### Copying files"
-rsync -a files/ "$ROOTFS/"
-if [ -d "$CONFIG/files" ]; then
-	echo "#### Installing overrides"
-	(cd "$CONFIG/files"; tar cf - .)|(cd "$ROOTFS"; tar xf -)
-fi
-echo "#### Striping"
-if [ -d "$KERNEL"/lib/modules/ ]; then
-	rsync -a "$KERNEL"/lib "$ROOTFS/"
-	find "$ROOTFS"/lib/modules/ -name \*.ko | xargs "${CROSS}-strip" -R .note -R .comment --strip-unneeded
-fi
-"${CROSS}-strip" "$ROOTFS"/bin/* "$ROOTFS"/sbin/* "$ROOTFS"/usr/bin/* 2>/dev/null
-
-#######################################################################
-## Generate base minimal filesystem
-#######################################################################
-
-echo "#### Generating root filesystems"
-
-rm -f "$BUILD"/minifs*.img
-if [ $TARGET_FS_MIN_SQUASH = 1 ]; then
-	mksquashfs "$ROOTFS" "$BUILD"/minifs-squashfs.img \
-		-all-root \
-		-pf "$BUILD"/special_file_table.txt
-fi
-if [ $TARGET_FS_MIN_EXT = 1 ]; then
-	genext2fs -d "$ROOTFS" \
-		-U \
-		-D "$BUILD"/special_file_table.txt \
-		-b 8192 \
-		"$BUILD"/minifs-ext.img &&
-			$TUNEFS -j "$BUILD"/minifs-ext.img
-fi
-
 echo "#### Generating Bare Kernel"
 package linux
 	PACKAGE="linux-bare"
@@ -325,15 +302,8 @@ package linux
 	elif [ -f "$BUILD"/linux-obj/arch/$TARGET_ARCH/boot/uImage ]; then
 		dd if="$BUILD"/linux-obj/arch/arm/boot/uImage \
 			of="$BUILD"/kernel.ub \
-			bs=128k conv=sync
-
-		if [ $TARGET_FS_MIN_SQUASH = 1 ]; then
-			mkimage -A $TARGET_ARCH -O linux -T multi -C none \
-				-a 0x30008000 -e 0x30008000 \
-				-n "kernel and squashfs initrd" \
-				-d "$BUILD/linux-obj/arch/$TARGET_ARCH/boot/zImage:$BUILD/minifs-squashfs.img" \
-					"$BUILD"/kernel-squashfs.ub
-		fi
+			bs=128k conv=sync \
+				>>"$LOGFILE" 2>&1
 	fi
 end_package
 
@@ -341,24 +311,61 @@ end_package
 ## Build extra packages
 #######################################################################
 
+echo "#### Copying default rootfs files"
+rsync -a files/ "$ROOTFS/"
+if [ -d "$CONFIG/files" ]; then
+	echo "#### Installing overrides"
+	(cd "$CONFIG/files"; tar cf - .)|(cd "$ROOTFS"; tar xf -)
+fi
+
 source "$PATCHES"/minifs-script-common.sh
 # in minifs-script
 board_compile
 
+echo "#### Striping modules and userland tools"
+if [ -d "$KERNEL"/lib/modules/ ]; then
+	rsync -a "$KERNEL"/lib "$ROOTFS/"
+	find "$ROOTFS"/lib/modules/ -name \*.ko | xargs "${CROSS}-strip" -R .note -R .comment --strip-unneeded
+fi
 "${CROSS}-strip" "$ROOTFS"/bin/* "$ROOTFS"/sbin/* "$ROOTFS"/usr/bin/* 2>/dev/null
 
+echo "#### Generating Filesystems"
+
 if [ $TARGET_FS_SQUASH = 1 ]; then
-	mksquashfs "$ROOTFS" "$BUILD"/minifs-full-squashfs.img \
+	if mksquashfs "$ROOTFS" "$BUILD"/minifs-full-squashfs.img \
 		-all-root \
-		-pf "$BUILD"/special_file_table.txt
+		-pf "$BUILD"/special_file_table.txt \
+			>>"$BUILD/._filesystem.log" 2>&1 ; then
+		echo "    " "$BUILD"/minifs-full-squashfs.img " Created"
+	else
+		echo "#### ERROR Generating " "$BUILD"/minifs-full-squashfs.img
+	fi
 fi
 if [ $TARGET_FS_EXT = 1 ]; then
-	genext2fs -d "$ROOTFS" \
+	if genext2fs -d "$ROOTFS" \
 		-U \
 		-D "$BUILD"/special_file_table.txt \
 		-b 8192 \
-		"$BUILD"/minifs-full-ext.img &&
-			$TUNEFS -j "$BUILD"/minifs-full-ext.img
+		"$BUILD"/minifs-full-ext.img 
+			>>"$BUILD/._filesystem.log" 2>&1 ; then
+		$TUNEFS -j "$BUILD"/minifs-full-ext.img \
+			>>"$BUILD/._filesystem.log" 2>&1
+		echo "    " "$BUILD"/minifs-full-ext.img " Created"
+	else		
+		echo "#### ERROR Generating " "$BUILD"/minifs-full-ext.img
+	fi
+fi
+
+if [ "$TARGET_FS_JFFS2" != "" ]; then
+	if mkfs.jffs2 $TARGET_FS_JFFS2 \
+		-r "$ROOTFS" \
+		-o "$BUILD"/minifs-full-jffs2.img  \
+		-D "$BUILD"/special_file_table.txt
+			>>"$BUILD/._filesystem.log" 2>&1 ; then
+		echo "    " "$BUILD"/minifs-full-jffs2.img " Created"
+	else
+		echo "#### ERROR Generating " "$BUILD"/minifs-full-jffs2.img
+	fi		
 fi
 
 if [ $TARGET_INITRD = 1 ]; then
@@ -384,7 +391,8 @@ if [ $TARGET_INITRD = 1 ]; then
 		elif [ -f "$BUILD"/linux-obj/arch/$TARGET_ARCH/boot/uImage ]; then
 			dd if="$BUILD"/linux-obj/arch/arm/boot/uImage \
 				of="$BUILD"/kernel-initrd.ub \
-				bs=128k conv=sync
+				bs=128k conv=sync \
+					>>"$LOGFILE" 2>&1
 		fi
 	end_package
 fi

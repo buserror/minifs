@@ -8,10 +8,8 @@ if [ -d "$BUILD/zlib" ]; then
 package zlib
 	configure ./configure \
 		--prefix="$STAGING"  &&
-	compile $MAKE -j8 PATH="$STAGING/bin:$PATH" \
-		CC="$GCC" CFLAGS="$TARGET_CFLAGS" && 
-	install $MAKE install PATH="$STAGING/bin:$PATH" \
-		CC="$GCC"
+	compile $MAKE -j8 && 
+	install $MAKE install
 end_package
 fi
 
@@ -25,12 +23,9 @@ package lzo
 	configure ./configure \
 		--prefix="$STAGING" \
 		--host=$TARGET_FULL_ARCH \
-		--enable-static --disable-shared \
-		CC="$GCC" CFLAGS="$TARGET_CFLAGS" &&
-	compile $MAKE -j8 PATH="$STAGING/bin:$PATH" \
-		CC="$GCC" && 
-	install $MAKE install PATH="$STAGING/bin:$PATH" \
-		CC="$GCC"
+		--enable-static --disable-shared &&
+	compile $MAKE -j8  && 
+	install $MAKE install 
 end_package
 fi
 
@@ -44,12 +39,9 @@ package e2fsprogs
 		--prefix="$STAGING" \
 		--disable-tls \
 		--host=$TARGET_FULL_ARCH \
-		--enable-static --disable-shared \
-		CC="$GCC" CFLAGS="$TARGET_CFLAGS"  &&
-	compile $MAKE -j8 PATH="$STAGING/bin:$PATH" \
-		CC="$GCC" && 
-	install $MAKE install PATH="$STAGING/bin:$PATH" \
-		CC="$GCC"
+		--enable-static --disable-shared &&
+	compile $MAKE -j8  && 
+	install $MAKE install 
 end_package
 fi
 
@@ -61,11 +53,9 @@ if [ -d "$BUILD/screen" ]; then
 package screen
 	configure ./configure --enable-static --disable-shared \
 		--prefix="$ROOTFS" \
-		--host=$TARGET_FULL_ARCH \
-		PATH="$STAGING/bin:$PATH" \
-		CC="$GCC" CFLAGS="$TARGET_CFLAGS" &&
-	compile $MAKE -j8 PATH="$STAGING/bin:$PATH" && 
-	install $MAKE install PATH="$STAGING/bin:$PATH"
+		--host=$TARGET_FULL_ARCH &&
+	compile $MAKE -j8  && 
+	install $MAKE install 
 end_package
 fi
 
@@ -75,7 +65,7 @@ fi
 if [ -d "$BUILD/i2c" ]; then
 package i2c
 	configure echo Done &&
-	compile $MAKE CC="$GCC" CFLAGS="$TARGET_CFLAGS" LDFLAGS="-static" &&
+	compile $MAKE CC=$GCC &&
 	install cp ./tools/i2c{detect,dump,get,set} "$ROOTFS/bin/"
 end_package
 fi
@@ -87,11 +77,9 @@ if [ -d "$BUILD/libusb" ]; then
 package libusb
 	configure ./configure --enable-static --disable-shared \
 		--prefix="$STAGING" \
-		--host=$TARGET_FULL_ARCH \
-		PATH="$STAGING/bin:$PATH" \
-		CC="$GCC" CFLAGS="$TARGET_CFLAGS" &&
-	compile $MAKE -j8 PATH="$STAGING/bin:$PATH" && 
-	install $MAKE install PATH="$STAGING/bin:$PATH"
+		--host=$TARGET_FULL_ARCH &&
+	compile $MAKE -j8 && 
+	install $MAKE install
 #	cp "$STAGING/include/libusb*/libusb.h" "$STAGING"/include/usb.h
 end_package
 fi
@@ -102,8 +90,7 @@ fi
 if [ -d "$BUILD/mtd_utils" ]; then
 package mtd_utils
 	configure echo Done &&
-	compile $MAKE CC="$GCC" CFLAGS="$TARGET_CFLAGS -I$STAGING/include -DWITHOUT_XATTR" \
-		LDFLAGS="-L$STAGING/lib -static" &&
+	compile $MAKE CC=$GCC CFLAGS="$TARGET_CFLAGS -I$STAGING/include -DWITHOUT_XATTR" &&
 	install cp nandwrite mtd_debug  "$ROOTFS/bin/"
 end_package
 fi
@@ -116,11 +103,9 @@ package libftdi
 	configure  ./configure --enable-static --disable-shared \
 		--prefix="$STAGING" \
 		--host=$TARGET_FULL_ARCH \
-		--disable-libftdipp --with-async-mode \
-		PATH="$STAGING/bin:$PATH" \
-		CC="$GCC" CFLAGS="$TARGET_CFLAGS" CPPFLAGS="-I$STAGING/include" &&
-	compile $MAKE -j8 PATH="$STAGING/bin:$PATH" && 
-	install $MAKE install PATH="$STAGING/bin:$PATH"
+		--disable-libftdipp --with-async-mode &&
+	compile $MAKE -j8  && 
+	install $MAKE install 
 end_package
 fi
 
@@ -133,13 +118,9 @@ package dropbear
 	configure ./configure --enable-static --disable-shared \
 		--prefix="$ROOTFS" \
 		--host=$TARGET_FULL_ARCH \
-		--with-zlib="$STAGING" \
-		PATH="$STAGING/bin:$PATH" \
-		CC="$GCC" \
-		CFLAGS="-static -Os ${TARGET_CFLAGS}" \
-		LDFLAGS="-static" &&
-	compile $MAKE -j8 PATH="$STAGING/bin:$PATH" && 
-	install $MAKE install PATH="$STAGING/bin:$PATH"
+		--with-zlib="$STAGING" &&
+	compile $MAKE -j8  && 
+	install $MAKE install 
 
 	mkdir -p "$ROOTFS/etc/dropbear"
 	if [ $TARGET_ARCH = "i386" ]; then	
@@ -161,11 +142,9 @@ if [ -d "$BUILD/jpegsrc" ]; then
 package jpegsrc
 	configure ./configure --enable-static --disable-shared \
 		--prefix="$STAGING" \
-		--host=$TARGET_FULL_ARCH \
-		PATH="$STAGING/bin:$PATH" \
-		CC="$GCC" CFLAGS="$TARGET_CFLAGS"  &&
-	compile $MAKE -j8 PATH="$STAGING/bin:$PATH" && 
-	install $MAKE install PATH="$STAGING/bin:$PATH"
+		--host=$TARGET_FULL_ARCH &&
+	compile $MAKE -j8  && 
+	install $MAKE install 
 end_package
 fi
 
@@ -182,11 +161,9 @@ package ffmpeg
 		--enable-gpl --enable-swscale --enable-pthreads \
 		--enable-fastdiv --enable-small \
 		--enable-hardcoded-tables  \
-		 --disable-mmx --disable-mmx2  --disable-sse --disable-ssse3 \
-		 CC="$GCC" \
-		 PATH="$STAGING/bin:$PATH" CFLAGS="$TARGET_CFLAGS" &&
-	compile $MAKE -j8 PATH="$STAGING/bin:$PATH" && 
-	install $MAKE install PATH="$STAGING/bin:$PATH"
+		 --disable-mmx --disable-mmx2  --disable-sse --disable-ssse3 &&
+	compile $MAKE -j8  && 
+	install $MAKE install 
 end_package
 fi
 
@@ -222,7 +199,7 @@ package mDNSResponder
 	configure echo Done &&
 	compile $MAKE os=linux CC="$GCC" SAResponder \
 		CFLAGS_CROSS="-Os $TARGET_CFLAGS -I$STAGING/include" \
-		LINKOPTS="-L$STAGING/lib -static" &&
+		LINKOPTS="$LDFLAGS" &&
 	install cp build/prod/mDNSResponderPosix  "$ROOTFS/bin/"
 end_package
 fi
