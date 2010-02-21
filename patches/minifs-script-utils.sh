@@ -2,19 +2,21 @@
 function package() {
 	PACKAGE="$1"
 	echo "#### Building $PACKAGE"
-	pushd "$BUILD/$PACKAGE"
+	pushd "$BUILD/$PACKAGE" >/dev/null
 }
 function end_package() {
 	#echo "#### Building $PACKAGE DONE"
 	PACKAGE=""
-	popd
+	LOGFILE="&1"
+	popd  >/dev/null
 }
 
 function configure() {
 	local turd="._conf_$PACKAGE"
 	if [ ! -f $turd ]; then
-		echo "#### Configuring $PACKAGE"
+		echo "     Configuring $PACKAGE"
 		rm -f $turd
+		LOGFILE="$turd.log"
 		echo "$@" >$turd.log
 		if "$@" >>$turd.log 2>&1 ; then
 			touch $turd
@@ -24,11 +26,13 @@ function configure() {
 		fi
 	fi
 }
+
 function compile() {
 	local turd="._compile_$PACKAGE"
 	if [ ! -f $turd -o "._conf_$PACKAGE" -nt $turd ]; then
-		echo "#### Compiling $PACKAGE"
+		echo "     Compiling $PACKAGE"
 		rm -f $turd
+		LOGFILE="$turd.log"
 		echo "$@" >$turd.log
 		if "$@" >>$turd.log 2>&1 ; then
 			touch $turd
@@ -42,8 +46,9 @@ function compile() {
 function install() {
 	local turd="._install_$PACKAGE"
 	if [ -f "._compile_$PACKAGE" ]; then
-		echo "#### Installing $PACKAGE"
+		echo "     Installing $PACKAGE"
 		rm -f $turd
+		LOGFILE="$turd.log"
 		echo "$@" >$turd.log
 		if "$@" >>$turd.log 2>&1 ; then
 			touch $turd
