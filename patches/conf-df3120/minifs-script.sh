@@ -7,18 +7,11 @@ TARGET_KERNEL_NAME=uImage
 # target has tiny memory, use thumb, it's smaller
 TARGET_CFLAGS="-Os -march=armv4t -mtune=arm920t -mthumb-interwork -mthumb "
 
-function board_prepare() {
-	echo "board_prepare"
+board_set_versions() {
 	TARGET_FS_SQUASH=0
 	TARGET_INITRD=0
 }
 
-board_finish() {
-	echo "board_finish"
-}
-
 board_compile() {
-	echo "board_compile"
-
 	cp "$BUILD"/kernel.ub "$ROOTFS"/linux
 }

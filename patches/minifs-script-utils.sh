@@ -1,7 +1,36 @@
 
+# calls an optional function(s)
+function optional() {
+	for f in $*; do
+		if declare -F $f >/dev/null; then
+			$f
+		fi
+	done
+}
+
+function optional-one-of () {
+	for f in $*; do
+		if declare -F $f >/dev/null; then
+			#echo optional-one-of running $f
+			$f
+			return
+		fi
+	done
+}
+
+hput() {
+	local k="${2/-}"
+	eval "$1""$k"='$3'
+}
+
+hget() {
+	local k="${2/-}"
+	eval echo '${'"$1$k"'#hash}'
+}
+
 function package() {
 	PACKAGE="$1"
-	echo "#### Building $PACKAGE"
+	#echo "#### Building $PACKAGE"
 	pushd "$BUILD/$PACKAGE" >/dev/null
 }
 function end_package() {
@@ -22,6 +51,7 @@ function configure() {
 			touch $turd
 		else
 			echo "#### ** ERROR ** Configuring $PACKAGE"
+			echo "     Check $LOGFILE"
 			return 1
 		fi
 	fi
@@ -38,6 +68,7 @@ function compile() {
 			touch $turd
 		else
 			echo "#### ** ERROR ** Compiling $PACKAGE"
+			echo "     Check $LOGFILE"
 			return 1
 		fi
 	fi
@@ -54,6 +85,7 @@ function install() {
 			touch $turd
 		else
 			echo "#### ** ERROR ** Installing $PACKAGE"
+			echo "     Check $LOGFILE"
 			return 1
 		fi
 	fi

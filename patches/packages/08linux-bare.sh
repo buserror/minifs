@@ -1,0 +1,3 @@
+
+PACKAGES="$PACKAGES linux-bare"
+

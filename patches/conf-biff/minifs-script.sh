@@ -1,3 +1,5 @@
+#!/bin/bash
+
 TARGET_ARCH=i386
 TARGET_FULL_ARCH=$TARGET_ARCH-minifs-linux-uclibc
 TARGET_KERNEL_NAME=bzImage
@@ -17,12 +19,4 @@ url[${#url[@]}]="mjpg-streamer.tar.bz2"
 url[${#url[@]}]="http://www.ijg.org/files/jpegsrc.v7.tar.gz" 
 url[${#url[@]}]="http://matt.ucc.asn.au/dropbear/releases/dropbear-0.52.tar.bz2" 
 url[${#url[@]}]="mjpg-streamer.tar.bz2"
-}
-
-board_finish() {
-	true
-}
-
-board_compile() {
-	true
 }

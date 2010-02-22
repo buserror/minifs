@@ -59,7 +59,7 @@ MAKE=make
 # tell host pkgcomfig to find it's files there, not on the host
 export PKG_CONFIG_PATH="$STAGING/lib/pkgconfig"
 
-mkdir -p download "$KERNEL" "$ROOTFS" "$STAGING" toolchain
+mkdir -p download "$KERNEL" "$ROOTFS" "$STAGING" "$TOOLCHAIN"
 
 # Allways regenerate the rootfs
 rm -rf "$ROOTFS"/* 
@@ -70,6 +70,9 @@ TARGET_FS_EXT=1
 # only set this if you /know/ the parameters for your NAND
 # TARGET_FS_JFFS2="-q -l -p -e 0x20000 -s 0x800"
 
+# use shared libraries ?
+TARGET_SHARED=0
+
 # 
 # Download stuff, decompresses, install and patch
 pushd download
@@ -78,8 +81,17 @@ VERSION_busybox=1.16.0
 VERSION_linux=2.6.32.2
 VERSION_crosstools=1.5.3
 
-# in minifs-script
-board_prepare
+export PATH="$TOOLCHAIN/bin:$STAGING/bin:$PATH"
+export CC="$TARGET_FULL_ARCH-gcc"
+export CXX="$TARGET_FULL_ARCH-g++"
+
+export CPPFLAGS="-I$STAGING/include" 
+export LDFLAGS="-L$STAGING/lib -static"
+export CFLAGS="-Os $TARGET_CFLAGS" 
+export CXXFLAGS="$CFLAGS" 
+
+# in minifs-script, optional
+optional board_set_versions
 
 url=(
 	"http://busybox.net/downloads/busybox-${VERSION_busybox}.tar.bz2" 
@@ -98,7 +110,7 @@ url=(
 	"http://heanet.dl.sourceforge.net/project/e2fsprogs/e2fsprogs/1.41.9/e2fsprogs-libs-1.41.9.tar.gz"
 	"http://git.infradead.org/mtd-utils.git/snapshot/a67747b7a314e685085b62e8239442ea54959dbc.tar.gz#mtd_utils.tgz"
 )
-board_prepare
+optional board_prepare
 
 for fil in "${url[@]}" ; do
 	proto=${fil/+*}
@@ -117,15 +129,9 @@ for fil in "${url[@]}" ; do
 		mkdir -p "$BUILD/$baseroot"
 
 		case "$typ" in
-			bz2)
-				tar jx -C "$BUILD/$baseroot" --strip 1 -f "$loc"
-				;;
-			gz|tgz)
-				tar zx -C "$BUILD/$baseroot" --strip 1 -f "$loc"
-				;;
-			*)
-				echo ### error file format '$typ' ($base) not supported"
-				exit 1
+			bz2)	tar jx -C "$BUILD/$baseroot" --strip 1 -f "$loc"	;;
+			gz|tgz)	tar zx -C "$BUILD/$baseroot" --strip 1 -f "$loc"	;;
+			*)	echo ### error file format '$typ' ($base) not supported" ; exit 1
 		esac
 		for pd in "$CONFIG/$baseroot" "$PATCHES/$baseroot" ; do
 			if [ -d "$pd" ]; then
@@ -139,98 +145,6 @@ for fil in "${url[@]}" ; do
 done
 popd
 
-echo "#### Configuring kernel"
-mkdir -p "$BUILD/linux-obj"
-# Installing default kernel config
-cp "$CONFIG/config_kernel.conf"  "$BUILD/linux-obj"/.config
-package linux
-	PACKAGE="linux-headers"
-	if [ "$COMMAND" = "kernel_menuconfig" ] ; then
-		$MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
-			CROSS_COMPILE="${CROSS}-" \
-				menuconfig
-		cp "$BUILD/linux-obj/.config" "$CONFIG/config_kernel.conf"
-		rm -f ._*
-		exit
-	fi
-	configure echo Done
-	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
-		CROSS_COMPILE="${CROSS}-" \
-			oldconfig  &&
-	install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
-		CROSS_COMPILE="${CROSS}-" \
-		INSTALL_HDR_PATH="$KERNEL" \
-			headers_install
-end_package
-
-#######################################################################
-## Build toolchain
-#######################################################################
-
-if [ ! -f "$GCC" ]; then 
-	# configuring crosstools
-	echo "####  Configuring crosstools"
-	unset LD_LIBRARY_PATH
-	# this patch is needed on newer host kernels
-	for pd in "$PATCHES/uclibc" "$PATCHES/uclibc-${TARGET_BOARD}"; do
-		if [ -d $pd ]; then
-			echo "##### Installing $pd patches"
-			cp $pd/*.patch "$BUILD"/crosstool/patches/uClibc/0.9.30.1/
-		fi
-	done
-
-	pushd "$BUILD"/crosstool
-		./configure --prefix="$STAGING" &&
-			$MAKE &&
-			$MAKE install
-	popd
-
-	mkdir -p "$BUILD"/toolchain
-	if [ ! -f "$BUILD/toolchain/.config" ]; then
-		for cf in "$CONFIG/config_crosstools.conf" "$CONFIG/config_uclibc.conf" ; do
-			dst=$(basename $cf)
-			cat $cf | sed \
-				-e "s|MINIFS_TOOLCHAIN|$BUILD/toolchain|g" \
-				-e "s|MINIFS_ROOT|$BASE|g" \
-				-e "s|MINIFS_STAGING|$STAGING|g" \
-				-e "s|MINIFS_KERNEL|$KERNEL|g" \
-				 >"$BUILD"/toolchain/$dst
-		done
-	fi
-	pushd "$BUILD"/toolchain
-		cp config_crosstools.conf .config
-		"$STAGING"/bin/ct-ng build
-		#"$STAGING"/bin/ct-ng build.4
-	popd
-fi
-
-if [ ! -f "$GCC" ]; then 
-	echo "GCC doesn't exists!!"
-	exit 1
-fi
-
-export PATH="$TOOLCHAIN/bin:$STAGING/bin:$PATH"
-export CC="$TARGET_FULL_ARCH-gcc"
-export CXX="$TARGET_FULL_ARCH-g++"
-
-export CPPFLAGS="-I$STAGING/include" 
-export LDFLAGS="-L$STAGING/lib -static"
-export CFLAGS="-Os $TARGET_CFLAGS" 
-export CXXFLAGS="$CFLAGS" 
-
-echo "#### Building kernel modules [if any]"
-package linux
-	PACKAGE="linux-modules"
-	rm -rf "$KERNEL"/lib 
-	configure echo Done &&
-	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
-		CROSS_COMPILE="${CROSS}-" \
-			modules -j4 &&
-	install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
-		CROSS_COMPILE="${CROSS}-" \
-		INSTALL_HDR_PATH="$KERNEL" INSTALL_MOD_PATH="$KERNEL" \
-			modules_install 
-end_package
 
 # the count parameter can't be used because of mksquashfs 
 # name    	type mode uid gid major minor start inc count
@@ -248,7 +162,6 @@ cat << EOF | tee "$BUILD"/special_file_table.txt |\
 /dev/tty3	c    666  0    0    4    3    0    -    -
 /dev/tty4	c    666  0    0    4    4    0    -    -
 /dev/tty5	c    666  0    0    4    5    0    -    -
-/config		d    700  0    0    -    -    -    -    -
 /root		d    700  0    0    -    -    -    -    -
 /tmp		d    777  0    0    -    -    -    -    -
 /sys		d    755  0    0    -    -    -    -    -
@@ -258,54 +171,6 @@ cat << EOF | tee "$BUILD"/special_file_table.txt |\
 /var/log	d    755  0    0    -    -    -    -    -
 /var/run	d    755  0    0    -    -    -    -    -
 EOF
-
-package busybox
-	BUSY_CFLAGS="-Os -static $TARGET_CFLAGS"
-
-	if [ -f "$CONFIG"/config_busybox.conf ]; then
-		echo "#### Install default busybox config"
-		configure cp -a  "$CONFIG"/config_busybox.conf .config
-	else
-		configure $MAKE CROSS_COMPILE="${CROSS}-" CFLAGS="$BUSY_CFLAGS" CONFIG_PREFIX="$ROOTFS" defconfig
-		COMMAND="busybox_menuconfig"
-	fi
-	if [ "$COMMAND" = "busybox_menuconfig" ]; then
-		$MAKE CROSS_COMPILE="${CROSS}-" CFLAGS="$BUSY_CFLAGS" CONFIG_PREFIX="$ROOTFS" menuconfig
-
-		echo busybox config done, copying it back
-		cp .config "$CONFIG"/config_busybox.conf
-		rm ._*
-		exit 0
-	fi
-			
-	compile $MAKE CROSS_COMPILE="${CROSS}-" CFLAGS="$BUSY_CFLAGS" CONFIG_PREFIX="$ROOTFS" -j8 &&
-	install $MAKE CROSS_COMPILE="${CROSS}-" CFLAGS="$BUSY_CFLAGS" CONFIG_PREFIX="$ROOTFS" install
-end_package
-
-echo "#### Generating Bare Kernel"
-package linux
-	PACKAGE="linux-bare"
-	# make sure the default source of initrd is not set, make a "noinitrd" kernel
-	configure echo Done
-	sed -i "s/CONFIG_INITRAMFS_SOURCE=.*/CONFIG_INITRAMFS_SOURCE=\"\"/" \
-		"$BUILD"/linux-obj/.config 
-	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
-		CROSS_COMPILE="${CROSS}-" \
-			$TARGET_KERNEL_NAME -j4 &&
-	install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
-		CROSS_COMPILE="${CROSS}-" \
-		INSTALL_PATH="$KERNEL" INSTALL_MOD_PATH="$KERNEL" \
-			install
-		
-	if [ -f "$BUILD"/linux-obj/arch/$TARGET_ARCH/boot/bzImage ]; then
-		cp "$BUILD"/linux-obj/arch/$TARGET_ARCH/boot/bzImage "$BUILD"/vmlinuz-bare.bin
-	elif [ -f "$BUILD"/linux-obj/arch/$TARGET_ARCH/boot/uImage ]; then
-		dd if="$BUILD"/linux-obj/arch/arm/boot/uImage \
-			of="$BUILD"/kernel.ub \
-			bs=128k conv=sync \
-				>>"$LOGFILE" 2>&1
-	fi
-end_package
 
 #######################################################################
 ## Build extra packages
@@ -318,86 +183,56 @@ if [ -d "$CONFIG/files" ]; then
 	(cd "$CONFIG/files"; tar cf - .)|(cd "$ROOTFS"; tar xf -)
 fi
 
-source "$PATCHES"/minifs-script-common.sh
-# in minifs-script
-board_compile
+PACKAGES=""
 
-echo "#### Striping modules and userland tools"
-if [ -d "$KERNEL"/lib/modules/ ]; then
-	rsync -a "$KERNEL"/lib "$ROOTFS/"
-	find "$ROOTFS"/lib/modules/ -name \*.ko | xargs "${CROSS}-strip" -R .note -R .comment --strip-unneeded
-fi
-"${CROSS}-strip" "$ROOTFS"/bin/* "$ROOTFS"/sbin/* "$ROOTFS"/usr/bin/* 2>/dev/null
+configure-generic() {
+	configure ./configure \
+		--host=$TARGET_FULL_ARCH \
+		--prefix="$STAGING" \
+		--enable-static --disable-shared
+}
+compile-generic() {
+	compile $MAKE -j8
+}
+install-generic() {
+	install $MAKE install
+}
 
-echo "#### Generating Filesystems"
-
-if [ $TARGET_FS_SQUASH = 1 ]; then
-	if mksquashfs "$ROOTFS" "$BUILD"/minifs-full-squashfs.img \
-		-all-root \
-		-pf "$BUILD"/special_file_table.txt \
-			>>"$BUILD/._filesystem.log" 2>&1 ; then
-		echo "    " "$BUILD"/minifs-full-squashfs.img " Created"
-	else
-		echo "#### ERROR Generating " "$BUILD"/minifs-full-squashfs.img
+for pd in "$PATCHES/packages" "$CONFIG/packages" ; do
+	if [ -d "$pd" ]; then
+		echo "#### Loading $pd"
+		for p in "$pd"/*.sh; do 
+			source $p
+		done
 	fi
-fi
-if [ $TARGET_FS_EXT = 1 ]; then
-	if genext2fs -d "$ROOTFS" \
-		-U \
-		-D "$BUILD"/special_file_table.txt \
-		-b 8192 \
-		"$BUILD"/minifs-full-ext.img 
-			>>"$BUILD/._filesystem.log" 2>&1 ; then
-		$TUNEFS -j "$BUILD"/minifs-full-ext.img \
-			>>"$BUILD/._filesystem.log" 2>&1
-		echo "    " "$BUILD"/minifs-full-ext.img " Created"
-	else		
-		echo "#### ERROR Generating " "$BUILD"/minifs-full-ext.img
+done
+
+for pack in $PACKAGES; do 
+	dir=$(hget dir $pack)
+	dir=${dir:-$pack}
+	if [ -d "$BUILD/$dir" ]; then
+		package $dir
+			PACKAGE=$pack
+			optional-one-of \
+				$TARGET_BOARD-configure-$pack \
+				configure-$pack \
+				configure-generic &&
+			optional-one-of \
+				$TARGET_BOARD-compile-$pack \
+				compile-$pack \
+				compile-generic &&
+			optional-one-of \
+				$TARGET_BOARD-install-$pack \
+				install-$pack \
+				install-generic			
+		end_package
 	fi
-fi
-
-if [ "$TARGET_FS_JFFS2" != "" ]; then
-	if mkfs.jffs2 $TARGET_FS_JFFS2 \
-		-r "$ROOTFS" \
-		-o "$BUILD"/minifs-full-jffs2.img  \
-		-D "$BUILD"/special_file_table.txt
-			>>"$BUILD/._filesystem.log" 2>&1 ; then
-		echo "    " "$BUILD"/minifs-full-jffs2.img " Created"
-	else
-		echo "#### ERROR Generating " "$BUILD"/minifs-full-jffs2.img
-	fi		
-fi
-
-if [ $TARGET_INITRD = 1 ]; then
-	echo "#### Generating Kernel with initrd"
-	cp "$CONFIG"/config_kernel.conf  "$BUILD"/linux-obj/.config
-	package linux
-		PACKAGE="linux-initrd"
-		configure echo Done 
-		$MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
-			CROSS_COMPILE="${CROSS}-" \
-				oldconfig && \
-		compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
-			CROSS_COMPILE="${CROSS}-" \
-				$TARGET_KERNEL_NAME -j4 &&
-		install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
-			CROSS_COMPILE="${CROSS}-" \
-			INSTALL_PATH="$KERNEL" INSTALL_MOD_PATH="$KERNEL" \
-				install
-
-		if [ -f "$BUILD"/linux-obj/arch/$TARGET_ARCH/boot/bzImage ]; then
-			cp "$BUILD"/linux-obj/arch/$TARGET_ARCH/boot/bzImage \
-				"$BUILD"/vmlinuz-full.bin
-		elif [ -f "$BUILD"/linux-obj/arch/$TARGET_ARCH/boot/uImage ]; then
-			dd if="$BUILD"/linux-obj/arch/arm/boot/uImage \
-				of="$BUILD"/kernel-initrd.ub \
-				bs=128k conv=sync \
-					>>"$LOGFILE" 2>&1
-		fi
-	end_package
-fi
+done
 
 # in minifs-script
-board_finish
+optional board_compile
+
+# in minifs-script
+optional board_finish
 
 chmod 0644 "$BUILD"/*.img "$BUILD"/*.ub 2>/dev/null

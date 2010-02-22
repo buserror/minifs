@@ -9,7 +9,6 @@ mkdir /dev/pts
 mount -t devpts devpts /dev/pts
 mkdir /dev/shm
 mount -t tmpfs none /dev/shm
-mount -t configfs configfs /config
 
 echo "* Starting system loggers..."
 syslogd -C16
@@ -24,9 +23,6 @@ ifconfig lo 127.0.0.1
 
 echo "* Configuring udb network"
 ifconfig usb0 172.16.61.1 netmask 255.255.255.0 up
-
-echo "* Setting hostname..."
-hostname minifs
 
 echo "* Starting telnetd..."
 telnetd -l /bin/sh
