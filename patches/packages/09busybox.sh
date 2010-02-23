@@ -1,5 +1,6 @@
 
 PACKAGES="$PACKAGES busybox"
+hset url busybox	"http://busybox.net/downloads/busybox-${VERSION_busybox}.tar.bz2"
 
 configure-busybox() {
 	if [ -f "$CONFIG"/config_busybox.conf ]; then

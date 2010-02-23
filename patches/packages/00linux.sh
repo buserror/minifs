@@ -2,10 +2,13 @@
 ## contains the 4 main phases of compiling the kernel
 #######################################################################
 
-hput dir linux-headers "linux"
-hput dir linux-modules "linux"
-hput dir linux-bare "linux"
-hput dir linux-initrd "linux"
+hset url linux		"http://www.kernel.org/pub/linux/kernel/v2.6/linux-${VERSION_linux}.tar.bz2" 
+hset targets linux	"linux-headers linux-modules linux-bare linux-initrd"
+
+hset dir linux-headers "linux"
+hset dir linux-modules "linux"
+hset dir linux-bare "linux"
+hset dir linux-initrd "linux"
 
 # the headers gets installed first, the other phases are later
 PACKAGES="$PACKAGES linux-headers"

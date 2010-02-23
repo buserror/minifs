@@ -18,7 +18,7 @@ function optional-one-of () {
 	done
 }
 
-hput() {
+hset() {
 	local k="${2/-}"
 	eval "$1""$k"='$3'
 }

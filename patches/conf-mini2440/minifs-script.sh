@@ -12,5 +12,6 @@ board_set_versions() {
 }
 
 board_prepare() {
-	#url[${#url[@]}]="http://www.opensource.apple.com/darwinsource/tarballs/other/mDNSResponder-107.6.tar.gz"
+	TARGET_PACKAGES="$TARGET_PACKAGES zlib lzo e2fsprogs mtd_utils"
 }
+

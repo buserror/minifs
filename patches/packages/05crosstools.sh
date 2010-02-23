@@ -1,7 +1,9 @@
 
 if [ ! -f "$GCC" ]; then 
 	PACKAGES="$PACKAGES crosstools"
+	NEED_CROSSTOOLS="crosstools"
 fi
+hset url crosstools	"http://ymorin.is-a-geek.org/download/crosstool-ng/crosstool-ng-${VERSION_crosstools}.tar.bz2" 
 
 configure-crosstools() {
 	# this patch is needed on newer host kernels

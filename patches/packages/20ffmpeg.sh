@@ -3,6 +3,8 @@
 #######################################################################
 PACKAGES="$PACKAGES ffmpeg"
 
+hset url ffmpeg		"http://ffmpeg.org/releases/ffmpeg-0.5.tar.bz2"
+
 configure-ffmpeg() {
 	configure ./configure \
 		--prefix="$STAGING" \

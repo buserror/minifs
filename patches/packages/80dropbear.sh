@@ -3,6 +3,8 @@
 #######################################################################
 PACKAGES="$PACKAGES dropbear"
 
+hset url dropbear	"http://matt.ucc.asn.au/dropbear/releases/dropbear-0.52.tar.bz2" 
+
 configure-dropbear-nah() {
 	configure ./configure --enable-static --disable-shared \
 		--prefix="$ROOTFS" \

@@ -13,10 +13,10 @@ if [ "$TARGET_FS_JFFS2" != "" ]; then
 	PACKAGES="$PACKAGES filesystem-jffs"
 fi
 
-hput dir filesystem-prepack "."
-hput dir filesystem-squash "."
-hput dir filesystem-ext "."
-hput dir filesystem-jffs "."
+hset dir filesystem-prepack "."
+hset dir filesystem-squash "."
+hset dir filesystem-ext "."
+hset dir filesystem-jffs "."
 
 deploy-filesystem-prepack() {
 	"${CROSS}-strip" "$ROOTFS"/bin/* "$ROOTFS"/sbin/* "$ROOTFS"/usr/bin/* \

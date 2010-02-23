@@ -1,12 +1,21 @@
-#######################################################################
-## Jpeg
-#######################################################################
-PACKAGES="$PACKAGES jpegsrc"
 
 #######################################################################
 ## mjpg-streamer
 #######################################################################
 PACKAGES="$PACKAGES mjpg"
+
+hset url mjpg 		"mjpg-streamer.tar.bz2"
+
+download-mjpg() {
+	pushd "$DOWNLOAD"
+	if [ ! -f "mjpg-streamer.tar.bz2" ]; then
+			echo "####  Downloading SVN and creating tarball of mjpg-streamer"
+			svn co "https://mjpg-streamer.svn.sourceforge.net/svnroot/mjpg-streamer/mjpg-streamer" &&
+			tar jcf mjpg-streamer.tar.bz2 mjpg-streamer &&
+			rm -rf mjpg-streamer
+	fi
+	popd
+}
 
 configure-mjpg() {
 	configure echo Done

@@ -24,7 +24,6 @@
 # + Install the kernel+initrd combo file in build
 # 
 # The resulting kernel + initrd containing a pretty usefull system is 1.4MB
-# Next step is to load it! Only way for the moment is to use a SD card
 # 
 # (C) Michel Pollet <buserror@gmail.com>
 # 
@@ -32,7 +31,7 @@
 # this is the board we are making. Several boards can co-exist, the toolchains
 # are "compatible" and live in the toolchain/ subdirectory. Several board of the
 # same arch can also coexist, sharing the same toolchain
-TARGET_BOARD="mini2440"
+TARGET_BOARD="yuckfan"
 
 COMMAND=$1
 
@@ -75,15 +74,11 @@ TARGET_SHARED=0
 
 PACKAGES=""
 
-# 
-# Download stuff, decompresses, install and patch
-pushd download
-
 VERSION_busybox=1.16.0
 VERSION_linux=2.6.32.2
 VERSION_crosstools=1.5.3
 
-export PATH="$TOOLCHAIN/bin:$STAGING/bin:$PATH"
+export PATH="$TOOLCHAIN/bin:$PATH"
 export CC="$TARGET_FULL_ARCH-gcc"
 export CXX="$TARGET_FULL_ARCH-g++"
 
@@ -94,40 +89,57 @@ export CXXFLAGS="$CFLAGS"
 
 export PKG_CONFIG_PATH="$STAGING/lib/pkgconfig"
 
+CONFIG_MODULES=$(grep '^CONFIG_MODULES=y' "$CONFIG/config_kernel.conf")
+
 # in minifs-script, optional
 optional board_set_versions
 
-url=(
-	"http://busybox.net/downloads/busybox-${VERSION_busybox}.tar.bz2" 
-	"http://www.kernel.org/pub/linux/kernel/v2.6/linux-${VERSION_linux}.tar.bz2" 
-	"http://ymorin.is-a-geek.org/download/crosstool-ng/crosstool-ng-${VERSION_crosstools}.tar.bz2" 
-	# useful and needed
-	"http://www.zlib.net/zlib-1.2.3.tar.gz" 
-	# screen doesn't work, work in progress
-	#"http://ftp.gnu.org/gnu/screen/screen-4.0.3.tar.gz" 
-	"http://dl.lm-sensors.org/i2c-tools/releases/i2c-tools-3.0.2.tar.bz2"
-	# this can get compiled and installed im staging
-	"http://kent.dl.sourceforge.net/project/libusb/libusb-0.1%20%28LEGACY%29/0.1.12/libusb-0.1.12.tar.gz"
-	"http://www.intra2net.com/en/developer/libftdi/download/libftdi-0.16.tar.gz"
-	#"http://ffmpeg.org/releases/ffmpeg-0.5.tar.bz2"
-	"http://www.oberhumer.com/opensource/lzo/download/lzo-2.03.tar.gz"
-	"http://heanet.dl.sourceforge.net/project/e2fsprogs/e2fsprogs/1.41.9/e2fsprogs-libs-1.41.9.tar.gz"
-	"http://git.infradead.org/mtd-utils.git/snapshot/a67747b7a314e685085b62e8239442ea54959dbc.tar.gz#mtd_utils.tgz"
-)
+# load all the package files
+for pd in "$PATCHES/packages" "$CONFIG/packages" ; do
+	if [ -d "$pd" ]; then
+		echo "#### Loading $pd"
+		for p in "$pd"/*.sh; do 
+			source $p
+		done
+	fi
+done
+
+export TARGET_PACKAGES="linux $NEED_CROSSTOOLS busybox"
+
+# Download stuff, decompresses, install and patch
+pushd download
+
 optional board_prepare
 
-for fil in "${url[@]}" ; do
-	proto=${fil/+*}
-	fil=${fil/*+}
+BUILD_PACKAGES=""
+
+for package in $TARGET_PACKAGES; do 
+	fil=$(hget url $package)
+
+	if [ "$fil" = "" ]; then 
+		echo "##### package $package is unknown"
+		exit 1
+	fi
+	# adds the list of targets provided by this package
+	# to the list of the ones we want to build
+	targets=$(hget targets $package)
+	BUILD_PACKAGES="$BUILD_PACKAGES ${targets:-$package}"
+	
+	proto=${fil/!*}
+	fil=${fil/*!}
 	base=${fil/*\//}
 	typ=${fil/*.}
 	url=${base/\#*}
 	loc=${base/*#/}
+	
+	# maybe the package has a magic downloader ?
+	optional download-$package
+
 	if [ ! -f "$loc" ]; then
 		$WGET "$fil" -O "$loc"
 	fi
-	baseroot=${loc/-*/}
-	baseroot=${baseroot/.*/}	
+	baseroot=$package
+	#echo $package = $fil
 	if [ ! -d "$BUILD/$baseroot" ]; then
 		echo "####  Extracting $loc to $BUILD/$baseroot ($typ)"
 		mkdir -p "$BUILD/$baseroot"
@@ -150,8 +162,8 @@ for fil in "${url[@]}" ; do
 		done
 	fi
 done
-popd
 
+popd
 
 # the count parameter can't be used because of mksquashfs 
 # name    	type mode uid gid major minor start inc count
@@ -183,8 +195,6 @@ EOF
 ## Build extra packages
 #######################################################################
 
-CONFIG_MODULES=$(grep '^CONFIG_MODULES=y' "$CONFIG/config_kernel.conf")
-
 echo "#### Copying default rootfs files"
 rsync -a files/ "$ROOTFS/"
 if [ -d "$CONFIG/files" ]; then
@@ -207,16 +217,20 @@ deploy-generic() {
 	return 0
 }
 
-for pd in "$PATCHES/packages" "$CONFIG/packages" ; do
-	if [ -d "$pd" ]; then
-		echo "#### Loading $pd"
-		for p in "$pd"/*.sh; do 
-			source $p
-		done
-	fi
-done
-
 for pack in $PACKAGES; do 
+	# check to see if that package was requested, otherwise, skip it
+	dobuild=0
+	for can in $BUILD_PACKAGES; do
+		if [ "$can" = "$pack" ]; then
+			dobuild=1
+			break
+		fi
+	done
+	if [ $dobuild -eq 0 ]; then
+		# echo Skipping $pack
+		continue
+	fi
+	
 	dir=$(hget dir $pack)
 	dir=${dir:-$pack}
 	if [ -d "$BUILD/$dir" ]; then
