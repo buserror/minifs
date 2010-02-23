@@ -10,7 +10,10 @@ configure-dropbear-nah() {
 		--with-zlib="$STAGING"
 }
 install-dropbear() {
-	install-generic
+	log_install echo Done
+}
+deploy-dropbear() {
+	deploy $MAKE install
 	mkdir -p "$ROOTFS/etc/dropbear"
 	if [ $TARGET_ARCH = "i386" ]; then	
 		if [ ! -f "$BUILD"/dropbear_dss_host_key ]; then

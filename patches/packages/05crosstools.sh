@@ -36,7 +36,7 @@ configure-crosstools() {
 }
 
 compile-crosstools() {
-	echo Done
+	compile echo Done
 }
 
 # installing crosstools is just the beginning!
@@ -45,6 +45,6 @@ install-crosstools() {
 		echo "GCC doesn't exists!!"
 		exit 1
 	fi
-	install Done
+	log_install echo Done
 }
 

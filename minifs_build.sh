@@ -73,6 +73,8 @@ TARGET_FS_EXT=1
 # use shared libraries ?
 TARGET_SHARED=0
 
+PACKAGES=""
+
 # 
 # Download stuff, decompresses, install and patch
 pushd download
@@ -86,9 +88,11 @@ export CC="$TARGET_FULL_ARCH-gcc"
 export CXX="$TARGET_FULL_ARCH-g++"
 
 export CPPFLAGS="-I$STAGING/include" 
-export LDFLAGS="-L$STAGING/lib -static"
+export LDFLAGS="-L$STAGING/lib"
 export CFLAGS="-Os $TARGET_CFLAGS" 
 export CXXFLAGS="$CFLAGS" 
+
+export PKG_CONFIG_PATH="$STAGING/lib/pkgconfig"
 
 # in minifs-script, optional
 optional board_set_versions
@@ -137,7 +141,10 @@ for fil in "${url[@]}" ; do
 			if [ -d "$pd" ]; then
 				echo "#### Patching $base"
 				pushd "$BUILD/$baseroot"
-				cat "$pd/"/*.patch | patch -t -p1
+					for pf in "$pd/"/*.patch; do
+						echo "     Applying $pf"
+						cat $pf | patch -t -p1
+					done
 				popd
 			fi
 		done
@@ -176,6 +183,8 @@ EOF
 ## Build extra packages
 #######################################################################
 
+CONFIG_MODULES=$(grep '^CONFIG_MODULES=y' "$CONFIG/config_kernel.conf")
+
 echo "#### Copying default rootfs files"
 rsync -a files/ "$ROOTFS/"
 if [ -d "$CONFIG/files" ]; then
@@ -183,19 +192,19 @@ if [ -d "$CONFIG/files" ]; then
 	(cd "$CONFIG/files"; tar cf - .)|(cd "$ROOTFS"; tar xf -)
 fi
 
-PACKAGES=""
-
 configure-generic() {
 	configure ./configure \
 		--host=$TARGET_FULL_ARCH \
-		--prefix="$STAGING" \
-		--enable-static --disable-shared
+		--prefix="$STAGING"
 }
 compile-generic() {
 	compile $MAKE -j8
 }
 install-generic() {
-	install $MAKE install
+	log_install $MAKE install
+}
+deploy-generic() {
+	return 0
 }
 
 for pd in "$PATCHES/packages" "$CONFIG/packages" ; do
@@ -224,7 +233,11 @@ for pack in $PACKAGES; do
 			optional-one-of \
 				$TARGET_BOARD-install-$pack \
 				install-$pack \
-				install-generic			
+				install-generic	&&
+			optional-one-of \
+				$TARGET_BOARD-deploy-$pack \
+				deploy-$pack \
+				deploy-generic			
 		end_package
 	fi
 done

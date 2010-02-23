@@ -11,7 +11,7 @@ function optional() {
 function optional-one-of () {
 	for f in $*; do
 		if declare -F $f >/dev/null; then
-			#echo optional-one-of running $f
+			# echo optional-one-of running $f
 			$f
 			return
 		fi
@@ -52,7 +52,7 @@ function configure() {
 		else
 			echo "#### ** ERROR ** Configuring $PACKAGE"
 			echo "     Check $LOGFILE"
-			return 1
+			exit 1
 		fi
 	fi
 }
@@ -69,14 +69,14 @@ function compile() {
 		else
 			echo "#### ** ERROR ** Compiling $PACKAGE"
 			echo "     Check $LOGFILE"
-			return 1
+			exit 1
 		fi
 	fi
 }
 
-function install() {
+function log_install() {
 	local turd="._install_$PACKAGE"
-	if [ -f "._compile_$PACKAGE" ]; then
+	if [ ! -f $turd -o "._compile_$PACKAGE" -nt $turd ]; then
 		echo "     Installing $PACKAGE"
 		rm -f $turd
 		LOGFILE="$turd.log"
@@ -86,7 +86,24 @@ function install() {
 		else
 			echo "#### ** ERROR ** Installing $PACKAGE"
 			echo "     Check $LOGFILE"
-			return 1
+			exit 1
+		fi
+	fi
+}
+
+function deploy() {
+	local turd="._deploy_$PACKAGE"
+	if [ -f "._install_$PACKAGE" ]; then
+		echo "     Deploying $PACKAGE"
+		rm -f $turd
+		LOGFILE="$turd.log"
+		echo "$@" >$turd.log
+		if "$@" >>$turd.log 2>&1 ; then
+			touch $turd
+		else
+			echo "#### ** ERROR ** Deploying $PACKAGE"
+			echo "     Check $LOGFILE"
+			exit 1
 		fi
 	fi
 }

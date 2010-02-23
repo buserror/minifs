@@ -14,13 +14,10 @@ PACKAGES="$PACKAGES linux-headers"
 ## linux-headers
 #######################################################################
 
-
 configure-linux-headers() {
-	pwd
 	mkdir -p "$BUILD/linux-obj"
 	# Installing default kernel config
 	cp "$CONFIG/config_kernel.conf"  "$BUILD/linux-obj"/.config
-	CONFIG_MODULES=$(grep '^CONFIG_MODULES=y' "$CONFIG/config_kernel.conf")
 
 	if [ "$COMMAND" = "kernel_menuconfig" ] ; then
 		$MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
@@ -40,7 +37,7 @@ compile-linux-headers() {
 }
 
 install-linux-headers() {
-	install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
+	log_install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE="${CROSS}-" \
 		INSTALL_HDR_PATH="$KERNEL" \
 			headers_install
@@ -51,7 +48,6 @@ install-linux-headers() {
 #######################################################################
 
 configure-linux-modules() {
-	rm -rf "$KERNEL"/lib 
 	configure echo Done
 }
 
@@ -62,11 +58,13 @@ compile-linux-modules() {
 }
 
 install-linux-modules() {
-	install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
+	log_install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE="${CROSS}-" \
 		INSTALL_HDR_PATH="$KERNEL" INSTALL_MOD_PATH="$KERNEL" \
 			modules_install 
-	rsync -a "$KERNEL"/lib "$ROOTFS/"
+}
+deploy-linux-modules() {
+	deploy rsync -a "$KERNEL"/lib "$ROOTFS/"
 	find "$ROOTFS"/lib/modules/ -name \*.ko | xargs "${CROSS}-strip" -R .note -R .comment --strip-unneeded
 }
 
@@ -88,18 +86,19 @@ compile-linux-bare() {
 }
 
 install-linux-bare() {
-	install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
+	log_install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE="${CROSS}-" \
 		INSTALL_PATH="$KERNEL" INSTALL_MOD_PATH="$KERNEL" \
 			install
-
+}
+deploy-linux-bare() {
 	if [ -f "$BUILD"/linux-obj/arch/$TARGET_ARCH/boot/bzImage ]; then
-		cp "$BUILD"/linux-obj/arch/$TARGET_ARCH/boot/bzImage "$BUILD"/vmlinuz-bare.bin
+		deploy cp "$BUILD"/linux-obj/arch/$TARGET_ARCH/boot/bzImage \
+			"$BUILD"/vmlinuz-bare.bin
 	elif [ -f "$BUILD"/linux-obj/arch/$TARGET_ARCH/boot/uImage ]; then
-		dd if="$BUILD"/linux-obj/arch/arm/boot/uImage \
+		deploy dd if="$BUILD"/linux-obj/arch/arm/boot/uImage \
 			of="$BUILD"/kernel.ub \
-			bs=128k conv=sync \
-				>>"$LOGFILE" 2>&1
+			bs=128k conv=sync
 	fi
 }
 
@@ -123,19 +122,19 @@ compile-linux-initrd() {
 }
 
 install-linux-initrd() {
-	install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
+	log_install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE="${CROSS}-" \
 		INSTALL_PATH="$KERNEL" INSTALL_MOD_PATH="$KERNEL" \
 			install
-
+}
+deploy-linux-initrd() {
 	if [ -f "$BUILD"/linux-obj/arch/$TARGET_ARCH/boot/bzImage ]; then
-		cp "$BUILD"/linux-obj/arch/$TARGET_ARCH/boot/bzImage \
+		deploy cp "$BUILD"/linux-obj/arch/$TARGET_ARCH/boot/bzImage \
 			"$BUILD"/vmlinuz-full.bin
 	elif [ -f "$BUILD"/linux-obj/arch/$TARGET_ARCH/boot/uImage ]; then
-		dd if="$BUILD"/linux-obj/arch/arm/boot/uImage \
+		deploy dd if="$BUILD"/linux-obj/arch/arm/boot/uImage \
 			of="$BUILD"/kernel-initrd.ub \
-			bs=128k conv=sync \
-				>>"$LOGFILE" 2>&1
+			bs=128k conv=sync 
 	fi
 }
 

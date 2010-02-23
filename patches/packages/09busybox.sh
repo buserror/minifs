@@ -23,5 +23,9 @@ compile-busybox() {
 }
 
 install-busybox() {
-	install $MAKE CROSS_COMPILE="${CROSS}-" CFLAGS="$BUSY_CFLAGS" CONFIG_PREFIX="$ROOTFS" install
+	log_install echo Done
+}
+
+deploy-busybox() {
+	deploy $MAKE CROSS_COMPILE="${CROSS}-" CFLAGS="$BUSY_CFLAGS" CONFIG_PREFIX="$ROOTFS" install
 }

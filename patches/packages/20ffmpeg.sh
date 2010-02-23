@@ -4,7 +4,7 @@
 PACKAGES="$PACKAGES ffmpeg"
 
 configure-ffmpeg() {
-	configure ./configure --enable-static --disable-shared \
+	configure ./configure \
 		--prefix="$STAGING" \
 		--enable-cross-compile \
 		--sysroot="$STAGING" \

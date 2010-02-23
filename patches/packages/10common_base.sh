@@ -23,23 +23,15 @@ PACKAGES="$PACKAGES e2fsprogs"
 
 configure-e2fsprogs() {
 	configure ./configure \
-		--prefix="$STAGING" \
 		--host=$TARGET_FULL_ARCH \
-		--disable-tls \
-		--enable-static --disable-shared
+		--prefix="$STAGING" \
+		--disable-tls
 }
 
 #######################################################################
 ## screen
 #######################################################################
 PACKAGES="$PACKAGES screen"
-
-configure-screen() {
-	configure ./configure \
-		--prefix="$ROOTFS" \
-		--host=$TARGET_FULL_ARCH \
-		 --enable-static --disable-shared
-}
 
 #######################################################################
 ## i2c-tools
@@ -50,10 +42,13 @@ configure-i2c() {
 	configure echo Done
 }
 compile-i2c() {
-	compile $MAKE CC=$GCC
+	compile $MAKE CC=$GCC LDFLAGS="$LDFLAGS -static"
 }
-install-i2c() {
-	install cp ./tools/i2c{detect,dump,get,set} "$ROOTFS/bin/"
+install() {
+	log_install echo Done
+}
+deploy-i2c() {
+	deploy cp ./tools/i2c{detect,dump,get,set} "$ROOTFS/bin/"
 }
 
 #######################################################################
@@ -68,7 +63,6 @@ PACKAGES="$PACKAGES libftdi"
 
 configure-libftdi() {
 	configure  ./configure \
-		--enable-static --disable-shared \
 		--prefix="$STAGING" \
 		--host=$TARGET_FULL_ARCH \
 		--disable-libftdipp --with-async-mode
@@ -84,9 +78,13 @@ configure-mtd_utils() {
 }
 compile-mtd_utils() {
 	compile $MAKE CC=$GCC \
-		CFLAGS="$TARGET_CFLAGS -I$STAGING/include -DWITHOUT_XATTR"
+		CFLAGS="$TARGET_CFLAGS -I$STAGING/include -DWITHOUT_XATTR" \
+		LDFLAGS="$LDFLAGS -static"
 }
 install-mtd_utils() {
-	install cp nandwrite mtd_debug  "$ROOTFS/bin/"
+	log_install echo Done
+}
+deploy-mtd_utils() {
+	deploy cp nandwrite mtd_debug  "$ROOTFS/bin/"
 }
 

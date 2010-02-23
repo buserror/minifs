@@ -18,7 +18,10 @@ compile-mjpg() {
 		STATIC=1
 }
 install-mjpg() {
-	install cp -ra mjpg_streamer www "$ROOTFS"/bin/
+	log_install echo Done
+}
+deploy-mjpg() {
+	deploy cp -ra mjpg_streamer www "$ROOTFS"/bin/
 
 	cat >>"$ROOTFS"/etc/init.d/rcS <<-EOF
 	
@@ -31,3 +34,4 @@ install-mjpg() {
 modprobe uvcvideo >/dev/null 2>&1
 ' "$ROOTFS"/etc/init.d/rcS
 }
+

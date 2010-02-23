@@ -18,12 +18,12 @@ hput dir filesystem-squash "."
 hput dir filesystem-ext "."
 hput dir filesystem-jffs "."
 
-install-filesystem-prepack() {
+deploy-filesystem-prepack() {
 	"${CROSS}-strip" "$ROOTFS"/bin/* "$ROOTFS"/sbin/* "$ROOTFS"/usr/bin/* \
 		2>/dev/null
 }
 
-install-filesystem-squash() {
+deploy-filesystem-squash() {
 	if mksquashfs "$ROOTFS" "$BUILD"/minifs-full-squashfs.img \
 		-all-root \
 		-pf "$BUILD"/special_file_table.txt \
@@ -34,7 +34,7 @@ install-filesystem-squash() {
 	fi
 }
 
-install-filesystem-ext() {
+deploy-filesystem-ext() {
 	if genext2fs -d "$ROOTFS" \
 		-U \
 		-D "$BUILD"/special_file_table.txt \
@@ -49,7 +49,7 @@ install-filesystem-ext() {
 	fi
 }
 
-install-filesystem-jffs() {
+deploy-filesystem-jffs() {
 	if mkfs.jffs2 $TARGET_FS_JFFS2 \
 		-r "$ROOTFS" \
 		-o "$BUILD"/minifs-full-jffs2.img  \
@@ -89,5 +89,18 @@ compile-filesystem-ext() {
 }
 compile-filesystem-jffs() {
 	return 0
+}
+
+install-filesystem-prepack() {
+	log_install echo Done
+}
+install-filesystem-squash() {
+	log_install echo Done
+}
+install-filesystem-ext() {
+	log_install echo Done
+}
+install-filesystem-jffs() {
+	log_install echo Done
 }
 

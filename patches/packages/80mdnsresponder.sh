@@ -12,5 +12,8 @@ compile-mDSNResponder() {
 		LINKOPTS="$LDFLAGS"
 }
 install-mDSNResponder() {
-	install cp build/prod/mDNSResponderPosix  "$ROOTFS/bin/"
+	log_install echo Done
+}
+deploy-mDSNResponder() {
+	deploy cp build/prod/mDNSResponderPosix  "$ROOTFS/bin/"
 }
