@@ -1,17 +1,23 @@
 
-PACKAGES="$PACKAGES filesystem-prepack"
+PACKAGES+=" filesystems"
+FILESYSTEMS="filesystem-prepack"
 
-if [ $TARGET_FS_SQUASH = 1 ]; then
-	PACKAGES="$PACKAGES filesystem-squash"
+hset url filesystems "none"
+
+if [ $TARGET_FS_SQUASH -eq 1 ]; then
+	FILESYSTEMS+=" filesystem-squash"
 fi
 
-if [ $TARGET_FS_EXT = 1 ]; then
-	PACKAGES="$PACKAGES filesystem-ext"
+if [ $TARGET_FS_EXT -eq 1 ]; then
+	FILESYSTEMS+=" filesystem-ext"
 fi
 
 if [ "$TARGET_FS_JFFS2" != "" ]; then
-	PACKAGES="$PACKAGES filesystem-jffs"
+	FILESYSTEMS+=" filesystem-jffs"
 fi
+
+PACKAGES+=" $FILESYSTEMS"
+hset targets filesystems "$FILESYSTEMS"
 
 hset dir filesystem-prepack "."
 hset dir filesystem-squash "."
@@ -19,8 +25,15 @@ hset dir filesystem-ext "."
 hset dir filesystem-jffs "."
 
 deploy-filesystem-prepack() {
-	"${CROSS}-strip" "$ROOTFS"/bin/* "$ROOTFS"/sbin/* "$ROOTFS"/usr/bin/* \
+	deploy "${CROSS}-strip" "$ROOTFS"/bin/* "$ROOTFS"/sbin/* "$ROOTFS"/usr/bin/* \
 		2>/dev/null
+	for lib in "$ROOTFS"/lib "$ROOTFS"/usr/lib; do
+		if [ -d "$lib" ]; then
+			find "$lib" -type f -exec "${CROSS}-strip" \
+				--strip-unneeded {} \; \
+					>>"$LOGFILE" 2>&1
+		fi
+	done
 }
 
 deploy-filesystem-squash() {
@@ -38,8 +51,8 @@ deploy-filesystem-ext() {
 	if genext2fs -d "$ROOTFS" \
 		-U \
 		-D "$BUILD"/special_file_table.txt \
-		-b 8192 \
-		"$BUILD"/minifs-full-ext.img 
+		-b ${TARGET_FS_EXT_SIZE:-8192} \
+		"$BUILD"/minifs-full-ext.img \
 			>>"$BUILD/._filesystem.log" 2>&1 ; then
 		$TUNEFS -j "$BUILD"/minifs-full-ext.img \
 			>>"$BUILD/._filesystem.log" 2>&1
@@ -53,7 +66,7 @@ deploy-filesystem-jffs() {
 	if mkfs.jffs2 $TARGET_FS_JFFS2 \
 		-r "$ROOTFS" \
 		-o "$BUILD"/minifs-full-jffs2.img  \
-		-D "$BUILD"/special_file_table.txt
+		-D "$BUILD"/special_file_table.txt \
 			>>"$BUILD/._filesystem.log" 2>&1 ; then
 		echo "    " "$BUILD"/minifs-full-jffs2.img " Created"
 	else

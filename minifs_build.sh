@@ -91,6 +91,9 @@ export PKG_CONFIG_PATH="$STAGING/lib/pkgconfig"
 
 CONFIG_MODULES=$(grep '^CONFIG_MODULES=y' "$CONFIG/config_kernel.conf")
 
+export TARGET_PACKAGES="linux $NEED_CROSSTOOLS busybox filesystems"
+export BUILD_PACKAGES=""
+
 # in minifs-script, optional
 optional board_set_versions
 
@@ -104,14 +107,10 @@ for pd in "$PATCHES/packages" "$CONFIG/packages" ; do
 	fi
 done
 
-export TARGET_PACKAGES="linux $NEED_CROSSTOOLS busybox"
-
 # Download stuff, decompresses, install and patch
 pushd download
 
 optional board_prepare
-
-BUILD_PACKAGES=""
 
 for package in $TARGET_PACKAGES; do 
 	fil=$(hget url $package)
@@ -123,7 +122,11 @@ for package in $TARGET_PACKAGES; do
 	# adds the list of targets provided by this package
 	# to the list of the ones we want to build
 	targets=$(hget targets $package)
-	BUILD_PACKAGES="$BUILD_PACKAGES ${targets:-$package}"
+	BUILD_PACKAGES+=" ${targets:-$package}"
+	
+	if [ "$fil" = "none" ]; then 
+		continue
+	fi
 	
 	proto=${fil/!*}
 	fil=${fil/*!}
@@ -217,6 +220,8 @@ deploy-generic() {
 	return 0
 }
 
+#echo PACKAGES $PACKAGES
+#echo BUILD_PACKAGES $BUILD_PACKAGES
 for pack in $PACKAGES; do 
 	# check to see if that package was requested, otherwise, skip it
 	dobuild=0
