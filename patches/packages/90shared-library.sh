@@ -6,6 +6,7 @@ fi
 
 hset url sharedlibs "none" 
 hset dir sharedlibs "."
+hset phases sharedlibs "deploy"
 
 deploy-sharedlibs() {
 	mkdir -p "$ROOTFS/lib/" "$ROOTFS/usr/lib/"
@@ -22,14 +23,3 @@ deploy-sharedlibs() {
 		"$ROOTFS/usr/lib/" \
 			>>"$LOGFILE" 2>&1 
 }
-
-configure-sharedlibs() {
-	configure echo Done
-}
-compile-sharedlibs() {
-	compile echo Done
-}
-install-sharedlibs() {
-	install echo Done
-}
-

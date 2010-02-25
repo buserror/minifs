@@ -31,7 +31,7 @@
 # this is the board we are making. Several boards can co-exist, the toolchains
 # are "compatible" and live in the toolchain/ subdirectory. Several board of the
 # same arch can also coexist, sharing the same toolchain
-TARGET_BOARD="yuckfan"
+TARGET_BOARD="biff"
 
 COMMAND=$1
 
@@ -72,8 +72,6 @@ TARGET_FS_EXT=1
 # use shared libraries ?
 TARGET_SHARED=0
 
-PACKAGES=""
-
 VERSION_busybox=1.16.0
 VERSION_linux=2.6.32.2
 VERSION_crosstools=1.5.3
@@ -86,11 +84,21 @@ export CPPFLAGS="-I$STAGING/include"
 export LDFLAGS="-L$STAGING/lib"
 export CFLAGS="-Os $TARGET_CFLAGS" 
 export CXXFLAGS="$CFLAGS" 
-
 export PKG_CONFIG_PATH="$STAGING/lib/pkgconfig"
 
+# Look in this target's kernel config to know if we need/want modules
 CONFIG_MODULES=$(grep '^CONFIG_MODULES=y' "$CONFIG/config_kernel.conf")
 
+# PACKAGES is the entire list of possible packages, as fulled by the 
+# patches/packages scripts, in their ideal build order.
+# TARGET_PACKAGES are the ones requested by the target buuld script, in any
+# order
+# BUILD_PACKAGES is the same, but with alias resolved so "linux" becomes
+# "linux-headers", "linux-modules" etc.
+# The script foes the union of these and can then have a list of packages
+# to build.
+# 
+export PACKAGES=""
 export TARGET_PACKAGES="linux $NEED_CROSSTOOLS busybox filesystems"
 export BUILD_PACKAGES=""
 
@@ -100,7 +108,7 @@ optional board_set_versions
 # load all the package files
 for pd in "$PATCHES/packages" "$CONFIG/packages" ; do
 	if [ -d "$pd" ]; then
-		echo "#### Loading $pd"
+		# echo "#### Loading $pd"
 		for p in "$pd"/*.sh; do 
 			source $p
 		done
@@ -168,6 +176,7 @@ done
 
 popd
 
+# Create the text files used to make the device files in ROOTFS
 # the count parameter can't be used because of mksquashfs 
 # name    	type mode uid gid major minor start inc count
 cat << EOF | tee "$BUILD"/special_file_table.txt |\
@@ -195,7 +204,7 @@ cat << EOF | tee "$BUILD"/special_file_table.txt |\
 EOF
 
 #######################################################################
-## Build extra packages
+## Create base rootfs tree
 #######################################################################
 
 echo "#### Copying default rootfs files"
@@ -204,6 +213,10 @@ if [ -d "$CONFIG/files" ]; then
 	echo "#### Installing overrides"
 	(cd "$CONFIG/files"; tar cf - .)|(cd "$ROOTFS"; tar xf -)
 fi
+
+#######################################################################
+## Default "build" phases
+#######################################################################
 
 configure-generic() {
 	configure ./configure \
@@ -219,6 +232,12 @@ install-generic() {
 deploy-generic() {
 	return 0
 }
+
+#######################################################################
+## Buildl each packages
+#######################################################################
+
+export DEFAULT_PHASES="configure compile install deploy"
 
 #echo PACKAGES $PACKAGES
 #echo BUILD_PACKAGES $BUILD_PACKAGES
@@ -240,23 +259,15 @@ for pack in $PACKAGES; do
 	dir=${dir:-$pack}
 	if [ -d "$BUILD/$dir" ]; then
 		package $dir
+			phases=$(hget phases $pack)
+			phases=${phases:-$DEFAULT_PHASES}
 			PACKAGE=$pack
-			optional-one-of \
-				$TARGET_BOARD-configure-$pack \
-				configure-$pack \
-				configure-generic &&
-			optional-one-of \
-				$TARGET_BOARD-compile-$pack \
-				compile-$pack \
-				compile-generic &&
-			optional-one-of \
-				$TARGET_BOARD-install-$pack \
-				install-$pack \
-				install-generic	&&
-			optional-one-of \
-				$TARGET_BOARD-deploy-$pack \
-				deploy-$pack \
-				deploy-generic			
+			for ph in $phases; do
+				optional-one-of \
+					$TARGET_BOARD-$ph-$pack \
+					$ph-$pack \
+					$ph-generic || break
+			done
 		end_package
 	fi
 done

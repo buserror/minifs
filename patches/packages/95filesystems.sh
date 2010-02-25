@@ -20,9 +20,13 @@ PACKAGES+=" $FILESYSTEMS"
 hset targets filesystems "$FILESYSTEMS"
 
 hset dir filesystem-prepack "."
+hset phases filesystem-prepack "deploy"
 hset dir filesystem-squash "."
+hset phases filesystem-squash "deploy"
 hset dir filesystem-ext "."
+hset phases filesystem-ext "deploy"
 hset dir filesystem-jffs "."
+hset phases filesystem-jffs "deploy"
 
 deploy-filesystem-prepack() {
 	deploy "${CROSS}-strip" "$ROOTFS"/bin/* "$ROOTFS"/sbin/* "$ROOTFS"/usr/bin/* \
@@ -74,46 +78,4 @@ deploy-filesystem-jffs() {
 	fi		
 }
 
-
-#
-# These aren't used
-# 
-configure-filesystem-prepack() {
-	return 0
-}
-configure-filesystem-squash() {
-	return 0
-}
-configure-filesystem-ext() {
-	return 0
-}
-configure-filesystem-jffs() {
-	return 0
-}
-
-compile-filesystem-prepack() {
-	return 0
-}
-compile-filesystem-squash() {
-	return 0
-}
-compile-filesystem-ext() {
-	return 0
-}
-compile-filesystem-jffs() {
-	return 0
-}
-
-install-filesystem-prepack() {
-	log_install echo Done
-}
-install-filesystem-squash() {
-	log_install echo Done
-}
-install-filesystem-ext() {
-	log_install echo Done
-}
-install-filesystem-jffs() {
-	log_install echo Done
-}
 
