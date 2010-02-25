@@ -20,7 +20,7 @@ configure-busybox() {
 }
 
 compile-busybox() {
-	compile $MAKE CROSS_COMPILE="${CROSS}-" CFLAGS="$BUSY_CFLAGS" CONFIG_PREFIX="$ROOTFS" -j8
+	compile $MAKE CROSS_COMPILE="${CROSS}-" CFLAGS="$TARGET_CFLAGS" CONFIG_PREFIX="$ROOTFS" -j8
 }
 
 install-busybox() {
@@ -28,5 +28,5 @@ install-busybox() {
 }
 
 deploy-busybox() {
-	deploy $MAKE CROSS_COMPILE="${CROSS}-" CFLAGS="$BUSY_CFLAGS" CONFIG_PREFIX="$ROOTFS" install
+	deploy $MAKE CROSS_COMPILE="${CROSS}-" CFLAGS="$TARGET_CFLAGS" CONFIG_PREFIX="$ROOTFS" install
 }
