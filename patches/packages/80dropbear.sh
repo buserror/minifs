@@ -1,27 +1,33 @@
 #######################################################################
 ## dropbear
 #######################################################################
-PACKAGES="$PACKAGES dropbear"
+PACKAGES+=" dropbear"
 
 hset url dropbear	"http://matt.ucc.asn.au/dropbear/releases/dropbear-0.52.tar.bz2" 
 
-configure-dropbear-nah() {
+configure-dropbear() {
 	configure ./configure --enable-static --disable-shared \
-		--prefix="$ROOTFS" \
 		--host=$TARGET_FULL_ARCH \
-		--with-zlib="$STAGING"
+		--prefix="$STAGING" \
+		--with-zlib="$STAGING"/lib \
+		LDFLAGS="-static"
+}
+compile-dropbear() {
+	compile $MAKE -j8 PROGRAMS="dropbear dropbearkey scp" STATIC=1 SCPPROGRESS=1
 }
 install-dropbear() {
-	log_install echo Done
+	install echo Done
 }
+
 deploy-dropbear() {
-	deploy $MAKE install
+	deploy cp dropbear dropbearkey scp \
+		"$ROOTFS"/bin/
 	mkdir -p "$ROOTFS/etc/dropbear"
 	if [ $TARGET_ARCH = "i386" ]; then	
 		if [ ! -f "$BUILD"/dropbear_dss_host_key ]; then
-			echo "#### generating new dropbear keys"
-			"$ROOTFS"/bin/dropbearkey -t dss -f "$BUILD"/dropbear_dss_host_key
-			"$ROOTFS"/bin/dropbearkey -t rsa -f "$BUILD"/dropbear_rsa_host_key
+			( echo "#### generating new dropbear keys" ; \
+			./dropbearkey -t dss -f "$BUILD"/dropbear_dss_host_key ; \
+			./dropbearkey -t rsa -f "$BUILD"/dropbear_rsa_host_key ) >>"$LOGFILE"
 		fi
 	fi
 	cp "$BUILD"/dropbear_*_host_key "$ROOTFS"/etc/dropbear/	

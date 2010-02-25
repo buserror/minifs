@@ -7,5 +7,5 @@ TARGET_CFLAGS="-Os"
 
 board_prepare()
 {
-	TARGET_PACKAGES=" jpegsrc mjpeg dropbear"
+	TARGET_PACKAGES+=" libjpeg mjpg zlib dropbear"
 }
