@@ -31,7 +31,7 @@
 # this is the board we are making. Several boards can co-exist, the toolchains
 # are "compatible" and live in the toolchain/ subdirectory. Several board of the
 # same arch can also coexist, sharing the same toolchain
-TARGET_BOARD="biff"
+TARGET_BOARD=${TARGET_BOARD:-"mini2440"}
 
 COMMAND=$1
 
