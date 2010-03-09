@@ -19,39 +19,42 @@ function optional-one-of () {
 }
 
 hset() {
-	local k="${2/-}"
+	local k="${2//-/}"
 	eval "$1""$k"='$3'
 }
 
 hget() {
-	local k="${2/-}"
+	local k="${2//-/}"
+	# echo GET  $1 $2 1>&2
 	eval echo '${'"$1$k"'#hash}'
 }
 
 function package() {
-	PACKAGE="$1"
-	#echo "#### Building $PACKAGE"
-	pushd "$BUILD/$PACKAGE" >/dev/null
+	export PACKAGE="$1"
+	export PACKAGE_DIR="$2"
+	local prefix=$(hget prefix $PACKAGE)
+	export PACKAGE_PREFIX=${prefix:-/usr}
+	pushd "$BUILD/$PACKAGE_DIR" >/dev/null
 }
 function end_package() {
 	#echo "#### Building $PACKAGE DONE"
 	PACKAGE=""
-	LOGFILE="&1"
+	LOGFILE="._stray.log"
 	popd  >/dev/null
 }
 
 function configure() {
 	local turd="._conf_$PACKAGE"
+	LOGFILE="$turd.log"
 	if [ ! -f $turd ]; then
 		echo "     Configuring $PACKAGE"
 		rm -f $turd
-		LOGFILE="$turd.log"
-		echo "$@" >$turd.log
-		if "$@" >>$turd.log 2>&1 ; then
+		echo "$@" >$LOGFILE
+		if "$@" >>$LOGFILE 2>&1 ; then
 			touch $turd
 		else
 			echo "#### ** ERROR ** Configuring $PACKAGE"
-			echo "     Check $LOGFILE"
+			echo "     Check $BUILD/$PACKAGE/$LOGFILE"
 			exit 1
 		fi
 	fi
@@ -59,16 +62,16 @@ function configure() {
 
 function compile() {
 	local turd="._compile_$PACKAGE"
+	LOGFILE="$turd.log"
 	if [ ! -f $turd -o "._conf_$PACKAGE" -nt $turd ]; then
 		echo "     Compiling $PACKAGE"
 		rm -f $turd
-		LOGFILE="$turd.log"
-		echo "$@" >$turd.log
-		if "$@" >>$turd.log 2>&1 ; then
+		echo "$@" >$LOGFILE
+		if "$@" >>$LOGFILE 2>&1 ; then
 			touch $turd
 		else
 			echo "#### ** ERROR ** Compiling $PACKAGE"
-			echo "     Check $LOGFILE"
+			echo "     Check $BUILD/$PACKAGE/$LOGFILE"
 			exit 1
 		fi
 	fi
@@ -76,16 +79,16 @@ function compile() {
 
 function log_install() {
 	local turd="._install_$PACKAGE"
+	LOGFILE="$turd.log"
 	if [ ! -f $turd -o "._compile_$PACKAGE" -nt $turd ]; then
 		echo "     Installing $PACKAGE"
 		rm -f $turd
-		LOGFILE="$turd.log"
-		echo "$@" >$turd.log
-		if "$@" >>$turd.log 2>&1 ; then
+		echo "$@" >$LOGFILE
+		if "$@" >>$LOGFILE 2>&1 ; then
 			touch $turd
 		else
 			echo "#### ** ERROR ** Installing $PACKAGE"
-			echo "     Check $LOGFILE"
+			echo "     Check $BUILD/$PACKAGE/$LOGFILE"
 			exit 1
 		fi
 	fi
@@ -93,17 +96,35 @@ function log_install() {
 
 function deploy() {
 	local turd="._deploy_$PACKAGE"
+	LOGFILE="$turd.log"
 	if [ -f "._install_$PACKAGE" ]; then
 		echo "     Deploying $PACKAGE"
 		rm -f $turd
-		LOGFILE="$turd.log"
-		echo "$@" >$turd.log
-		if "$@" >>$turd.log 2>&1 ; then
+		echo "$@" >$LOGFILE
+		if "$@" >>$LOGFILE 2>&1 ; then
 			touch $turd
 		else
 			echo "#### ** ERROR ** Deploying $PACKAGE"
-			echo "     Check $LOGFILE"
+			echo "     Check $BUILD/$PACKAGE/$LOGFILE"
 			exit 1
 		fi
 	fi
 }
+
+function remove_package() {
+	pack=$1
+	if [ ! -d "$BUILD"/$pack ]; then
+		echo Not removing $pack - was not installed anyway
+		return
+	fi
+	if [ -f "$BUILD"/$pack/._dist ]; then
+		echo $pack was installed in staging, trying to remove
+		cat "$BUILD"/$pack/._dist | \
+			awk -v pp="$STAGING" \
+				'{if ($2=="open" && match($3,pp)) print $3;}' | \
+					xargs rm -f
+	fi
+	rm -rf "$BUILD"/$pack
+	echo Looks like $pack was removed. good luck.
+}
+
