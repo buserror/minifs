@@ -10,17 +10,18 @@ PACKAGES+=" libfontconfig"
 hset url libfontconfig "http://www.fontconfig.org/release/fontconfig-2.8.0.tar.gz"
 
 configure-libfontconfig-local() {
-#	sed -i -e "s:^CFLAGS = @CFLAGS@:CFLAGS =:g" \
-#		fc-case/Makefile.in \
-#		fc-cache/Makefile.in \
-#		fc-lang/Makefile.in \
-#		fc-glyphname/Makefile.in \
-#		fc-arch/Makefile.in
 	export LDFLAGS="$LDFLAGS_RLINK"
 	autoreconf;libtoolize;automake --add-missing
 	configure-generic-local \
 		--with-arch=$TARGET_FULL_ARCH \
 		--disable-docs 
+	# fixes cross compilation
+	sed -i -e 's:^CFLAGS = -.*$:CFLAGS =:g' \
+		fc-case/Makefile \
+		fc-cache/Makefile \
+		fc-lang/Makefile \
+		fc-glyphname/Makefile \
+		fc-arch/Makefile
 	export LDFLAGS="$LDFLAGS_BASE"
 }
 configure-libfontconfig() {

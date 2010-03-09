@@ -1,8 +1,5 @@
 
-if [[ $TARGET_DIRECTFB ]]; then
-	PACKAGES+=" libdirectfb"
-	DIRECTFB_PACKAGE=libdirectfb
-fi
+PACKAGES+=" libdirectfb"
 hset url libdirectfb "http://www.directfb.org/downloads/Core/DirectFB-1.4/DirectFB-1.4.3.tar.gz"
 
 configure-libdirectfb() {
@@ -68,13 +65,15 @@ hset url libpango "http://ftp.gnome.org/pub/gnome/sources/pango/1.26/pango-1.26.
 hset depends libpango "libglib libcairo"
 
 configure-libpango() {
+	export LDFLAGS="$LDFLAGS_RLINK"
 	if [[ ! $TARGET_X11 ]]; then
 		extras="--without-x"
+	else
+		export LDFLAGS+=" -lxcb"
+		extras="--x-libraries=$STAGING_USR/lib \
+			--x-includes=$STAGING_USR/include"
 	fi
-	export LDFLAGS="$LDFLAGS_RLINK -lxcb"
-	configure-generic "$extras" \
-		--x-libraries=$STAGING_USR/lib \
-		--x-includes=$STAGING_USR/include 		
+	configure-generic "$extras" 
 	export LDFLAGS="$LDFLAGS_BASE"
 }
 
