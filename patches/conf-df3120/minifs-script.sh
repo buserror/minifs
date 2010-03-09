@@ -1,7 +1,7 @@
 #!/bin/bash
 
 TARGET_ARCH=arm
-TARGET_FULL_ARCH=$TARGET_ARCH-thumb-linux-uclibcgnueabi
+TARGET_FULL_ARCH=$TARGET_ARCH-v4t-linux-uclibcgnueabi
 TARGET_KERNEL_NAME=uImage
 
 # target has tiny memory, use thumb, it's smaller
