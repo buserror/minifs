@@ -11,6 +11,7 @@ board_set_versions() {
 	TARGET_FS_JFFS2="-q -l -p -e 0x20000 -s 0x800"
 	TARGET_FS_EXT_SIZE=32768
 	TARGET_SHARED=1
+	TARGET_INITRD=1
 }
 
 board_prepare() {
