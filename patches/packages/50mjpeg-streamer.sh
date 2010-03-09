@@ -22,8 +22,8 @@ configure-mjpg() {
 }
 compile-mjpg() {
 	compile $MAKE CC="$GCC" \
-		EXTRA_LDFLAGS="-L $STAGING/lib" \
-		EXTRA_CFLAGS="-Os -I$STAGING/include $TARGET_CFLAGS" \
+		EXTRA_LDFLAGS="-L $STAGING_USR/lib" \
+		EXTRA_CFLAGS="-Os -I$STAGING_USR/include $TARGET_CFLAGS" \
 		STATIC=1
 }
 install-mjpg() {

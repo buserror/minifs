@@ -4,11 +4,11 @@
 PACKAGES+=" dropbear"
 
 hset url dropbear	"http://matt.ucc.asn.au/dropbear/releases/dropbear-0.52.tar.bz2" 
+hset prefix dropbear "/"
 
 configure-dropbear() {
-	configure ./configure --enable-static --disable-shared \
-		--host=$TARGET_FULL_ARCH \
-		--prefix="$STAGING" \
+	configure-generic \
+		--enable-static --disable-shared \
 		--with-zlib="$STAGING"/lib \
 		LDFLAGS="-static"
 }

@@ -29,15 +29,17 @@ hset dir filesystem-jffs "."
 hset phases filesystem-jffs "deploy"
 
 deploy-filesystem-prepack() {
-	deploy "${CROSS}-strip" "$ROOTFS"/bin/* "$ROOTFS"/sbin/* "$ROOTFS"/usr/bin/* \
-		2>/dev/null
-	for lib in "$ROOTFS"/lib "$ROOTFS"/usr/lib; do
-		if [ -d "$lib" ]; then
-			find "$lib" -type f -exec "${CROSS}-strip" \
-				--strip-unneeded {} \; \
-					>>"$LOGFILE" 2>&1
-		fi
-	done
+	deploy echo Copying
+	(
+	rsync -av \
+		"$STAGING_USR/etc/" \
+		"$ROOTFS/etc/"
+	mv "$ROOTFS"/usr/etc/* "$ROOTFS"/etc/ 
+	rm -rf "$ROOTFS"/usr/etc/ "$ROOTFS"/usr/var/
+	ln -s ../etc $ROOTFS/usr/etc
+	ln -s ../var $ROOTFS/usr/var
+	echo minifs-$TARGET_BOARD >$ROOTFS/etc/hostname
+	) &>> "$LOGFILE" 
 }
 
 deploy-filesystem-squash() {
@@ -52,10 +54,11 @@ deploy-filesystem-squash() {
 }
 
 deploy-filesystem-ext() {
+	local size=${TARGET_FS_EXT_SIZE:-8192}
 	if genext2fs -d "$ROOTFS" \
-		-U \
+		-U -i $(($size )) \
 		-D "$BUILD"/special_file_table.txt \
-		-b ${TARGET_FS_EXT_SIZE:-8192} \
+		-b $size \
 		"$BUILD"/minifs-full-ext.img \
 			>>"$BUILD/._filesystem.log" 2>&1 ; then
 		$TUNEFS -j "$BUILD"/minifs-full-ext.img \

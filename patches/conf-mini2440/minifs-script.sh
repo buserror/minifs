@@ -1,7 +1,7 @@
 #!/bin/bash
 
 TARGET_ARCH=arm
-TARGET_FULL_ARCH=$TARGET_ARCH-minifs-linux-uclibcgnueabi
+TARGET_FULL_ARCH=$TARGET_ARCH-v4-linux-uclibcgnueabi
 TARGET_KERNEL_NAME=uImage
 TARGET_CFLAGS="-Os -march=armv4t -mtune=arm920t -mthumb-interwork -mthumb "
 

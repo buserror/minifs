@@ -9,17 +9,32 @@ hset dir sharedlibs "."
 hset phases sharedlibs "deploy"
 
 deploy-sharedlibs() {
+	deploy echo Copying
 	mkdir -p "$ROOTFS/lib/" "$ROOTFS/usr/lib/"
-	deploy echo Copying libraries
-	rsync -av \
-		--exclude=\*.a --exclude=\*.la \
-		"$TOOLCHAIN/$TARGET_FULL_ARCH"/lib/ \
-		"$ROOTFS/lib/" \
-			>>"$LOGFILE" 2>&1 &&
+	echo "    Nearly there, Installing Staging binaries"
+	(
+	echo Creating "$ROOTFS/lib/"
 	rsync -av \
 		--exclude=\*.a --exclude=\*.la \
 		--exclude pkgconfig \
 		"$STAGING/lib/" \
-		"$ROOTFS/usr/lib/" \
-			>>"$LOGFILE" 2>&1 
+		"$ROOTFS/lib/"
+	echo Creating "$ROOTFS/usr/lib/" 
+	rsync -av \
+		--exclude=\*.a --exclude=\*.la \
+		--exclude=\*.sh \
+		--exclude pkgconfig \
+		--exclude ct-ng\* \
+		"$STAGING_USR/lib/" \
+		"$ROOTFS/usr/lib/" 
+
+	"${CROSS}-strip" "$ROOTFS"/bin/* "$ROOTFS"/sbin/* "$ROOTFS"/usr/bin/* \
+		2>/dev/null
+	for lib in "$ROOTFS"/lib "$ROOTFS"/usr/lib; do
+		if [ -d "$lib" ]; then
+			find "$lib" -type f -exec "${CROSS}-strip" \
+				--strip-unneeded {} \; 
+		fi
+	done
+	) &>> "$LOGFILE" 
 }
