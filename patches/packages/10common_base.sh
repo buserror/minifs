@@ -75,7 +75,7 @@ deploy-usbutils() {
 #######################################################################
 PACKAGES+=" libftdi"
 hset url libftdi "http://www.intra2net.com/en/developer/libftdi/download/libftdi-0.16.tar.gz"
-hset url libftdi "libusb"
+hset depends libftdi "libusb"
 
 configure-libftdi() {
 	configure-generic \
