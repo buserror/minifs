@@ -11,7 +11,7 @@ hset dir linux-bare "linux"
 hset dir linux-initrd "linux"
 
 # the headers gets installed first, the other phases are later
-PACKAGES="$PACKAGES linux-headers"
+PACKAGES+=" linux-headers"
 
 export TARGET_KERNEL_ARCH="${TARGET_KERNEL_ARCH:-$TARGET_ARCH}"
 
@@ -120,19 +120,17 @@ configure-linux-initrd() {
 	touch ._conf_linux-initrd
 }
 
-compile-linux-initrd() {
+compile-linux-initrd() { true; }
+install-linux-initrd() { true; }
+
+deploy-linux-initrd() {
 	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE="${CROSS}-" \
 			$TARGET_KERNEL_NAME -j4
-}
-
-install-linux-initrd() {
 	log_install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE="${CROSS}-" \
 		INSTALL_PATH="$KERNEL" INSTALL_MOD_PATH="$KERNEL" \
 			install
-}
-deploy-linux-initrd() {
 	if [ -f "$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/bzImage ]; then
 		deploy cp "$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/bzImage \
 			"$BUILD"/vmlinuz-full.bin
