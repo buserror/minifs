@@ -1,3 +1,4 @@
+// gcc -O -g 
 /*
  * this program sits under pkg-config and makes sure the pathnames returned are all
  * properly relative to the staging directory.

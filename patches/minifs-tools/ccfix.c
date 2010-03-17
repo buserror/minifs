@@ -1,3 +1,4 @@
+// gcc -O -g 
 
 #include <sys/wait.h>
 #include <stdlib.h>
