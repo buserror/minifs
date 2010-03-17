@@ -51,6 +51,7 @@ install-linux-headers() {
 #######################################################################
 ## linux-modules
 #######################################################################
+hset depends linux-modules "linux-headers"
 
 configure-linux-modules() {
 	configure echo Done
@@ -76,6 +77,7 @@ deploy-linux-modules() {
 #######################################################################
 ## linux-bare
 #######################################################################
+hset depends linux-bare "linux-modules linux-headers"
 
 configure-linux-bare() {
 	sed -i "s/CONFIG_INITRAMFS_SOURCE=.*/CONFIG_INITRAMFS_SOURCE=\"\"/" \
@@ -110,6 +112,8 @@ deploy-linux-bare() {
 #######################################################################
 ## linux-initrd
 #######################################################################
+
+hset depends linux-initrd "filesystems"
 
 configure-linux-initrd() {
 	configure echo Done 

@@ -3,6 +3,7 @@ PACKAGES+=" filesystems"
 FILESYSTEMS="filesystem-prepack"
 
 hset url filesystems "none"
+hset depends filesystems "busybox sharedlibs"
 
 if [ $TARGET_FS_SQUASH -eq 1 ]; then
 	FILESYSTEMS+=" filesystem-squash"
@@ -23,10 +24,13 @@ hset dir filesystem-prepack "."
 hset phases filesystem-prepack "deploy"
 hset dir filesystem-squash "."
 hset phases filesystem-squash "deploy"
+hset depends filesystem-squash "filesystem-prepack"
 hset dir filesystem-ext "."
 hset phases filesystem-ext "deploy"
+hset depends filesystem-ext "filesystem-prepack"
 hset dir filesystem-jffs "."
 hset phases filesystem-jffs "deploy"
+hset depends filesystem-jffs "filesystem-prepack"
 
 deploy-filesystem-prepack() {
 	deploy echo Copying
@@ -39,7 +43,7 @@ deploy-filesystem-prepack() {
 	ln -s ../etc $ROOTFS/usr/etc
 	ln -s ../var $ROOTFS/usr/var
 	echo minifs-$TARGET_BOARD >$ROOTFS/etc/hostname
-	) &>> "$LOGFILE" 
+	) >>"$LOGFILE" 2>&1
 }
 
 deploy-filesystem-squash() {

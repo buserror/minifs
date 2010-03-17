@@ -22,6 +22,7 @@ hset url lzo "http://www.oberhumer.com/opensource/lzo/download/lzo-2.03.tar.gz"
 #######################################################################
 PACKAGES+=" e2fsprogs"
 hset url e2fsprogs	"http://heanet.dl.sourceforge.net/project/e2fsprogs/e2fsprogs/1.41.9/e2fsprogs-libs-1.41.9.tar.gz"
+hset depends e2fsprogs "busybox"
 
 configure-e2fsprogs() {
 	configure-generic \
@@ -33,12 +34,14 @@ configure-e2fsprogs() {
 #######################################################################
 PACKAGES+=" screen"
 hset url screen "http://ftp.gnu.org/gnu/screen/screen-4.0.3.tar.gz" 
+hset depends screen "busybox"
 
 #######################################################################
 ## i2c-tools
 #######################################################################
 PACKAGES+=" i2c"
 hset url i2c "http://dl.lm-sensors.org/i2c-tools/releases/i2c-tools-3.0.2.tar.bz2"
+hset depends i2c "busybox"
 
 configure-i2c() {
 	configure echo Done
@@ -87,7 +90,7 @@ configure-libftdi() {
 #######################################################################
 PACKAGES+=" mtd_utils"
 hset url mtd_utils "http://git.infradead.org/mtd-utils.git/snapshot/a67747b7a314e685085b62e8239442ea54959dbc.tar.gz#mtd_utils.tgz"
-hset depends mtd_utils "zlib lzo e2fsprogs"
+hset depends mtd_utils "zlib lzo e2fsprogs busybox"
 
 configure-mtd_utils() {
 	configure echo Done

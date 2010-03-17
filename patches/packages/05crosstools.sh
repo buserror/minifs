@@ -5,6 +5,7 @@ if [ ! -f "$GCC" ]; then
 	TARGET_PACKAGES+=" crosstools"
 fi
 hset url crosstools	"http://ymorin.is-a-geek.org/download/crosstool-ng/crosstool-ng-${VERSION_crosstools}.tar.bz2" 
+hset depends crosstools "linux-headers"
 
 configure-crosstools() {
 	# this patch is needed on newer host kernels
@@ -76,6 +77,7 @@ install-crosstools() {
 PACKAGES+=" systemlibs"
 hset url systemlibs "none"
 hset dir systemlibs "."
+hset depends systemlibs "crosstools"
 
 configure-systemlibs() {
 	configure echo Done
@@ -94,6 +96,7 @@ PACKAGES+=" gdbserver"
 hset url gdbserver "none"
 hset dir gdbserver "."
 hset phases gdbserver "deploy"
+hset depends gdbserver "busybox"
 
 deploy-gdbserver() {
 	local src="$TOOLCHAIN/$TARGET_FULL_ARCH"/debug-root/usr/bin/gdbserver

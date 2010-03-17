@@ -7,6 +7,7 @@ fi
 hset url sharedlibs "none" 
 hset dir sharedlibs "."
 hset phases sharedlibs "deploy"
+hset depends sharedlibs "systemlibs"
 
 deploy-sharedlibs() {
 	deploy echo Copying
@@ -28,6 +29,9 @@ deploy-sharedlibs() {
 		"$STAGING_USR/lib/" \
 		"$ROOTFS/usr/lib/" 
 
+	# removes non-accessed libraries
+	cross_linker --purge
+	
 	"${CROSS}-strip" "$ROOTFS"/bin/* "$ROOTFS"/sbin/* "$ROOTFS"/usr/bin/* \
 		2>/dev/null
 	for lib in "$ROOTFS"/lib "$ROOTFS"/usr/lib; do
@@ -36,5 +40,5 @@ deploy-sharedlibs() {
 				--strip-unneeded {} \; 
 		fi
 	done
-	) &>> "$LOGFILE" 
+	) >>"$LOGFILE" 2>&1
 }
