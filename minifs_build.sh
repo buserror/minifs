@@ -44,11 +44,13 @@ export MINIFS_BASE="$BASE"
 BUILD="$BASE/build-${TARGET_BOARD}"
 PATCHES="$BASE/patches"
 export STAGING="$BUILD/staging"
-STAGING_USR="$STAGING/usr"
+export STAGING_USR="$STAGING/usr"
+export ROOTFS="$BUILD/rootfs"
+export ROOTFS_PLUGINS=""
 KERNEL="$BUILD/kernel"
-ROOTFS="$BUILD/rootfs"
 CONFIG="$PATCHES/conf-$TARGET_BOARD"
 
+ 
 source "$PATCHES"/minifs-script-utils.sh
 source "$CONFIG"/minifs-script.sh
 
@@ -90,7 +92,8 @@ for tool in "$PATCHES"/minifs-tools/*.c; do
 	tool=${tool/.c}
 	if [ "$TOOLCHAIN"/bin/$tool -ot "$PATCHES"/minifs-tools/$tool.c ]; then
 		echo "#### compiling $tool"
-		gcc -o "$TOOLCHAIN"/bin/$tool "$PATCHES"/minifs-tools/$tool.c
+		compile=$(head -1 "$PATCHES"/minifs-tools/$tool.c|sed 's|//||')
+		$compile -o "$TOOLCHAIN"/bin/$tool "$PATCHES"/minifs-tools/$tool.c
 	fi
 done
 
@@ -147,6 +150,11 @@ done
 
 optional board_prepare
 
+if [ "$COMMAND" == "depends" ]; then
+	dump-depends
+	exit
+fi
+
 #######################################################################
 ## Take all the selected packages, and add their dependencies
 ## This loops until none of the packages add any more.
@@ -180,10 +188,8 @@ pushd download
 for package in $TARGET_PACKAGES; do 
 	fil=$(hget url $package)
 
-	if [ "$fil" = "" ]; then 
-		echo "##### package $package is unknown"
-		exit 1
-	fi
+	if [ "$fil" = "" ]; then continue ; fi
+
 	# adds the list of targets provided by this package
 	# to the list of the ones we want to build
 	targets=$(hget targets $package)
@@ -366,7 +372,7 @@ for pack in $PACKAGES; do
 	PROCESS_PACKAGES+=" $pack"
 done
 
-#echo "Will build :" $PROCESS_PACKAGES
+# echo "Will build :" $PROCESS_PACKAGES
 
 #######################################################################
 ## Build each packages

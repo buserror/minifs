@@ -128,3 +128,18 @@ function remove_package() {
 	echo Looks like $pack was removed. good luck.
 }
 
+dump-depends() {
+	(
+	echo 'digraph G { rankdir=LR; node [shape=rect]; '
+	for pack in $PACKAGES; do
+		deps=$(hget depends $pack)
+		echo \"$pack\"
+		for d in $deps; do 
+			echo "\"$pack\" -> \"$d\""
+		done
+	done	
+	echo '}'
+	) >minifs_deps.dot
+	dot -Tpdf -ominifs_deps.pdf minifs_deps.dot
+}
+
