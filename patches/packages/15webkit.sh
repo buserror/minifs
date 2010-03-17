@@ -58,7 +58,10 @@ configure-gstreamer() {
 }
 
 configure-gst-plugins-base() {
-	export LDFLAGS="$LDFLAGS_RLINK -lxcb"
+	export LDFLAGS="$LDFLAGS_RLINK"
+	if [[ $TARGET_X11 ]]; then
+		export LDFLAGS="$LDFLAGS -lxcb"
+	fi
 	configure-generic --without-x --without-gudev --disable-nls
 	export LDFLAGS="$LDFLAGS_BASE"
 }
@@ -105,21 +108,36 @@ hset depends libwebkit "libenchant libsoup sqlite3 libxslt libgtk gstreamer"
 # gtk-docize 
 # gperf
 configure-libwebkit() {
+	local extras=""
+	save=$CFLAGS
+	if [[ ! $TARGET_X11 ]]; then
+		# ENABLE_NETSCAPE_PLUGIN_API
+		extras+="--with-target=directfb --disable-netscape-plugin-api"
+		CFLAGS+=" -DENABLE_NETSCAPE_PLUGIN_API=0 "
+		CXXFLAGS=$CFLAGS
+		export CFLAGS CXXFLAGS
+	fi
+	
 	configure-generic \
-		--with-unicode-backend=glib  \
-	 	--enable-debug
+		--with-unicode-backend=glib \
+		$extras
+	CFLAGS=$save
+	CXXFLAGS=$save
 }
 deploy-libwebkit() {
 	deploy cp Programs/GtkLauncher "$ROOTFS"/usr/bin/
 }
 
 PACKAGES+=" flashplugin"
-hset url flashplugin "http://fpdownload.macromedia.com/get/flashplayer/current/install_flash_player_10_linux.tar.gz#flashplugin-10.tarb"
+#hset url flashplugin "http://fpdownload.macromedia.com/get/flashplayer/current/install_flash_player_10_linux.tar.gz#flashplugin-10.tarb"
+hset url flashplugin "http://download.macromedia.com/pub/labs/flashplayer10/flashplayer10_1_p3_linux_022310.tar.gz#flashplugin-10.1.tarb"
 hset phases flashplugin "deploy"
+hset depends flashplugin "libnss libwebkit"
 
 deploy-flashplugin() {
 	deploy echo Deploying flashplugin
 	mkdir -p "$ROOTFS"/usr/lib/mozilla/plugins/
 	cp *.so "$ROOTFS"/usr/lib/mozilla/plugins/
+	ROOTFS_PLUGINS+="$ROOTFS/usr/lib/mozilla/plugins/:"
 }
 

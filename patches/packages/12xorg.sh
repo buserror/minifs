@@ -66,7 +66,7 @@ done
 configure-xorglibXfont() {
 	configure-generic --without-xmlto --without-fop
 }
-hset depends xorglibX11 "libxcb xtrans $XORG_PROTOS $XORG_LIBS"
+hset depends xorglibX11 "libxcb xtrans xorgx11proto $XORG_LIBS"
 
 XORG_FONTS+=" xorgfontutil xorgfontadobe"
 hset url xorgfontutil "http://www.x.org/releases/individual/font/font-util-1.1.1.tar.bz2"
@@ -146,6 +146,7 @@ deploy-xorgserver-local() {
 	mkdir -p "$ROOTFS"/usr/var/log
 }
 deploy-xorgserver() {
+	ROOTFS_PLUGINS+="$STAGING_USR/lib/xorg:"
 	deploy deploy-xorgserver-local
 }
 

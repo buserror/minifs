@@ -1,6 +1,7 @@
 
 PACKAGES+=" libdirectfb"
 hset url libdirectfb "http://www.directfb.org/downloads/Core/DirectFB-1.4/DirectFB-1.4.3.tar.gz"
+hset depends libdirectfb "libts"
 
 configure-libdirectfb() {
 	configure-generic \
@@ -13,11 +14,13 @@ configure-libdirectfb() {
 }
 
 deploy-libdirectfb() {
+	ROOTFS_PLUGINS+="$STAGING_USR/lib/directfb-1.4-0-pure:"
 	deploy cp "$STAGING_USR"/bin/dfb* "$ROOTFS/usr/bin"
 }
 
 PACKAGES+=" libcairo"
 hset url libcairo "http://www.cairographics.org/releases/cairo-1.8.10.tar.gz"
+hset depends libcairo "libfreetype"
 
 configure-libcairo() {
 	local extras=""
@@ -77,12 +80,17 @@ configure-libpango() {
 	export LDFLAGS="$LDFLAGS_BASE"
 }
 
-deploy-libpango() {
+deploy-libpango-local() {
+	ROOTFS_PLUGINS+="$STAGING_USR/lib/pango:"
+	mkdir -p "$ROOTFS"/etc/	# in case it was there already
 	cp 	"$STAGING_USR"/bin/pango* \
 		"$ROOTFS"/bin/
-	mkdir -p "$ROOTFS"/etc/	# in case it was there already
 	cp -r "$STAGING_USR"/etc/pango/* \
 		"$ROOTFS"/etc/pango/
+	true
+}
+deploy-libpango() {
+	deploy deploy-libpango-local
 }
 
 PACKAGES+=" libatk"
@@ -113,13 +121,17 @@ configure-libgtk() {
 PACKAGES+=" libgtkhicolor"
 hset url libgtkhicolor "http://icon-theme.freedesktop.org/releases/hicolor-icon-theme-0.12.tar.gz"
 
-deploy-libgtk() {
-	deploy cp -r "$STAGING_USR"/etc/gtk-2.0 "$ROOTFS"/etc
+deploy-libgtk-local() {
+	cp -r "$STAGING_USR"/etc/gtk-2.0 "$ROOTFS"/etc
 	rsync -av \
 		"$STAGING_USR/share/icons" \
 		"$STAGING_USR/share/themes" \
-		"$ROOTFS/usr/share/" \
-			&>> "$LOGFILE" 
+		"$ROOTFS/usr/share/"
+}
+
+deploy-libgtk() {
+	ROOTFS_PLUGINS+="$STAGING_USR/lib/gtk-2.0:"
+	deploy  deploy-libgtk-local
 }
 
 PACKAGES+=" librsvg"

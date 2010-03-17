@@ -33,13 +33,16 @@ compile-libfontconfig() {
 	compile-generic V=1
 	export LDFLAGS="$LDFLAGS_BASE"
 }
-deploy-libfontconfig() {
-	deploy cp "$STAGING_USR"/bin/fc-* \
+deploy-libfontconfig-local() {
+	cp "$STAGING_USR"/bin/fc-* \
 		"$ROOTFS"/usr/bin/
 	rsync -av \
 		"$STAGING_USR"/etc/fonts \
 		"$ROOTFS"/usr/etc/ \
 			&>> "$LOGFILE" 
+}
+deploy-libfontconfig() {
+	deploy deploy-libfontconfig-local
 }
 
 PACKAGES+=" libpixman"
@@ -67,4 +70,7 @@ configure-libts-local() {
 configure-libts() {
 	configure configure-libts-local
 }
-
+deploy-libts() {
+	ROOTFS_PLUGINS+="$STAGING_USR/lib/ts:"
+	deploy-generic
+}
