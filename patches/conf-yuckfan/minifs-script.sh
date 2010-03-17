@@ -16,7 +16,7 @@ board_set_versions() {
 
 board_prepare() {
 	TARGET_PACKAGES+=" mtd_utils"
-	TARGET_PACKAGES+=" libftdi"
+	TARGET_PACKAGES+=" libftdi lua"
 
 	TARGET_PACKAGES+=" curl libexpat libreadline libiconv libnetsnmp libgettext"
 
@@ -27,5 +27,22 @@ board_prepare() {
 	
 	# all of gtk JUST to get rsvg :/
 	TARGET_PACKAGES+=" librsvg"
+
+	PACKAGES+=" libncurses lua"
 }
 
+hset url lua "http://www.lua.org/ftp/lua-5.1.4.tar.gz"
+hset depends lua "libreadline libncurses"
+
+configure-lua() {
+	configure echo Done
+}
+compile-lua() {
+	compile-generic linux CC=$GCC MYLDFLAGS="$LDFLAGS"
+}
+install-lua() {
+	install-generic INSTALL_TOP=/usr
+}
+
+
+hset url libncurses "http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.7.tar.gz"

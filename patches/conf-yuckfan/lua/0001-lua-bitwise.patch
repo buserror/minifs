@@ -1,0 +1,630 @@
+diff --git a/Makefile b/Makefile
+index 6e78f66..8ae6758 100644
+--- a/Makefile
++++ b/Makefile
+@@ -9,7 +9,7 @@ PLAT= none
+ 
+ # Where to install. The installation starts in the src and doc directories,
+ # so take care if INSTALL_TOP is not an absolute path.
+-INSTALL_TOP= /usr/local
++INSTALL_TOP= /usr/local/${CROSS_COMPILE:-=}
+ INSTALL_BIN= $(INSTALL_TOP)/bin
+ INSTALL_INC= $(INSTALL_TOP)/include
+ INSTALL_LIB= $(INSTALL_TOP)/lib
+diff --git a/src/Makefile b/src/Makefile
+index e4a3cd6..923cf8f 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -7,10 +7,14 @@
+ # Your platform. See PLATS for possible values.
+ PLAT= none
+ 
+-CC= gcc
+-CFLAGS= -O2 -Wall $(MYCFLAGS)
+-AR= ar rcu
+-RANLIB= ranlib
++ifneq ($(CROSS_COMPILE),)
++CROSS=$(CROSS_PATH)/${CROSS_COMPILE}
++endif
++
++CC= $(CROSS)gcc$(CROSS_VERSION)
++CFLAGS+= -O2 -Wall $(MYCFLAGS)
++AR= $(CROSS)ar rcu
++RANLIB= $(CROSS)ranlib
+ RM= rm -f
+ LIBS= -lm $(MYLIBS)
+ 
+diff --git a/src/lcode.c b/src/lcode.c
+index cff626b..7f1a729 100644
+--- a/src/lcode.c
++++ b/src/lcode.c
+@@ -650,6 +650,17 @@ static int constfolding (OpCode op, expdesc *e1, expdesc *e2) {
+     case OP_POW: r = luai_numpow(v1, v2); break;
+     case OP_UNM: r = luai_numunm(v1); break;
+     case OP_LEN: return 0;  /* no constant folding for 'len' */
++#if defined(LUA_BITWISE_OPERATORS)
++    case OP_BOR: luai_logor(r, v1, v2); break;
++    case OP_BAND: luai_logand(r, v1, v2); break;
++    case OP_BXOR: luai_logxor(r, v1, v2);  break;
++    case OP_BLSHFT: luai_loglshft(r, v1, v2); break;
++    case OP_BRSHFT: luai_logrshft(r, v1, v2); break;
++    case OP_BNOT: luai_lognot(r, v1); break;
++    case OP_INTDIV:
++      if (v2 == 0) return 0;  /* do not attempt to divide by 0 */
++      r = luai_numintdiv(v1, v2); break;
++#endif
+     default: lua_assert(0); r = 0; break;
+   }
+   if (luai_numisnan(r)) return 0;  /* do not attempt to produce NaN */
+@@ -662,7 +673,11 @@ static void codearith (FuncState *fs, OpCode op, expdesc *e1, expdesc *e2) {
+   if (constfolding(op, e1, e2))
+     return;
+   else {
++#if defined(LUA_BITWISE_OPERATORS)
++    int o2 = (op != OP_UNM && op != OP_LEN && op != OP_BNOT) ? luaK_exp2RK(fs, e2) : 0;
++#else
+     int o2 = (op != OP_UNM && op != OP_LEN) ? luaK_exp2RK(fs, e2) : 0;
++#endif
+     int o1 = luaK_exp2RK(fs, e1);
+     if (o1 > o2) {
+       freeexp(fs, e1);
+@@ -698,6 +713,14 @@ void luaK_prefix (FuncState *fs, UnOpr op, expdesc *e) {
+   expdesc e2;
+   e2.t = e2.f = NO_JUMP; e2.k = VKNUM; e2.u.nval = 0;
+   switch (op) {
++#if defined(LUA_BITWISE_OPERATORS)
++    case OPR_BNOT: {
++      if (e->k == VK)
++        luaK_exp2anyreg(fs, e);  /* cannot operate on non-numeric constants */
++      codearith(fs, OP_BNOT, e, &e2);
++      break;
++    }
++#endif
+     case OPR_MINUS: {
+       if (!isnumeral(e))
+         luaK_exp2anyreg(fs, e);  /* cannot operate on non-numeric constants */
+@@ -778,6 +801,14 @@ void luaK_posfix (FuncState *fs, BinOpr op, expdesc *e1, expdesc *e2) {
+     case OPR_DIV: codearith(fs, OP_DIV, e1, e2); break;
+     case OPR_MOD: codearith(fs, OP_MOD, e1, e2); break;
+     case OPR_POW: codearith(fs, OP_POW, e1, e2); break;
++#if defined(LUA_BITWISE_OPERATORS)
++    case OPR_BOR: codearith(fs, OP_BOR, e1, e2); break;
++    case OPR_BAND: codearith(fs, OP_BAND, e1, e2); break;
++    case OPR_BXOR: codearith(fs, OP_BXOR, e1, e2); break;
++    case OPR_BLSHFT: codearith(fs, OP_BLSHFT, e1, e2); break;
++    case OPR_BRSHFT: codearith(fs, OP_BRSHFT, e1, e2); break;
++    case OPR_INTDIV: codearith(fs, OP_INTDIV, e1, e2); break;
++#endif
+     case OPR_EQ: codecomp(fs, OP_EQ, 1, e1, e2); break;
+     case OPR_NE: codecomp(fs, OP_EQ, 0, e1, e2); break;
+     case OPR_LT: codecomp(fs, OP_LT, 1, e1, e2); break;
+diff --git a/src/lcode.h b/src/lcode.h
+index b941c60..aa82cd7 100644
+--- a/src/lcode.h
++++ b/src/lcode.h
+@@ -25,6 +25,9 @@
+ */
+ typedef enum BinOpr {
+   OPR_ADD, OPR_SUB, OPR_MUL, OPR_DIV, OPR_MOD, OPR_POW,
++#if defined(LUA_BITWISE_OPERATORS)
++  OPR_BOR, OPR_BAND, OPR_BXOR, OPR_BLSHFT, OPR_BRSHFT, OPR_INTDIV,
++#endif
+   OPR_CONCAT,
+   OPR_NE, OPR_EQ,
+   OPR_LT, OPR_LE, OPR_GT, OPR_GE,
+@@ -33,8 +36,11 @@ typedef enum BinOpr {
+ } BinOpr;
+ 
+ 
++#if defined(LUA_BITWISE_OPERATORS)
++typedef enum UnOpr { OPR_BNOT, OPR_MINUS, OPR_NOT, OPR_LEN, OPR_NOUNOPR } UnOpr;
++#else
+ typedef enum UnOpr { OPR_MINUS, OPR_NOT, OPR_LEN, OPR_NOUNOPR } UnOpr;
+-
++#endif
+ 
+ #define getcode(fs,e)	((fs)->f->code[(e)->u.s.info])
+ 
+diff --git a/src/ldebug.c b/src/ldebug.c
+index 50ad3d3..b95adb9 100644
+--- a/src/ldebug.c
++++ b/src/ldebug.c
+@@ -592,6 +592,16 @@ void luaG_aritherror (lua_State *L, const TValue *p1, const TValue *p2) {
+   luaG_typeerror(L, p2, "perform arithmetic on");
+ }
+ 
++#if defined (LUA_BITWISE_OPERATORS)
++void luaG_logicerror (lua_State *L, const TValue *p1, const TValue *p2) {
++  TValue temp;
++  if (luaV_tonumber(p1, &temp) == NULL)
++    p2 = p1;  /* first operand is wrong */
++  luaG_typeerror(L, p2, "perform bitwise operation on");
++}
++#endif
++
++
+ 
+ int luaG_ordererror (lua_State *L, const TValue *p1, const TValue *p2) {
+   const char *t1 = luaT_typenames[ttype(p1)];
+diff --git a/src/ldebug.h b/src/ldebug.h
+index ba28a97..2a4cfbb 100644
+--- a/src/ldebug.h
++++ b/src/ldebug.h
+@@ -30,4 +30,9 @@ LUAI_FUNC void luaG_errormsg (lua_State *L);
+ LUAI_FUNC int luaG_checkcode (const Proto *pt);
+ LUAI_FUNC int luaG_checkopenop (Instruction i);
+ 
++#if defined (LUA_BITWISE_OPERATORS)
++LUAI_FUNC void luaG_logicerror (lua_State *L, const TValue *p1,
++                                              const TValue *p2);
++#endif
++
+ #endif
+diff --git a/src/llex.c b/src/llex.c
+index 6dc3193..bc49d9b 100644
+--- a/src/llex.c
++++ b/src/llex.c
+@@ -40,6 +40,9 @@ const char *const luaX_tokens [] = {
+     "in", "local", "nil", "not", "or", "repeat",
+     "return", "then", "true", "until", "while",
+     "..", "...", "==", ">=", "<=", "~=",
++#if defined(LUA_BITWISE_OPERATORS)
++    ">>", "<<", "^^", "!=",
++#endif
+     "<number>", "<name>", "<string>", "<eof>",
+     NULL
+ };
+@@ -371,6 +374,30 @@ static int llex (LexState *ls, SemInfo *seminfo) {
+         if (ls->current != '=') return '=';
+         else { next(ls); return TK_EQ; }
+       }
++#if defined(LUA_BITWISE_OPERATORS)
++      case '<': {
++        next(ls);
++        if (ls->current == '=') { next(ls); return TK_LE; }
++        else if (ls->current == '<') { next(ls); return TK_LSHFT; }
++        else  return '<';
++      }
++      case '>': {
++        next(ls);
++        if (ls->current == '=') { next(ls); return TK_GE; }
++        else if (ls->current == '>') { next(ls); return TK_RSHFT; }
++        else return '>';
++      }
++      case '^': {
++        next(ls);
++        if (ls->current != '^') return '^';
++        else { next(ls); return TK_XOR; }
++      }
++      case '!': {
++        next(ls);
++        if (ls->current != '=') return '!';
++        else { next(ls); return TK_NE; }
++      }
++#else
+       case '<': {
+         next(ls);
+         if (ls->current != '=') return '<';
+@@ -381,6 +408,7 @@ static int llex (LexState *ls, SemInfo *seminfo) {
+         if (ls->current != '=') return '>';
+         else { next(ls); return TK_GE; }
+       }
++#endif
+       case '~': {
+         next(ls);
+         if (ls->current != '=') return '~';
+diff --git a/src/llex.h b/src/llex.h
+index a9201ce..7ca5f24 100644
+--- a/src/llex.h
++++ b/src/llex.h
+@@ -28,8 +28,11 @@ enum RESERVED {
+   TK_IF, TK_IN, TK_LOCAL, TK_NIL, TK_NOT, TK_OR, TK_REPEAT,
+   TK_RETURN, TK_THEN, TK_TRUE, TK_UNTIL, TK_WHILE,
+   /* other terminal symbols */
+-  TK_CONCAT, TK_DOTS, TK_EQ, TK_GE, TK_LE, TK_NE, TK_NUMBER,
+-  TK_NAME, TK_STRING, TK_EOS
++  TK_CONCAT, TK_DOTS, TK_EQ, TK_GE, TK_LE, TK_NE,
++#if defined(LUA_BITWISE_OPERATORS)
++  TK_LSHFT, TK_RSHFT, TK_XOR, TK_CNE,  
++#endif
++  TK_NUMBER, TK_NAME, TK_STRING, TK_EOS
+ };
+ 
+ /* number of reserved words */
+diff --git a/src/lopcodes.c b/src/lopcodes.c
+index 4cc7452..22b20bb 100644
+--- a/src/lopcodes.c
++++ b/src/lopcodes.c
+@@ -32,6 +32,15 @@ const char *const luaP_opnames[NUM_OPCODES+1] = {
+   "DIV",
+   "MOD",
+   "POW",
++#if defined(LUA_BITWISE_OPERATORS)
++  "BOR",
++  "BAND",
++  "OP_BXOR",
++  "BLSHFT",
++  "BRSHFT",
++  "BNOT",
++  "INTDIV",
++#endif
+   "UNM",
+   "NOT",
+   "LEN",
+@@ -78,6 +87,15 @@ const lu_byte luaP_opmodes[NUM_OPCODES] = {
+  ,opmode(0, 1, OpArgK, OpArgK, iABC)		/* OP_DIV */
+  ,opmode(0, 1, OpArgK, OpArgK, iABC)		/* OP_MOD */
+  ,opmode(0, 1, OpArgK, OpArgK, iABC)		/* OP_POW */
++#if defined(LUA_BITWISE_OPERATORS)
++ ,opmode(0, 1, OpArgK, OpArgK, iABC)		/* OP_BOR */
++ ,opmode(0, 1, OpArgK, OpArgK, iABC)		/* OP_BAND */
++ ,opmode(0, 1, OpArgK, OpArgK, iABC)		/* OP_BXOR */
++ ,opmode(0, 1, OpArgK, OpArgK, iABC)		/* OP_BLSHFT */
++ ,opmode(0, 1, OpArgK, OpArgK, iABC)		/* OP_BRSHFT */
++ ,opmode(0, 1, OpArgR, OpArgN, iABC)		/* OP_BNOT */
++ ,opmode(0, 1, OpArgK, OpArgK, iABC)		/* OP_INTDIV */
++#endif
+  ,opmode(0, 1, OpArgR, OpArgN, iABC)		/* OP_UNM */
+  ,opmode(0, 1, OpArgR, OpArgN, iABC)		/* OP_NOT */
+  ,opmode(0, 1, OpArgR, OpArgN, iABC)		/* OP_LEN */
+diff --git a/src/lopcodes.h b/src/lopcodes.h
+index 41224d6..3a635da 100644
+--- a/src/lopcodes.h
++++ b/src/lopcodes.h
+@@ -174,10 +174,20 @@ OP_MUL,/*	A B C	R(A) := RK(B) * RK(C)				*/
+ OP_DIV,/*	A B C	R(A) := RK(B) / RK(C)				*/
+ OP_MOD,/*	A B C	R(A) := RK(B) % RK(C)				*/
+ OP_POW,/*	A B C	R(A) := RK(B) ^ RK(C)				*/
++#if defined(LUA_BITWISE_OPERATORS)
++OP_BOR,/*	A B C	R(A) := RK(B) | RK(C)				*/
++OP_BAND,/*	A B C	R(A) := RK(B) & RK(C)				*/
++OP_BXOR,/*	A B C	R(A) := RK(B) ^| RK(C)				*/
++OP_BLSHFT,/*	A B C	R(A) := RK(B) << RK(C)				*/
++OP_BRSHFT,/*	A B C	R(A) := RK(B) >> RK(C)				*/
++OP_BNOT,/*	A B	R(A) := ~ R(B)				*/
++OP_INTDIV,/*	A B C	R(A) := RK(B) \ RK(C)				*/
++#endif
+ OP_UNM,/*	A B	R(A) := -R(B)					*/
+ OP_NOT,/*	A B	R(A) := not R(B)				*/
+ OP_LEN,/*	A B	R(A) := length of R(B)				*/
+ 
++
+ OP_CONCAT,/*	A B C	R(A) := R(B).. ... ..R(C)			*/
+ 
+ OP_JMP,/*	sBx	pc+=sBx					*/
+diff --git a/src/lparser.c b/src/lparser.c
+index 1e2a9a8..fb18e46 100644
+--- a/src/lparser.c
++++ b/src/lparser.c
+@@ -780,6 +780,9 @@ static UnOpr getunopr (int op) {
+     case TK_NOT: return OPR_NOT;
+     case '-': return OPR_MINUS;
+     case '#': return OPR_LEN;
++#if defined(LUA_BITWISE_OPERATORS)
++    case '~': return OPR_BNOT;
++#endif
+     default: return OPR_NOUNOPR;
+   }
+ }
+@@ -793,6 +796,14 @@ static BinOpr getbinopr (int op) {
+     case '/': return OPR_DIV;
+     case '%': return OPR_MOD;
+     case '^': return OPR_POW;
++#if defined(LUA_BITWISE_OPERATORS)
++    case '|': return OPR_BOR;
++    case '&': return OPR_BAND;
++    case TK_XOR: return OPR_BXOR;
++    case TK_LSHFT: return OPR_BLSHFT;
++    case TK_RSHFT: return OPR_BRSHFT;
++    case '\\': return OPR_INTDIV;
++#endif
+     case TK_CONCAT: return OPR_CONCAT;
+     case TK_NE: return OPR_NE;
+     case TK_EQ: return OPR_EQ;
+@@ -812,6 +823,9 @@ static const struct {
+   lu_byte right; /* right priority */
+ } priority[] = {  /* ORDER OPR */
+    {6, 6}, {6, 6}, {7, 7}, {7, 7}, {7, 7},  /* `+' `-' `/' `%' */
++#if defined(LUA_BITWISE_OPERATORS)
++   {6, 6}, {6, 6}, {6, 6}, {7, 7}, {7, 7}, {7, 7}, /* `|' `&' `!' `<<' `>>' `\' */
++#endif
+    {10, 9}, {5, 4},                 /* power and concat (right associative) */
+    {3, 3}, {3, 3},                  /* equality and inequality */
+    {3, 3}, {3, 3}, {3, 3}, {3, 3},  /* order */
+diff --git a/src/ltm.c b/src/ltm.c
+index c27f0f6..dc2da4d 100644
+--- a/src/ltm.c
++++ b/src/ltm.c
+@@ -34,6 +34,9 @@ void luaT_init (lua_State *L) {
+     "__add", "__sub", "__mul", "__div", "__mod",
+     "__pow", "__unm", "__len", "__lt", "__le",
+     "__concat", "__call"
++#if defined(LUA_BITWISE_OPERATORS)
++    ,"__or", "__and", "__xor", "__shl", "__shr", "__not", "__intdiv"
++#endif
+   };
+   int i;
+   for (i=0; i<TM_N; i++) {
+diff --git a/src/ltm.h b/src/ltm.h
+index 64343b7..186e4db 100644
+--- a/src/ltm.h
++++ b/src/ltm.h
+@@ -33,6 +33,15 @@ typedef enum {
+   TM_LE,
+   TM_CONCAT,
+   TM_CALL,
++#if defined(LUA_BITWISE_OPERATORS)
++  TM_BOR,
++  TM_BAND,
++  TM_BXOR,
++  TM_BLSHFT,
++  TM_BRSHFT,
++  TM_BNOT,
++  TM_INTDIV,
++#endif
+   TM_N		/* number of elements in the enum */
+ } TMS;
+ 
+diff --git a/src/lua.h b/src/lua.h
+index e4bdfd3..c83745d 100644
+--- a/src/lua.h
++++ b/src/lua.h
+@@ -17,7 +17,7 @@
+ 
+ 
+ #define LUA_VERSION	"Lua 5.1"
+-#define LUA_RELEASE	"Lua 5.1.4"
++#define LUA_RELEASE	"Lua 5.1.4 patched with bitwise ops: | & ^^ << >> ~ \\ !="
+ #define LUA_VERSION_NUM	501
+ #define LUA_COPYRIGHT	"Copyright (C) 1994-2008 Lua.org, PUC-Rio"
+ #define LUA_AUTHORS 	"R. Ierusalimschy, L. H. de Figueiredo & W. Celes"
+diff --git a/src/luaconf.h b/src/luaconf.h
+index e2cb261..80311e3 100644
+--- a/src/luaconf.h
++++ b/src/luaconf.h
+@@ -2,6 +2,7 @@
+ ** $Id: luaconf.h,v 1.82.1.7 2008/02/11 16:25:08 roberto Exp $
+ ** Configuration file for Lua
+ ** See Copyright Notice in lua.h
++** Added logic operators : & | ^^ (xor) << >> ~, arithmetic operator \ (integer division) and != as an alternative to ~=
+ */
+ 
+ 
+@@ -209,6 +210,12 @@
+ */
+ #define LUA_IDSIZE	60
+ 
++/*
++@@ LUA_BITWISE_OPERATORS enable logical operators | & ^| >> << ~ on lua_Number
++@* but also arithmetic operator \ (integer division) and != as an alernative to ~=
++*/
++#define LUA_BITWISE_OPERATORS
++
+ 
+ /*
+ ** {==================================================================
+@@ -216,6 +223,7 @@
+ ** ===================================================================
+ */
+ 
++
+ #if defined(lua_c) || defined(luaall_c)
+ 
+ /*
+@@ -526,25 +534,6 @@
+ 
+ 
+ /*
+-@@ The luai_num* macros define the primitive operations over numbers.
+-*/
+-#if defined(LUA_CORE)
+-#include <math.h>
+-#define luai_numadd(a,b)	((a)+(b))
+-#define luai_numsub(a,b)	((a)-(b))
+-#define luai_nummul(a,b)	((a)*(b))
+-#define luai_numdiv(a,b)	((a)/(b))
+-#define luai_nummod(a,b)	((a) - floor((a)/(b))*(b))
+-#define luai_numpow(a,b)	(pow(a,b))
+-#define luai_numunm(a)		(-(a))
+-#define luai_numeq(a,b)		((a)==(b))
+-#define luai_numlt(a,b)		((a)<(b))
+-#define luai_numle(a,b)		((a)<=(b))
+-#define luai_numisnan(a)	(!luai_numeq((a), (a)))
+-#endif
+-
+-
+-/*
+ @@ lua_number2int is a macro to convert lua_Number to int.
+ @@ lua_number2integer is a macro to convert lua_Number to lua_Integer.
+ ** CHANGE them if you know a faster way to convert a lua_Number to
+@@ -560,7 +549,7 @@
+ /* On a Microsoft compiler, use assembler */
+ #if defined(_MSC_VER)
+ 
+-#define lua_number2int(i,d)   __asm fld d   __asm fistp i
++#define lua_number2int(i,d)   { __asm fld d   __asm fistp i }
+ #define lua_number2integer(i,n)		lua_number2int(i, n)
+ 
+ /* the next trick should work on any Pentium, but sometimes clashes
+@@ -582,6 +571,38 @@ union luai_Cast { double l_d; long l_l; };
+ 
+ #endif
+ 
++
++/*
++@@ The luai_num* macros define the primitive operations over numbers.
++*/
++#if defined(LUA_CORE)
++#include <math.h>
++#define luai_numadd(a,b)	((a)+(b))
++#define luai_numsub(a,b)	((a)-(b))
++#define luai_nummul(a,b)	((a)*(b))
++#define luai_numdiv(a,b)	((a)/(b))
++#ifdef LUA_BITWISE_OPERATORS
++#define luai_numintdiv(a,b)	(floor((a)/(b)))
++#endif
++#define luai_nummod(a,b)	((a) - floor((a)/(b))*(b))
++#define luai_numpow(a,b)	(pow(a,b))
++#define luai_numunm(a)		(-(a))
++#define luai_numeq(a,b)		((a)==(b))
++#define luai_numlt(a,b)		((a)<(b))
++#define luai_numle(a,b)		((a)<=(b))
++#define luai_numisnan(a)	(!luai_numeq((a), (a)))
++
++#if defined(LUA_BITWISE_OPERATORS)
++#define luai_logor(r, a, b)	{ lua_Integer ai,bi; lua_number2int(ai,a); lua_number2int(bi,b); r = ai|bi; }
++#define luai_logand(r, a,b)	{ lua_Integer ai,bi; lua_number2int(ai,a); lua_number2int(bi,b); r = ai&bi; }
++#define luai_logxor(r, a,b)	{ lua_Integer ai,bi; lua_number2int(ai,a); lua_number2int(bi,b); r = ai^bi; }
++#define luai_lognot(r,a)	{ lua_Integer ai; lua_number2int(ai,a); r = ~ai; }
++#define luai_loglshft(r, a,b)	{ lua_Integer ai,bi; lua_number2int(ai,a); lua_number2int(bi,b); r = ai<<bi; }
++#define luai_logrshft(r, a,b)	{ lua_Integer ai,bi; lua_number2int(ai,a); lua_number2int(bi,b); r = ai>>bi; }
++#endif
++
++#endif
++
+ /* }================================================================== */
+ 
+ 
+diff --git a/src/lvm.c b/src/lvm.c
+index ee3256a..1517d74 100644
+--- a/src/lvm.c
++++ b/src/lvm.c
+@@ -325,6 +325,9 @@ static void Arith (lua_State *L, StkId ra, const TValue *rb,
+       case TM_MOD: setnvalue(ra, luai_nummod(nb, nc)); break;
+       case TM_POW: setnvalue(ra, luai_numpow(nb, nc)); break;
+       case TM_UNM: setnvalue(ra, luai_numunm(nb)); break;
++#if defined(LUA_BITWISE_OPERATORS)
++      case TM_INTDIV: setnvalue(ra, luai_numintdiv(nb, nc)); break;
++#endif
+       default: lua_assert(0); break;
+     }
+   }
+@@ -332,7 +335,30 @@ static void Arith (lua_State *L, StkId ra, const TValue *rb,
+     luaG_aritherror(L, rb, rc);
+ }
+ 
+-
++#if defined(LUA_BITWISE_OPERATORS)
++static void Logic (lua_State *L, StkId ra, const TValue *rb,
++                   const TValue *rc, TMS op) {
++  TValue tempb, tempc;
++  const TValue *b, *c;
++  if ((b = luaV_tonumber(rb, &tempb)) != NULL &&
++      (c = luaV_tonumber(rc, &tempc)) != NULL) {
++    lua_Number nb = nvalue(b), nc = nvalue(c);
++    lua_Integer r;
++    switch (op) {
++      case TM_BLSHFT: luai_loglshft(r, nb, nc); break;
++      case TM_BRSHFT: luai_logrshft(r, nb, nc); break;
++      case TM_BOR: luai_logor(r, nb, nc); break;
++      case TM_BAND: luai_logand(r, nb, nc); break;
++      case TM_BXOR: luai_logxor(r, nb, nc); break;
++      case TM_BNOT: luai_lognot(r, nb); break;
++      default: lua_assert(0); r = 0; break;
++    }
++    setnvalue(ra, r);
++  }
++  else if (!call_binTM(L, rb, rc, ra, op))
++    luaG_logicerror(L, rb, rc);
++}
++#endif
+ 
+ /*
+ ** some macros for common tasks in `luaV_execute'
+@@ -369,6 +395,22 @@ static void Arith (lua_State *L, StkId ra, const TValue *rb,
+       }
+ 
+ 
++#if defined(LUA_BITWISE_OPERATORS)
++#define logic_op(op,tm) { \
++        TValue *rb = RKB(i); \
++        TValue *rc = RKC(i); \
++        if (ttisnumber(rb) && ttisnumber(rc)) { \
++          lua_Integer r; \
++          lua_Number nb = nvalue(rb), nc = nvalue(rc); \
++          op(r, nb, nc); \
++          setnvalue(ra, r); \
++        } \
++        else \
++          Protect(Logic(L, ra, rb, rc, tm)); \
++      }
++#endif
++
++
+ 
+ void luaV_execute (lua_State *L, int nexeccalls) {
+   LClosure *cl;
+@@ -502,6 +544,45 @@ void luaV_execute (lua_State *L, int nexeccalls) {
+         }
+         continue;
+       }
++#if defined(LUA_BITWISE_OPERATORS)
++      case OP_BOR: {
++        logic_op(luai_logor, TM_BOR);
++        continue;
++      }
++      case OP_BAND: {
++        logic_op(luai_logand, TM_BAND);
++        continue;
++      }
++      case OP_BXOR: {
++        logic_op(luai_logxor, TM_BXOR);
++        continue;
++      }
++      case OP_BLSHFT: {
++        logic_op(luai_loglshft, TM_BLSHFT);
++        continue;
++      }
++      case OP_BRSHFT: {
++        logic_op(luai_logrshft, TM_BRSHFT);
++        continue;
++      }
++      case OP_BNOT: {
++        TValue *rb = RB(i);
++        if (ttisnumber(rb)) {
++          lua_Integer r;
++          lua_Number nb = nvalue(rb);
++          luai_lognot(r, nb);
++          setnvalue(ra, r);
++        }
++        else {
++          Protect(Logic(L, ra, rb, rb, TM_BNOT));
++        }
++        continue;
++      }
++      case OP_INTDIV: {
++        arith_op(luai_numintdiv, TM_DIV);
++        continue;
++      }
++#endif
+       case OP_NOT: {
+         int res = l_isfalse(RB(i));  /* next assignment may change this value */
+         setbvalue(ra, res);
+diff --git a/test/bitwisetest.lua b/test/bitwisetest.lua
+new file mode 100644
+index 0000000..74afcb1
+--- /dev/null
++++ b/test/bitwisetest.lua
+@@ -0,0 +1,22 @@
++hex = function (i) return "0x"..string.format("%X", i) end
++print(hex(0x54|0x55))
++print(hex(0x54&0x66))
++print(hex(~0x54))
++print(hex(0xF<< 4))
++print(hex(0xF0>> 4))
++a,b=0x54,0x55
++print(hex(a),"|",hex(b), "=",hex(a|b))
++print(hex(a),"|","0x55", "=",hex(a|0x55))
++print(hex(a),"|","0x5|0x50 (", hex(0x5|0x50), ") =",hex(a|(0x5|0x50)))
++a,b=0x54,0x66
++print(hex(a),"&",hex(b), "=",hex(a&b))
++print(hex(a),"&","0x66", "=",hex(a&0x66))
++print("~"..hex(a),"=",hex(~a))
++a,b=0xF,0xF0
++print(hex(a).."<<4","=",hex(a<<4))
++print(hex(b)..">>4","=",hex(b>>4))
++a,b=0xF,4
++print(hex(a).."<<"..b,"=",hex(a<<b))
++a,b=0xF0,4
++print(hex(a)..">>"..b,"=",hex(a>>b))
++
