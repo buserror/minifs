@@ -1,15 +1,13 @@
-#######################################################################
-## curl
-#######################################################################
-PACKAGES+=" curl"
-hset url curl "http://curl.haxx.se/download/curl-7.20.0.tar.bz2"
-hset depends curl "busybox"
+
 
 PACKAGES+=" libexpat"
 hset url libexpat "http://downloads.sourceforge.net/project/expat/expat/2.0.1/expat-2.0.1.tar.gz"
 
 PACKAGES+=" libreadline"
 hset url libreadline "ftp://ftp.gnu.org/gnu/readline/readline-6.1.tar.gz"
+
+PACKAGES+=" libncurses"
+hset url libncurses "http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.7.tar.gz"
 
 PACKAGES+=" libnetsnmp"
 hset url libnetsnmp "http://downloads.sourceforge.net/project/net-snmp/net-snmp/5.5/net-snmp-5.5.tar.gz#netsnmp-5.5.tgz"
@@ -68,6 +66,33 @@ install-libxml2() {
 }
 
 #######################################################################
+## GNU/TLS bits
+#######################################################################
+
+PACKAGES+=" libgpg-error"
+hset url libgpg-error "ftp://ftp.gnupg.org/gcrypt/libgpg-error/libgpg-error-1.7.tar.bz2"
+
+PACKAGES+=" libgcrypt"
+hset url libgcrypt "ftp://ftp.gnupg.org/gcrypt/libgcrypt/libgcrypt-1.4.5.tar.bz2"
+hset depends libgcrypt "libgpg-error"
+
+configure-libgcrypt() {
+	export LDFLAGS="$LDFLAGS_RLINK"
+	configure-generic --disable-asm
+	export LDFLAGS="$LDFLAGS_BASE"
+}
+
+PACKAGES+=" gnutls"
+hset url gnutls "http://ftp.gnu.org/pub/gnu/gnutls/gnutls-2.8.6.tar.bz2"
+hset depends gnutls "libgcrypt"
+
+configure-gnutls() {
+	export LDFLAGS="$LDFLAGS_RLINK"
+	configure-generic
+	export LDFLAGS="$LDFLAGS_BASE"
+}
+
+#######################################################################
 ## OpenSSL
 #######################################################################
 PACKAGES+=" openssl"
@@ -82,6 +107,9 @@ compile-openssl() {
 		CFLAG="$TARGET_CFLAGS"
 }
 
+#######################################################################
+## Netscape security API
+#######################################################################
 PACKAGES+=" libnspr"
 hset url libnspr "https://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v4.8.4/src/nspr-4.8.4.tar.gz"
 hset dir libnspr "libnspr/mozilla/nsprpub"
@@ -111,7 +139,15 @@ compile-libnss() {
 
 # this hack is there only to copy the libs we need for the flash player to link
 install-libnss-local() {
-	
+	path=$(echo mozilla/dist/Linux*$TARGET_KERNEL_ARCH*)
+	echo mozicrap = $path
+	pushd "$path"/lib
+	for lib in libssl3.so libnss3.so libnssutil3.so libplc4.so libplds4.so libnspr4.so libsmime3.so; do
+		fn=$(readlink -f $lib)
+		echo lib $fn
+		cp "$fn" "$STAGING_USR"/lib/
+	done
+	popd
 	echo Done
 }
 
@@ -119,3 +155,25 @@ install-libnss() {
 	log_install install-libnss-local
 }
 
+#######################################################################
+## curl
+#######################################################################
+PACKAGES+=" curl"
+hset url curl "http://curl.haxx.se/download/curl-7.20.0.tar.bz2"
+hset depends curl "busybox"
+
+configure-curl() {
+	local extras=""	
+	export LDFLAGS="$LDFLAGS_RLINK"
+	if [ -d ../openssl ]; then 
+		extras+="--with-ssl";
+	fi
+	if [ -d ../gnutls ]; then 
+		extras+="--with-gnutls"
+		LDFLAGS+=" -lgcrypt -lgpg-error"
+	fi
+	echo "ac_cv_path_PKGCONFIG=$TOOLCHAIN/bin/pkg-config
+ac_cv_lib_gnutls_gnutls_check_version=yes" >minifs.cache
+	configure-generic --cache=minifs.cache $extras
+	export LDFLAGS="$LDFLAGS_BASE"
+}
