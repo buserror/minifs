@@ -1,0 +1,59 @@
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..2111183
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,4 @@
++*.o
++bin
++lib
++.sconsign.dblite
+diff --git a/Makefile b/Makefile
+index 92ded6c..4f5dd7a 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,5 +1,25 @@
+ # makefile for tolua hierarchy
+ 
+-all:
+-	@echo "Makefile is deprecated ;)"
+-	@echo "see INSTALL for details on how to build tolua++"
++all: lib/libtolua++.a
++
++DESTDIR=/usr/local/${CROSS_COMPILE:-=}/
++
++CFLAGS	+= -O2 \
++		-I${DESTDIR}include \
++		-Iinclude
++LDFLAGS	=  \
++		-L${DESTDIR}lib
++
++	
++lib/libtolua++.a: src/lib/tolua_event.o src/lib/tolua_is.o src/lib/tolua_map.o src/lib/tolua_push.o src/lib/tolua_to.o
++	$(AR) rc $@ $^
++	ranlib $@
++
++install: all
++	mkdir -p ${DESTDIR}/{bin,lib,include}
++	cp lib/* ${DESTDIR}/lib/
++	cp include/* ${DESTDIR}/include/
++	cp bin/* ${DESTDIR}/bin/ || true
++
++clean:
++	rm -f lib/* src/lib/*.o
+diff --git a/custom.py b/custom.py
+new file mode 100644
+index 0000000..5af4470
+--- /dev/null
++++ b/custom.py
+@@ -0,0 +1,10 @@
++# Added by Michel
++
++CCFLAGS = ['-I/usr/local/include', '-O2']
++LIBPATH = ['/usr/local/lib']
++LIBS = ['lua', 'dl', 'm']
++tolua_bin = 'tolua++'
++tolua_lib = 'tolua++'
++TOLUAPP = 'tolua++'
++
++prefix = '/usr/local'
