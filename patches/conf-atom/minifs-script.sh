@@ -29,7 +29,7 @@ board_prepare() {
 	# all of gtk JUST to get rsvg :/
 	TARGET_PACKAGES+=" librsvg"
 
-	TARGET_PACKAGES+=" xorgserver"	
+	TARGET_PACKAGES+=" xorgserver nvidia"	
 	TARGET_PACKAGES+=" libwebkit"
 	TARGET_PACKAGES+=" flashplugin"
 }

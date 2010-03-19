@@ -24,6 +24,7 @@ mount /dev/sdh1 /mnt/arm && \
 
 
 X :0 -dpi 100 -ac -config xorg.conf.new &
+X :0 -dpi 100 -ac &
 GtkLauncher --display :0 'http://www.tvguide.co.uk/tv_channel_streams.asp?c=16' &
 
 gdbserver :4444  GtkLauncher --display :0 'http://www.tvguide.co.uk/tv_channel_streams.asp?c=16' &
