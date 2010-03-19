@@ -91,6 +91,7 @@ typedef struct so_filelist_t {
 enum {
 	DIR_RECURSIVE = 1,
 	DIR_PLUGINS = 2,
+	FILE_LOCK = 1,
 };
 typedef struct so_dir_t {
 	struct so_dir_t * next;
@@ -103,6 +104,7 @@ typedef struct so_dir_t {
 typedef struct so_file_t {
 	char * name;
 	uint16_t hash;
+	int flags;
 	so_str_t *so_name;
 	so_str_t *so_needed;
 	so_filelist_t * used;
@@ -370,7 +372,7 @@ int purge_unused_libs(so_dir_t * dir)
 			for (int fi = 0; fi < d->loaded->count; ) {
 				so_file_t *f = d->loaded->file[fi];
 
-				if (f->so_name && (!f->used || !f->used->count)) {
+				if (f->so_name && (!f->used || !f->used->count) && !(f->flags & FILE_LOCK)) {
 				//	printf("Library %s is not used\n", f->name);
 					d->purged = so_filelist_add(d->purged, f);
 					so_filelist_remove(d->loaded, f);
@@ -449,6 +451,19 @@ int main(int argc, char * argv[])
 				dir = elf_scandir(dir, p, DIR_PLUGINS|DIR_RECURSIVE);
 		}
 	}
+	char * keepers = getenv("ROOTFS_KEEPERS");
+	if (keepers) {
+		char * p;
+		while ((p = strsep(&keepers, ":")) != NULL) {
+			if (!*p)
+				continue;
+			so_file_t * found = so_dir_search(dir, p);
+			if (found) {
+				printf("Protecting %s from purge\n", found->name);
+				found->flags |= FILE_LOCK;
+			}
+		}
+	}
 
 
 	/*
@@ -481,7 +496,33 @@ int main(int argc, char * argv[])
 	 * Second pass, remove any orphans, recursively
 	 */
 	purge_unused_libs(dir);
+	
+#if 0
+	FILE *dot = fopen("._cross-linker.dot", "w");
+	fprintf(dot, "digraph G { rankdir=LR; node [shape=rect];\n");
+	d = dir;
+	while (d) {
+		for (int fi = 0; d->loaded && fi < d->loaded->count; fi++) {
+			so_file_t *f = d->loaded->file[fi];
+			fprintf(dot, "\"%s\"\n", f->name);
 
+			for (int ui = 0; f->used && ui < f->used->count; ui++)
+				fprintf(dot, "\"%s\" -> \"%s\"\n", 
+					f->used->file[ui]->name, f->name);
+		}
+		for (int fi = 0; d->purged && fi < d->purged->count; fi++) {
+			so_file_t *f = d->purged->file[fi];
+			fprintf(dot, "\"%s\" [color=gray];\n", f->name);
+
+			for (int ui = 0; f->used && ui < f->used->count; ui++)
+				fprintf(dot, "\"%s\" -> \"%s\"\n", 
+					f->used->file[ui]->name, f->name);
+		}
+		d = d->next;
+	}
+	fprintf(dot, "}\n");
+	fclose(dot);
+#endif
 	/*
 	 * last pass, print who is not used
 	 */

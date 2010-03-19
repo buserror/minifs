@@ -47,6 +47,7 @@ export STAGING="$BUILD/staging"
 export STAGING_USR="$STAGING/usr"
 export ROOTFS="$BUILD/rootfs"
 export ROOTFS_PLUGINS=""
+export ROOTFS_KEEPERS="libnss_dns.so.2:libnss_dns-2.10.2.so:"
 KERNEL="$BUILD/kernel"
 CONFIG="$PATCHES/conf-$TARGET_BOARD"
 
@@ -93,7 +94,7 @@ for tool in "$PATCHES"/minifs-tools/*.c; do
 	if [ "$TOOLCHAIN"/bin/$tool -ot "$PATCHES"/minifs-tools/$tool.c ]; then
 		echo "#### compiling $tool"
 		compile=$(head -1 "$PATCHES"/minifs-tools/$tool.c|sed 's|//||')
-		$compile -o "$TOOLCHAIN"/bin/$tool "$PATCHES"/minifs-tools/$tool.c
+		$compile -o "$TOOLCHAIN"/bin/$tool "$PATCHES"/minifs-tools/$tool.c || exit 1
 	fi
 done
 
@@ -113,6 +114,7 @@ export LDFLAGS=$LDFLAGS_BASE
 export CFLAGS="$TARGET_CFLAGS" 
 export CXXFLAGS="$CFLAGS" 
 export LIBC_CFLAGS="${LIBC_CFLAGS:-$TARGET_CFLAGS}"
+export PKGCONFIG="$TOOLCHAIN/bin/pkg-config"
 export PKG_CONFIG_PATH="$STAGING/lib/pkgconfig:$STAGING_USR/lib/pkgconfig:$STAGING_USR/share/pkgconfig"
 export PKG_CONFIG_LIBDIR="" # do not search local paths
 export ACLOCAL="aclocal -I $STAGING_USR/share/aclocal"
@@ -222,7 +224,7 @@ for package in $TARGET_PACKAGES; do
 						rm -rf "$package.git"
 				fi
 			;;
-			*) $WGET "$fil" -O "$loc" ;;
+			*) $WGET "$fil" -O "$loc" || exit 1 ;;
 		esac
 	fi
 	baseroot=$package
@@ -235,6 +237,10 @@ for package in $TARGET_PACKAGES; do
 			bz2)	tar jx --exclude=.git -C "$BUILD/$baseroot" --strip 1 -f "$loc"	;;
 			gz|tgz)	tar zx --exclude=.git -C "$BUILD/$baseroot" --strip 1 -f "$loc"	;;
 			tarb)	tar zx --exclude=.git -C "$BUILD/$baseroot" -f "$loc" ;;
+			run)	pushd "$BUILD/$baseroot"
+				optional uncompress-$package "$BASE/download/$loc"
+				popd
+				;;
 			*)	echo ### error file format '$typ' ($base) not supported" ; exit 1
 		esac
 		for pd in "$CONFIG/$baseroot" "$PATCHES/$baseroot" ; do
@@ -340,7 +346,7 @@ install-generic-local() {
 	done
 }
 install-generic() {
-	log_install install-generic-local
+	log_install install-generic-local "$@"
 }
 deploy-generic() {
 	return 0
