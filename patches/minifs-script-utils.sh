@@ -3,7 +3,7 @@
 function optional() {
 	for f in $*; do
 		if declare -F $f >/dev/null; then
-			$f
+			$f "$@"
 		fi
 	done
 }
