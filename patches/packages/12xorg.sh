@@ -66,7 +66,16 @@ done
 configure-xorglibXfont() {
 	configure-generic --without-xmlto --without-fop
 }
+configure-xorglibX11() {
+	configure-generic
+	sed -i -e "s|^CFLAGS = .*|CFLAGS =|g" src/util/Makefile
+}
 hset depends xorglibX11 "libxcb xtrans xorgx11proto $XORG_LIBS"
+
+configure-xorglibXt() {
+	configure-generic
+	sed -i -e "s|^CFLAGS = .*|CFLAGS =|g" util/Makefile
+}
 
 XORG_FONTS+=" xorgfontutil xorgfontadobe"
 hset url xorgfontutil "http://www.x.org/releases/individual/font/font-util-1.1.1.tar.bz2"
@@ -92,7 +101,7 @@ configure-libmesadrm() {
 configure-libmesa() {
 	export LDFLAGS="$LDFLAGS_RLINK"
 	configure-generic \
-		--with-dri-drivers="i810 i915 i965 mach64 mga r200 r300 r600 radeon swrast" \
+		--with-dri-drivers="swrast" \
 		--without-demos
 	export LDFLAGS="$LDFLAGS_BASE"
 }
