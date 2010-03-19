@@ -18,30 +18,6 @@ deploy-libdirectfb() {
 	deploy cp "$STAGING_USR"/bin/dfb* "$ROOTFS/usr/bin"
 }
 
-PACKAGES+=" libcairo"
-hset url libcairo "http://www.cairographics.org/releases/cairo-1.8.10.tar.gz"
-hset depends libcairo "libfreetype"
-
-configure-libcairo() {
-	local extras=""
-	if [ "$TARGET_ARCH" == "arm" ]; then
-		extras+=" --disable-some-floating-point"
-	fi
-	if [[ $TARGET_X11 ]]; then
-		configure-generic \
-		--enable-xlib=yes \
-		--enable-xlib-xrender=yes \
-		--enable-directfb=no \
-		--with-x $extras
-	else
-		configure-generic \
-		--enable-xlib=no \
-		--enable-xlib-xrender=no \
-		--enable-directfb=yes \
-		--without-x $extras
-	fi
-}
-
 PACKAGES+=" libglib"
 hset url libglib "http://ftp.gnome.org/pub/gnome/sources/glib/2.23/glib-2.23.4.tar.bz2"
 hset prefix libglib "$STAGING_USR"
@@ -61,6 +37,30 @@ glib_cv_uscore=no
 	configure-generic \
 		--cache=fake_glib_cache.conf 
 	export LDFLAGS="$LDFLAGS_BASE"
+}
+
+PACKAGES+=" libcairo"
+hset url libcairo "http://www.cairographics.org/releases/cairo-1.8.10.tar.gz"
+hset depends libcairo "libfreetype libglib"
+
+configure-libcairo() {
+	local extras=""
+	if [ "$TARGET_ARCH" == "arm" ]; then
+		extras+=" --disable-some-floating-point"
+	fi
+	if [[ $TARGET_X11 ]]; then
+		configure-generic \
+		--enable-xlib=yes \
+		--enable-xlib-xrender=yes \
+		--enable-directfb=no \
+		--with-x $extras
+	else
+		configure-generic \
+		--enable-xlib=no \
+		--enable-xlib-xrender=no \
+		--enable-directfb=yes \
+		--without-x $extras
+	fi
 }
 
 PACKAGES+=" libpango"
