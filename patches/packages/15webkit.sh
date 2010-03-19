@@ -31,6 +31,10 @@ hset url liboil "http://liboil.freedesktop.org/download/liboil-0.3.17.tar.gz"
 PACKAGES+=" libalsa"
 hset url libalsa "ftp://ftp.alsa-project.org/pub/lib/alsa-lib-1.0.22.tar.bz2"
 
+deploy-libalsa() {
+	deploy rsync -a "$STAGING_USR"/share/alsa "$ROOTFS"/usr/share/
+}
+
 PACKAGES+=" libogg"
 hset url libogg "http://downloads.xiph.org/releases/ogg/libogg-1.1.4.tar.gz"
 
@@ -86,7 +90,8 @@ configure-libicu-local() {
 		--host=$TARGET_FULL_ARCH \
 		--prefix="$PACKAGE_PREFIX" \
 		--with-cross-build=$(pwd)/../host \
-		--disable-tests --disable-samples
+		--disable-tests --disable-samples \
+		CC="${CROSS}-gcc" CXX="${CROSS}-g++"
 }
 configure-libicu() {
 	configure configure-libicu-local
@@ -102,24 +107,22 @@ install-libicu() {
 
 PACKAGES+=" libwebkit"
 hset url libwebkit "git!git://git.webkit.org/WebKit.git#libwebkit-git.tar.bz2"
-hset depends libwebkit "libenchant libsoup sqlite3 libxslt libgtk gstreamer"
+hset depends libwebkit "libicu libenchant libsoup sqlite3 libxslt libgtk gstreamer"
 
 # needs on the host
 # gtk-docize 
 # gperf
 configure-libwebkit() {
-	local extras=""
+	local extras="--enable-debug"
 	save=$CFLAGS
 	if [[ ! $TARGET_X11 ]]; then
 		# ENABLE_NETSCAPE_PLUGIN_API
-		extras+="--with-target=directfb --disable-netscape-plugin-api"
-		CFLAGS+=" -DENABLE_NETSCAPE_PLUGIN_API=0 "
-		CXXFLAGS=$CFLAGS
+		extras+="--with-target=directfb"
+		CXXFLAGS="$CFLAGS -DENABLE_NETSCAPE_PLUGIN_API=0"
 		export CFLAGS CXXFLAGS
 	fi
-	
+	#	--with-unicode-backend=glib 
 	configure-generic \
-		--with-unicode-backend=glib \
 		$extras
 	CFLAGS=$save
 	CXXFLAGS=$save
@@ -132,12 +135,14 @@ PACKAGES+=" flashplugin"
 #hset url flashplugin "http://fpdownload.macromedia.com/get/flashplayer/current/install_flash_player_10_linux.tar.gz#flashplugin-10.tarb"
 hset url flashplugin "http://download.macromedia.com/pub/labs/flashplayer10/flashplayer10_1_p3_linux_022310.tar.gz#flashplugin-10.1.tarb"
 hset phases flashplugin "deploy"
-hset depends flashplugin "libnss libwebkit"
+hset depends flashplugin "gnutls curl libnss libwebkit"
 
 deploy-flashplugin() {
 	deploy echo Deploying flashplugin
 	mkdir -p "$ROOTFS"/usr/lib/mozilla/plugins/
 	cp *.so "$ROOTFS"/usr/lib/mozilla/plugins/
 	ROOTFS_PLUGINS+="$ROOTFS/usr/lib/mozilla/plugins/:"
+	# these are not loaded automaticaly
+	ROOTFS_KEEPERS+="libcurl.so.4:libcurl-gnutls.so.4:libasound.so.2:"
 }
 
