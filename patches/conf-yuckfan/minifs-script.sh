@@ -28,21 +28,40 @@ board_prepare() {
 	# all of gtk JUST to get rsvg :/
 	TARGET_PACKAGES+=" librsvg"
 
-	PACKAGES+=" libncurses lua"
+	if [ -d $HOME/Sources/Utils/yuckfan ]; then
+		TARGET_PACKAGES+=" yuckfan"
+	fi
+	
+	PACKAGES=$(echo $PACKAGES|sed 's|librsvg|librsvg yuckfan|')
 }
 
-hset url lua "http://www.lua.org/ftp/lua-5.1.4.tar.gz"
-hset depends lua "libreadline libncurses"
 
-configure-lua() {
+hset url yuckfan "none"
+hset dir yuckfan "."
+hset depends yuckfan "toluapp"
+hset dir destdir "none"
+
+configure-yuckfan() {
 	configure echo Done
 }
-compile-lua() {
-	compile-generic linux CC=$GCC MYLDFLAGS="$LDFLAGS"
+compile-yuckfan-local() {
+	pushd $HOME/Sources/Utils/yuckfan
+	$MAKE -j8  \
+		DESTDIR="$STAGING"/opt/yf \
+		CROSS_COMPILE="$TARGET_FULL_ARCH"- \
+		CROSS_PATH="$TOOLCHAIN"/bin \
+		EXTRA_LDFLAGS="$LDFLAGS_RLINK" \
+		install
+	popd
 }
-install-lua() {
-	install-generic INSTALL_TOP=/usr
+compile-yuckfan() {
+	compile compile-yuckfan-local
+}
+install-yuckfan() {
+	log_install echo Done
+}
+deploy-yuckfan() {
+	ROOTFS_PLUGINS+="$ROOTFS/opt/yf:"
+	deploy rsync -av "$STAGING"/opt/yf "$ROOTFS"/opt/
 }
 
-
-hset url libncurses "http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.7.tar.gz"
