@@ -46,7 +46,7 @@ hset depends libcairo "libfreetype libglib"
 configure-libcairo() {
 	local extras=""
 	if [ "$TARGET_ARCH" == "arm" ]; then
-		extras+=" --disable-some-floating-point"
+		extras+=" --disable-some-floating-point --enable-directfb=no"
 	fi
 	if [[ $TARGET_X11 ]]; then
 		configure-generic \
@@ -83,7 +83,7 @@ configure-libpango() {
 deploy-libpango-local() {
 	ROOTFS_PLUGINS+="$STAGING_USR/lib/pango:"
 	mkdir -p "$ROOTFS"/etc/	# in case it was there already
-	cp 	"$STAGING_USR"/bin/pango* \
+	cp 	"$STAGING_USR"/bin/pango-querymodules \
 		"$ROOTFS"/bin/
 	cp -r "$STAGING_USR"/etc/pango/* \
 		"$ROOTFS"/etc/pango/
@@ -134,9 +134,12 @@ deploy-libgtk() {
 	deploy  deploy-libgtk-local
 }
 
+PACKAGES+=" libcroco"
+hset url libcroco "ftp://ftp.gnome.org/pub/GNOME/sources/libcroco/0.6/libcroco-0.6.2.tar.bz2"
+
 PACKAGES+=" librsvg"
 hset url librsvg "http://ftp.gnome.org/pub/gnome/sources/librsvg/2.26/librsvg-2.26.0.tar.bz2"
-hset depends librsvg "libxml2 libgtk"
+hset depends librsvg "libcroco libxml2 libgtk"
 
 configure-librsvg() {
 	export LDFLAGS="$LDFLAGS_RLINK"
@@ -145,11 +148,13 @@ configure-librsvg() {
 	else
 		extras="--without-x"
 	fi
+	#	--without-croco \
 	configure-generic \
 		--with-defaults \
-		--without-croco \
 		--without-svgz \
 		--disable-mozilla-plugin \
+		--disable-pixbuf-loader \
+		--disable-gtk-theme \
 		$extras 
 	export LDFLAGS="$LDFLAGS_BASE"
 }
