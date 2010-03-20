@@ -6,6 +6,16 @@ hset depends libpng "zlib"
 PACKAGES+=" libfreetype"
 hset url libfreetype "http://mirrors.aixtools.net/sv/freetype/freetype-2.3.12.tar.bz2"
 
+PACKAGES+=" font-bitstream-vera"
+hset url font-bitstream-vera "http://ftp.gnome.org/pub/GNOME/sources/ttf-bitstream-vera/1.10/ttf-bitstream-vera-1.10.tar.bz2"
+hset phases font-bitstream-vera "deploy"
+
+deploy-font-bitstream-vera() {
+	local path="$ROOTFS"/usr/share/fonts/truetype/ttf-bitstream-vera
+	mkdir -p $path
+	cp *.ttf "$path"/
+}
+
 PACKAGES+=" libfontconfig"
 hset url libfontconfig "http://www.fontconfig.org/release/fontconfig-2.8.0.tar.gz"
 
@@ -49,8 +59,15 @@ PACKAGES+=" libpixman"
 hset url libpixman "http://xorg.freedesktop.org/archive/individual/lib/pixman-0.17.6.tar.bz2"
 
 configure-libpixman() {
+	local extras=""
+	if [ "$TARGET_ARCH" == "arm" ]; then
+		# won't work in thumb
+		export CFLAGS="${CFLAGS//-mthumb[^-]/-marm }"
+		extras+=" --disable-arm-simd --disable-arm-neon"	
+	fi
 	configure-generic \
-		--disable-gtk
+		--disable-gtk "$extras"
+	export CFLAGS="$TARGET_CFLAGS"
 }
 
 PACKAGES+=" libts"
