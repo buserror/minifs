@@ -199,12 +199,12 @@ void sp_file_dump(so_file_t * file)
 	printf("elf file %04x %s\n", file->hash, file->name);
 	so_str_t * str = file->so_name;
 	while (str) {
-		printf("soname %04x %s\n", str->hash, str->s);
+		printf("    soname %04x %s\n", str->hash, str->s);
 		str = str->next;
 	}
 	str = file->so_needed;
 	while (str) {
-		printf("needed %04x %s\n", str->hash, str->s);
+		printf("    needed %04x %s\n", str->hash, str->s);
 		str = str->next;
 	}
 }
@@ -325,7 +325,6 @@ so_dir_t * elf_scandir(so_dir_t * base, const char * dirname, int flags)
 			case DT_REG: {
 				char * end = strrchr(e->d_name, '.');
 				if (!end || strcmp(end, ".a") && strcmp(end, ".la")) {
-				//	printf("Loading %s:\n", e->d_name);
 					sprintf(path, "%s/%s", dirname, e->d_name);
 					so_file_t * elf = elf_read_dynamic(path);
 					if (elf) {
@@ -359,10 +358,11 @@ so_dir_t * elf_scandir(so_dir_t * base, const char * dirname, int flags)
  */
 int purge_unused_libs(so_dir_t * dir)
 {
-	so_dir_t * d = dir;
+	so_dir_t * d;
 	int total = 0;
 	int cleared = 0;
 	do {
+		d = dir;
 		cleared = 0;
 		while (d) {
 			if (d->flags & DIR_PLUGINS) {
@@ -385,9 +385,9 @@ int purge_unused_libs(so_dir_t * dir)
 						so_file_t * found = so_dir_search(dir, n->s);
 						if (found)
 							so_filelist_remove(found->used, f);
-				//		printf("removing %s from %s [%d users left] \n", 
-				//			f->name, n->s, found && found->used ? 
-				//				found->used->count : 0);
+					//	printf("removing %s from %s [%d users left] \n", 
+					//		f->name, n->s, found && found->used ? 
+					//			found->used->count : 0);
 						n = n->next;
 					}
 
@@ -398,7 +398,7 @@ int purge_unused_libs(so_dir_t * dir)
 			d = d->next;
 		}
 		total += cleared;
-//		printf("##### cleared %d\n", cleared);
+		printf("##### Purged %d libraires\n", cleared);
 	} while (cleared);
 	return total;
 }
@@ -465,6 +465,17 @@ int main(int argc, char * argv[])
 		}
 	}
 
+	if (getenv("CROSS_LINKER_DUMP") && atoi(getenv("CROSS_LINKER_DUMP"))) {
+		so_dir_t * d = dir;
+		while (d) {
+			printf("*** %s has %d files\n", d->name, d->loaded->count);
+			for (int fi = 0; fi < d->loaded->count; fi++) {
+				so_file_t *f = d->loaded->file[fi];
+				sp_file_dump(f);
+			}
+			d = d->next;
+		}
+	}
 
 	/*
 	 * First pass, look at all the files, and add
@@ -483,6 +494,8 @@ int main(int argc, char * argv[])
 					printf("## Warning file %s misses %s\n",
 						f->name, n->s);
 				} else {
+					if (found->so_name)	// help create links
+						so_set(n, n->kind, found->so_name->s);
 					found->used = so_filelist_add(found->used, f);
 				}
 				n = n->next;
@@ -497,32 +510,48 @@ int main(int argc, char * argv[])
 	 */
 	purge_unused_libs(dir);
 	
-#if 0
-	FILE *dot = fopen("._cross-linker.dot", "w");
-	fprintf(dot, "digraph G { rankdir=LR; node [shape=rect];\n");
-	d = dir;
-	while (d) {
-		for (int fi = 0; d->loaded && fi < d->loaded->count; fi++) {
-			so_file_t *f = d->loaded->file[fi];
-			fprintf(dot, "\"%s\"\n", f->name);
+	if (getenv("CROSS_LINKER_DEPS")) {
+		printf("%s: Creating cross-reference with graphviz\n", argv[0]);
+		FILE *dot = fopen("._cross-linker.dot", "w");
+		fprintf(dot, "digraph G { rankdir=LR; node [shape=rect];\n");
+		d = dir;
+		while (d) {
+			for (int fi = 0; d->loaded && fi < d->loaded->count; fi++) {
+				so_file_t *f = d->loaded->file[fi];
+				if (f->used)
+					fprintf(dot, "\"%s\" [label=\"(%d) %s\"]\n", 
+						f->so_name ? f->so_name->s : f->name,
+						f->used->count,
+						f->so_name ? f->so_name->s : f->name);
+				else
+					fprintf(dot, "\"%s\"\n", 
+						f->so_name ? f->so_name->s : f->name);
 
-			for (int ui = 0; f->used && ui < f->used->count; ui++)
-				fprintf(dot, "\"%s\" -> \"%s\"\n", 
-					f->used->file[ui]->name, f->name);
-		}
-		for (int fi = 0; d->purged && fi < d->purged->count; fi++) {
-			so_file_t *f = d->purged->file[fi];
-			fprintf(dot, "\"%s\" [color=gray];\n", f->name);
+				for (int ui = 0; f->used && ui < f->used->count; ui++)
+					fprintf(dot, "\"%s\" -> \"%s\"\n", 
+						f->used->file[ui]->so_name ?
+							f->used->file[ui]->so_name->s :
+							f->used->file[ui]->name, 
+						f->so_name ? f->so_name->s : f->name);
+			}
+			for (int fi = 0; d->purged && fi < d->purged->count; fi++) {
+				so_file_t *f = d->purged->file[fi];
+				fprintf(dot, "\"%s\" [color=gray];\n", 
+					f->so_name ? f->so_name->s : f->name);
 
-			for (int ui = 0; f->used && ui < f->used->count; ui++)
-				fprintf(dot, "\"%s\" -> \"%s\"\n", 
-					f->used->file[ui]->name, f->name);
+				for (int ui = 0; f->used && ui < f->used->count; ui++)
+					fprintf(dot, "\"%s\" -> \"%s\"\n", 
+						f->used->file[ui]->so_name ?
+							f->used->file[ui]->so_name->s :
+							f->used->file[ui]->name, 
+						f->so_name ? f->so_name->s : f->name);
+			}
+			d = d->next;
 		}
-		d = d->next;
+		fprintf(dot, "}\n");
+		fclose(dot);
+		system("dot -Tpdf -o._cross-linker.pdf ._cross-linker.dot");
 	}
-	fprintf(dot, "}\n");
-	fclose(dot);
-#endif
 	/*
 	 * last pass, print who is not used
 	 */
