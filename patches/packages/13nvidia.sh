@@ -1,12 +1,13 @@
 
-NVIDIA_VERSION=190.53
+NVIDIA_VERSION=195.36.15
 NVIDIA_NAME=NVIDIA-Linux-x86-${NVIDIA_VERSION}-pkg1
 PACKAGES+=" nvidia"
-hset url nvidia "http://us.download.nvidia.com/XFree86/Linux-x86/190.53/$NVIDIA_NAME.run"
+hset url nvidia "http://us.download.nvidia.com/XFree86/Linux-x86/$NVIDIA_VERSION/$NVIDIA_NAME.run"
 
 uncompress-nvidia() {
 	echo nvidia: $*
 	sh $2 -x
+	ln -s $NVIDIA_NAME/usr/src src
 }
 
 configure-nvidia() {
