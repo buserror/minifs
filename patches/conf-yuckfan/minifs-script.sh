@@ -26,15 +26,24 @@ board_prepare() {
 	TARGET_PACKAGES+=" libgtk"
 	
 	# all of gtk JUST to get rsvg :/
-	TARGET_PACKAGES+=" librsvg"
+	TARGET_PACKAGES+=" librsvg font-bitstream-vera"
 
 	if [ -d $HOME/Sources/Utils/yuckfan ]; then
-		TARGET_PACKAGES+=" yuckfan"
+		TARGET_PACKAGES+=" yuckfan gdbserver"
 	fi
 	
 	PACKAGES=$(echo $PACKAGES|sed 's|librsvg|librsvg yuckfan|')
 }
 
+yuckfan-deploy-libdirectfb() {
+	deploy echo Skipping Directfb deploy
+}
+yuckfan-deploy-libgtk() {
+	deploy echo Skipping GTK deploy
+}
+yuckfan-deploy-librsvg() {
+	deploy echo Skipping RSVG tools install
+}
 
 hset url yuckfan "none"
 hset dir yuckfan "."
@@ -45,14 +54,17 @@ configure-yuckfan() {
 	configure echo Done
 }
 compile-yuckfan-local() {
+	set -x
 	pushd $HOME/Sources/Utils/yuckfan
 	$MAKE -j8  \
 		DESTDIR="$STAGING"/opt/yf \
 		CROSS_COMPILE="$TARGET_FULL_ARCH"- \
 		CROSS_PATH="$TOOLCHAIN"/bin \
 		EXTRA_LDFLAGS="$LDFLAGS_RLINK" \
+		EXTRA_CFLAGS="$CFLAGS" \
 		install
 	popd
+	set +x
 }
 compile-yuckfan() {
 	compile compile-yuckfan-local
@@ -62,6 +74,7 @@ install-yuckfan() {
 }
 deploy-yuckfan() {
 	ROOTFS_PLUGINS+="$ROOTFS/opt/yf:"
+	
 	deploy rsync -av "$STAGING"/opt/yf "$ROOTFS"/opt/
 }
 
