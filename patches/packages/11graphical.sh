@@ -18,6 +18,7 @@ deploy-font-bitstream-vera() {
 
 PACKAGES+=" libfontconfig"
 hset url libfontconfig "http://www.fontconfig.org/release/fontconfig-2.8.0.tar.gz"
+hset depends libfontconfig "libexpat libfreetype"
 
 configure-libfontconfig-local() {
 	export LDFLAGS="$LDFLAGS_RLINK"
