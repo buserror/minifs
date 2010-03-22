@@ -33,6 +33,9 @@ board_prepare() {
 	fi
 	
 	PACKAGES=$(echo $PACKAGES|sed 's|librsvg|librsvg yuckfan|')
+
+	# get snapshot version of cairo
+	hset url libcairo "http://cairographics.org/snapshots/cairo-1.9.6.tar.gz"
 }
 
 yuckfan-deploy-libdirectfb() {
