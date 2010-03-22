@@ -97,11 +97,12 @@ int main(int argc, char * argv[])
 				l++;
 			*dst = 0;
 			if (src[0] == '/' && strncmp(src, staging, stagingl))
-				sprintf(dst, "%s", getenv("STAGING"));
-			else if ((!strncmp(src, "-I", 2) || !strncmp(src, "-L", 2)) && 
+				sprintf(dst, "%s", staging);
+			else if (src[0] == '-' && 
+				  (src[1] == 'L' || src[1] == 'I') &&
 				  strncmp(src + 2, staging, stagingl)) {
-				sprintf(dst, "%c%c%s", src[0], src[1], getenv("STAGING"));
-				src += 2;
+				sprintf(dst, "%c%c%s", src[0], src[1], staging);
+				src += 3;
 			}
 			dst += strlen(dst);
 		}
