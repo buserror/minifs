@@ -6,6 +6,13 @@ hset depends libpng "zlib"
 PACKAGES+=" libfreetype"
 hset url libfreetype "http://mirrors.aixtools.net/sv/freetype/freetype-2.3.12.tar.bz2"
 
+install-libfreetype() {
+	install-generic
+	sed -i -e "s|prefix=/usr|prefix=$STAGING_USR|" \
+		-e "s|/include|/include/freetype2|" \
+		$STAGING_USR/bin/freetype-config
+}
+
 PACKAGES+=" font-bitstream-vera"
 hset url font-bitstream-vera "http://ftp.gnome.org/pub/GNOME/sources/ttf-bitstream-vera/1.10/ttf-bitstream-vera-1.10.tar.bz2"
 hset phases font-bitstream-vera "deploy"
@@ -25,7 +32,8 @@ configure-libfontconfig-local() {
 	autoreconf;libtoolize;automake --add-missing
 	configure-generic-local \
 		--with-arch=$TARGET_FULL_ARCH \
-		--disable-docs 
+		--disable-docs  \
+		--with-freetype-config="$STAGING_USR/bin/freetype-config"
 	# fixes cross compilation
 	sed -i -e 's:^CFLAGS = -.*$:CFLAGS =:g' \
 		fc-case/Makefile \
@@ -91,4 +99,15 @@ configure-libts() {
 deploy-libts() {
 	ROOTFS_PLUGINS+="$STAGING_USR/lib/ts:"
 	deploy-generic
+}
+#
+PACKAGES+=" libim-loaders"
+hset url libim-loaders "http://ignum.dl.sourceforge.net/project/enlightenment/imlib2-src/1.4.3/imlib2_loaders-1.4.3.tar.bz2"
+
+PACKAGES+=" libim"
+hset url libim "http://ignum.dl.sourceforge.net/project/enlightenment/imlib2-src/1.4.3/imlib2-1.4.3.tar.bz2"
+hset depends libim "libpng libjpeg"
+
+configure-libim() {
+	configure-generic --without-x
 }

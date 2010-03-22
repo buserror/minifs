@@ -66,7 +66,7 @@ hset destdir libusb "none"
 
 PACKAGES+=" usbutils"
 hset url usbutils "http://downloads.sourceforge.net/project/linux-usb/usbutils/usbutils-0.86.tar.gz"
-hset depends "usbutils"
+hset depends "libusb"
 
 deploy-usbutils() {
 	deploy cp "$STAGING_USR"/sbin/lsusb "$ROOTFS"/usr/bin/

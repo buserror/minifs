@@ -26,7 +26,7 @@ board_prepare() {
 	TARGET_PACKAGES+=" libgtk"
 	
 	# all of gtk JUST to get rsvg :/
-	TARGET_PACKAGES+=" librsvg font-bitstream-vera"
+	TARGET_PACKAGES+=" librsvg font-bitstream-vera libim"
 
 	if [ -d $HOME/Sources/Utils/yuckfan ]; then
 		TARGET_PACKAGES+=" yuckfan gdbserver"
