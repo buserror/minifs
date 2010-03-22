@@ -8,7 +8,7 @@ hset url zlib "http://www.zlib.net/zlib-1.2.4.tar.gz"
 
 configure-zlib() {
 	configure ./configure \
-		--prefix="$STAGING"
+		--prefix="/"
 }
 
 #######################################################################
