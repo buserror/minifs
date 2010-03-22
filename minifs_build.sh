@@ -50,7 +50,6 @@ export ROOTFS_PLUGINS=""
 export ROOTFS_KEEPERS="libnss_dns.so.2:libnss_dns-2.10.2.so:"
 KERNEL="$BUILD/kernel"
 CONFIG="$PATCHES/conf-$TARGET_BOARD"
-
  
 source "$PATCHES"/minifs-script-utils.sh
 source "$CONFIG"/minifs-script.sh
@@ -70,12 +69,10 @@ TUNEFS=/sbin/tune2fs
 WGET=wget
 MAKE=make
 
-# tell host pkgcomfig to find it's files there, not on the host
-export PKG_CONFIG_PATH="$STAGING/lib/pkgconfig"
+mkdir -p download "$KERNEL" "$ROOTFS" "$STAGING_USR" "$TOOLCHAIN"/bin
+mkdir -p "$STAGING_USR"/share/aclocal
 
-mkdir -p download "$KERNEL" "$ROOTFS" "$STAGING_USR" "$TOOLCHAIN"
-
-# Allways regenerate the rootfs
+# Always regenerate the rootfs
 rm -rf "$ROOTFS"/* 
 
 TARGET_INITRD=${TARGET_INITRD:-0}
@@ -97,12 +94,13 @@ for tool in "$PATCHES"/minifs-tools/*.c; do
 		$compile -o "$TOOLCHAIN"/bin/$tool "$PATCHES"/minifs-tools/$tool.c || exit 1
 	fi
 done
+if [ "$COMMAND" == "tools" ]; then exit ;fi
 
 VERSION_busybox=1.16.0
 VERSION_linux=2.6.32.2
 VERSION_crosstools=1.6.0
 
-export PATH="$TOOLCHAIN/bin:$PATH"
+export PATH="$TOOLCHAIN/bin:/usr/sbin:/sbin:$PATH"
 export CC="ccfix $TARGET_FULL_ARCH-gcc"
 export CXX="ccfix $TARGET_FULL_ARCH-g++"
 export LD="ccfix $TARGET_FULL_ARCH-ld"
@@ -299,6 +297,7 @@ fi
 ## Default "build" phases Definitions -- for Autoconf targets
 #######################################################################
 configure-generic-local() {
+	local ret=0 ; set -x
 	if [ ! -f configure ]; then
 		if [ -f autogen.sh ]; then
 			./autogen.sh \
@@ -308,22 +307,19 @@ configure-generic-local() {
 		fi
 	fi
 	if [ -f configure ]; then
-		echo ./configure \
-			--build=$(uname -m) \
-			--host=$TARGET_FULL_ARCH \
-			--prefix="$PACKAGE_PREFIX" \
-			"$@"
 		./configure \
 			--build=$(uname -m) \
 			--host=$TARGET_FULL_ARCH \
 			--prefix="$PACKAGE_PREFIX" \
-			"$@" || return 1
+			"$@" || ret=1
 	else
 		echo Nothing to configure 
 	fi
+	set +x ;return $ret
 }
 configure-generic() {
 	configure configure-generic-local "$@"
+	set +x
 }
 compile-generic() {
 	compile $MAKE -j8 $MAKE_CLEAN "$@"
