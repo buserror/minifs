@@ -32,3 +32,6 @@ gdbserver :4444  GtkLauncher --display :0 'http://www.tvguide.co.uk/tv_channel_s
 set solib-absolute-prefix /opt/minifs/build-atom/staging/
 target extended-remote 10.0.0.96:4444
 
+set solib-absolute-prefix /opt/minifs/build-yuckfan/staging/
+target extended-remote 10.0.0.52:4444
+
