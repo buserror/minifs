@@ -41,7 +41,7 @@ echo TARGET_BOARD $TARGET_BOARD $COMMAND
 BASE="$(pwd)"
 export MINIFS_BASE="$BASE"
 
-BUILD="$BASE/build-${TARGET_BOARD}"
+export BUILD="$BASE/build-${TARGET_BOARD}"
 PATCHES="$BASE/patches"
 export STAGING="$BUILD/staging"
 export STAGING_USR="$STAGING/usr"
@@ -73,7 +73,7 @@ mkdir -p download "$KERNEL" "$ROOTFS" "$STAGING_USR" "$TOOLCHAIN"/bin
 mkdir -p "$STAGING_USR"/share/aclocal
 
 # Always regenerate the rootfs
-rm -rf "$ROOTFS"/* 
+rm -rf "$ROOTFS"/*
 
 TARGET_INITRD=${TARGET_INITRD:-0}
 TARGET_FS_SQUASH=1
@@ -116,6 +116,7 @@ export PKGCONFIG="$TOOLCHAIN/bin/pkg-config"
 export PKG_CONFIG_PATH="$STAGING/lib/pkgconfig:$STAGING_USR/lib/pkgconfig:$STAGING_USR/share/pkgconfig"
 export PKG_CONFIG_LIBDIR="" # do not search local paths
 export ACLOCAL="aclocal -I $STAGING_USR/share/aclocal"
+export HOST_INSTALL="/usr/bin/install"
 
 # Look in this target's kernel config to know if we need/want modules
 CONFIG_MODULES=$(grep '^CONFIG_MODULES=y' "$CONFIG/config_kernel.conf")
@@ -211,8 +212,7 @@ for package in $TARGET_PACKAGES; do
 
 	if [ ! -f "$loc" ]; then
 		case "$proto" in
-			git)
-				if [ ! -d "$package.git" ]; then
+			git)	if [ ! -d "$package.git" ]; then
 					echo "#### git clone $url $package.git"
 					git clone "$url" "$package.git"
 				fi
@@ -220,6 +220,16 @@ for package in $TARGET_PACKAGES; do
 					echo "#### Compressing $url"
 					tar jcf "$loc" "$package.git" &&
 						rm -rf "$package.git"
+				fi
+			;;
+			svn)	if [ ! -d "$package.svn" ]; then
+					echo "#### svn clone $url $package.git"
+					git svn clone -s "$url" "$package.svn"
+				fi
+				if [ -d "$package.svn" ]; then
+					echo "#### Compressing $url"
+					tar jcf "$loc" "$package.svn" &&
+						rm -rf "$package.svn"
 				fi
 			;;
 			*) $WGET "$fil" -O "$loc" || exit 1 ;;
