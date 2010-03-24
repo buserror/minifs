@@ -158,11 +158,16 @@ install-libnss() {
 #######################################################################
 ## curl
 #######################################################################
-PACKAGES+=" curl"
-hset url curl "http://curl.haxx.se/download/curl-7.20.0.tar.bz2"
-hset depends curl "busybox"
+PACKAGES+=" libcurl"
+hset url libcurl "http://curl.haxx.se/download/curl-7.20.0.tar.bz2"
 
-configure-curl() {
+PACKAGES+=" curl"
+hset url curl "none"
+hset depends curl "libcurl busybox"
+hset dir curl "libcurl"
+hset phases curl "deploy"
+
+configure-libcurl() {
 	local extras=""	
 	export LDFLAGS="$LDFLAGS_RLINK"
 	if [ -d ../openssl ]; then 
@@ -177,3 +182,8 @@ ac_cv_lib_gnutls_gnutls_check_version=yes" >minifs.cache
 	configure-generic --cache=minifs.cache $extras
 	export LDFLAGS="$LDFLAGS_BASE"
 }
+
+deploy-curl() {
+	cp "$STAGING_USR"/bin/curl "$ROOTFS"/usr/bin/
+}
+
