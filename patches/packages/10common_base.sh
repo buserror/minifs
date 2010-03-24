@@ -8,7 +8,7 @@ hset url zlib "http://www.zlib.net/zlib-1.2.4.tar.gz"
 
 configure-zlib() {
 	configure ./configure \
-		--prefix="/"
+		--prefix="/usr"
 }
 
 #######################################################################
@@ -66,7 +66,7 @@ hset destdir libusb "none"
 
 PACKAGES+=" usbutils"
 hset url usbutils "http://downloads.sourceforge.net/project/linux-usb/usbutils/usbutils-0.86.tar.gz"
-hset depends "libusb"
+hset depends usbutils "libusb busybox"
 
 deploy-usbutils() {
 	deploy cp "$STAGING_USR"/sbin/lsusb "$ROOTFS"/usr/bin/
@@ -90,7 +90,7 @@ configure-libftdi() {
 #######################################################################
 PACKAGES+=" mtd_utils"
 hset url mtd_utils "http://git.infradead.org/mtd-utils.git/snapshot/a67747b7a314e685085b62e8239442ea54959dbc.tar.gz#mtd_utils.tgz"
-hset depends mtd_utils "zlib lzo e2fsprogs busybox"
+hset depends mtd_utils "zlib lzo e2fsprogs"
 
 configure-mtd_utils() {
 	configure echo Done
@@ -108,8 +108,27 @@ deploy-mtd_utils() {
 }
 
 #######################################################################
-## Jpeg
+## hotplug. works but needs udevtrigger, that means bloatware udev
 #######################################################################
-PACKAGES+=" libjpeg"
-hset url libjpeg	"http://www.ijg.org/files/jpegsrc.v7.tar.gz" 
 
+PACKAGES+=" udev"
+hset url udev "http://www.kernel.org/pub/linux/utils/kernel/hotplug/udev-151.tar.bz2"
+hset depends udev "busybox"
+
+install-udev() {
+	log_install echo Skipping udev install. yuck
+}
+
+PACKAGES+=" hotplug2"
+hset url hotplug2 "http://isteve.bofh.cz/~isteve/hotplug2/downloads/hotplug2-0.9.tar.gz"
+hset depends hotplug2 "busybox"
+
+configure-hotplug2() {
+	configure echo Done
+}
+
+install-hotplug2() {
+	export INSTALL_USR=1
+	install-generic
+	unset INSTALL_USR
+}
