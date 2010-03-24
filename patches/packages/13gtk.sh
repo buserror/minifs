@@ -41,7 +41,7 @@ glib_cv_uscore=no
 
 PACKAGES+=" libcairo"
 hset url libcairo "http://www.cairographics.org/releases/cairo-1.8.10.tar.gz"
-hset depends libcairo "libfreetype libglib"
+hset depends libcairo "libfreetype libglib libpixman"
 
 configure-libcairo() {
 	local extras=""

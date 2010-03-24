@@ -36,6 +36,7 @@ deploy-filesystem-prepack() {
 	deploy echo Copying
 	(
 	rsync -av \
+		"$STAGING/etc/" \
 		"$STAGING_USR/etc/" \
 		"$ROOTFS/etc/"
 	mv "$ROOTFS"/usr/etc/* "$ROOTFS"/etc/ 

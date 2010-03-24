@@ -1,7 +1,7 @@
 
 PACKAGES+=" lua"
 hset url lua "http://www.lua.org/ftp/lua-5.1.4.tar.gz"
-hset depends lua "libreadline libncurses"
+hset depends lua "libreadline libncurses busybox"
 hset destdir lua "none"
 
 configure-lua() {

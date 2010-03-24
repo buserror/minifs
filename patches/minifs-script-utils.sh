@@ -131,7 +131,8 @@ function remove_package() {
 dump-depends() {
 	(
 	echo 'digraph G { rankdir=LR; node [shape=rect]; '
-	for pack in $PACKAGES; do
+	local all="$PACKAGES crosstools"
+	for pack in $all; do
 		deps=$(hget depends $pack)
 		echo \"$pack\"
 		for d in $deps; do 

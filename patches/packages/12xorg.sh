@@ -117,7 +117,7 @@ hset url libsha1 "git!git://github.com/dottedmag/libsha1.git#libsha1-git.tar.bz2
 PACKAGES+=" xorgserver"
 hset url xorgserver "git!git://anongit.freedesktop.org/xorg/xserver#xorgserver-git.tar.bz2"
 hset depends xorgserver \
-	"libsha1 libmesa xorglibX11 xorgfontutil \
+	"busybox libsha1 libmesa xorglibX11 xorgfontutil \
 	xkbcomp xtrans \
 	xorgfontadobe \
 	xorginput-evdev xorginput-keyboard xorginput-mouse \

@@ -135,7 +135,7 @@ PACKAGES+=" flashplugin"
 #hset url flashplugin "http://fpdownload.macromedia.com/get/flashplayer/current/install_flash_player_10_linux.tar.gz#flashplugin-10.tarb"
 hset url flashplugin "http://download.macromedia.com/pub/labs/flashplayer10/flashplayer10_1_p3_linux_022310.tar.gz#flashplugin-10.1.tarb"
 hset phases flashplugin "deploy"
-hset depends flashplugin "gnutls curl libnss libwebkit"
+hset depends flashplugin "gnutls libcurl libnss libwebkit"
 
 deploy-flashplugin() {
 	deploy echo Deploying flashplugin
