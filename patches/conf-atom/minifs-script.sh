@@ -17,10 +17,10 @@ board_set_versions() {
 }
 
 board_prepare() {
-	TARGET_PACKAGES+=" e2fsprogs gdbserver"
+	TARGET_PACKAGES+=" e2fsprogs gdbserver strace"
 	TARGET_PACKAGES+=" libusb usbutils"
 
-	TARGET_PACKAGES+=" curl libexpat libreadline libnetsnmp libgettext"
+	TARGET_PACKAGES+=" curl libexpat libreadline libnetsnmp libgettext hotplug2"
 
 	# all of that for gtk
 	TARGET_PACKAGES+=" libjpeg libpng libfreetype libfontconfig libpixman"
@@ -32,4 +32,6 @@ board_prepare() {
 	TARGET_PACKAGES+=" xorgserver nvidia"	
 	TARGET_PACKAGES+=" libwebkit"
 	TARGET_PACKAGES+=" flashplugin"
+
+	TARGET_PACKAGES+=" module-kbus"
 }
