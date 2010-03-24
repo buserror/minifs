@@ -1,6 +1,6 @@
 
 if [ ! -f "$GCC" ]; then 
-	PACKAGES="$PACKAGES crosstools"
+	PACKAGES+=" crosstools"
 	NEED_CROSSTOOLS="crosstools"
 	TARGET_PACKAGES+=" crosstools"
 fi
@@ -106,4 +106,16 @@ deploy-gdbserver() {
 	fi
 }
 
+PACKAGES+=" strace"
+hset url strace "http://kent.dl.sourceforge.net/project/strace/strace/4.5.19/strace-4.5.19.tar.bz2"
+hset depends strace "busybox"
 
+configure-strace() {
+	sed -i -e 's|#undef HAVE_LINUX_NETLINK_H|#define HAVE_LINUX_NETLINK_H 1|' \
+		config.h.in
+	configure-generic
+}
+
+deploy-strace() {
+	deploy cp "$STAGING_USR"/bin/strace "$ROOTFS"/usr/bin/
+}
