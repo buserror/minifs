@@ -1,4 +1,7 @@
 
+PACKAGES+=" libjpeg"
+hset url libjpeg	"http://www.ijg.org/files/jpegsrc.v7.tar.gz" 
+
 PACKAGES+=" libpng"
 hset url libpng "ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng-1.2.42.tar.bz2"
 hset depends libpng "zlib"
@@ -15,6 +18,7 @@ install-libfreetype() {
 
 PACKAGES+=" font-bitstream-vera"
 hset url font-bitstream-vera "http://ftp.gnome.org/pub/GNOME/sources/ttf-bitstream-vera/1.10/ttf-bitstream-vera-1.10.tar.bz2"
+hset depends font-bitstream-vera "libfontconfig"
 hset phases font-bitstream-vera "deploy"
 
 deploy-font-bitstream-vera() {
@@ -110,4 +114,7 @@ hset depends libim "libpng libjpeg"
 
 configure-libim() {
 	configure-generic --without-x
+}
+deploy-libim() {
+	ROOTFS_PLUGINS+="$STAGING_USR/lib/imlib2:"
 }
