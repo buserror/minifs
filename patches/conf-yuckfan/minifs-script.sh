@@ -18,7 +18,7 @@ board_prepare() {
 	TARGET_PACKAGES+=" mtd_utils"
 	TARGET_PACKAGES+=" libftdi lua"
 
-	TARGET_PACKAGES+=" curl libexpat libreadline libiconv libnetsnmp libgettext"
+	TARGET_PACKAGES+=" libcurl libexpat libreadline libiconv libnetsnmp libgettext"
 
 	# all of thqt for gtk
 	TARGET_PACKAGES+=" libjpeg libpng libfreetype libfontconfig libpixman"
