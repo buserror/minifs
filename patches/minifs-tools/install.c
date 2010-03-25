@@ -17,10 +17,10 @@ int main(int argc, char * argv[])
 		exit(1);
 	}
 	char * staging = getenv("STAGING");
-	char * rootfs = getenv("ROOTFS");
+	char * base = getenv("MINIFS_BASE");
 	char * last = argv[argc-1];
 	char fix[4096];
-	if (strncmp(last, staging, strlen(staging)) && strncmp(last, rootfs, strlen(rootfs))) {
+	if (last[0] == '/' && strncmp(last, base, strlen(base))) {
 		sprintf(fix, "%s/._install_warnings.log", getenv("BUILD"));
 		FILE * o = fopen(fix, "a");
 		if (strncmp(last, "/usr", 4) && getenv("INSTALL_USR"))
