@@ -187,3 +187,11 @@ deploy-curl() {
 	cp "$STAGING_USR"/bin/curl "$ROOTFS"/usr/bin/
 }
 
+PACKAGES+=" rsync"
+hset url rsync "http://samba.anu.edu.au/ftp/rsync/src/rsync-3.0.7.tar.gz"
+hset depends "busybox"
+
+deploy-rsync() {
+	deploy cp "$STAGING_USR"/bin/rsync "$ROOTFS"/bin/
+}
+
