@@ -48,6 +48,7 @@ export STAGING_USR="$STAGING/usr"
 export ROOTFS="$BUILD/rootfs"
 export ROOTFS_PLUGINS=""
 export ROOTFS_KEEPERS="libnss_dns.so.2:libnss_dns-2.10.2.so:"
+export STAGING_TOOLS="$BUILD"/staging-tools
 KERNEL="$BUILD/kernel"
 CONFIG="$PATCHES/conf-$TARGET_BOARD"
  
@@ -69,6 +70,7 @@ TUNEFS=/sbin/tune2fs
 WGET=wget
 MAKE=make
 
+mkdir -p "$STAGING_TOOLS"/bin
 mkdir -p download "$KERNEL" "$ROOTFS" "$STAGING_USR" "$TOOLCHAIN"/bin
 mkdir -p "$STAGING_USR"/share/aclocal
 
@@ -88,10 +90,10 @@ rm -f /tmp/pkg-config.log
 for tool in "$PATCHES"/minifs-tools/*.c; do
 	tool=$(basename $tool)
 	tool=${tool/.c}
-	if [ "$TOOLCHAIN"/bin/$tool -ot "$PATCHES"/minifs-tools/$tool.c ]; then
+	if [ "$STAGING_TOOLS"/bin/$tool -ot "$PATCHES"/minifs-tools/$tool.c ]; then
 		echo "#### compiling $tool"
 		compile=$(head -1 "$PATCHES"/minifs-tools/$tool.c|sed 's|//||')
-		$compile -o "$TOOLCHAIN"/bin/$tool "$PATCHES"/minifs-tools/$tool.c || exit 1
+		$compile -o "$STAGING_TOOLS"/bin/$tool "$PATCHES"/minifs-tools/$tool.c || exit 1
 	fi
 done
 if [ "$COMMAND" == "tools" ]; then exit ;fi
@@ -100,7 +102,7 @@ VERSION_busybox=1.16.0
 VERSION_linux=2.6.32.2
 VERSION_crosstools=1.6.0
 
-export PATH="$TOOLCHAIN/bin:/usr/sbin:/sbin:$PATH"
+export PATH="$BUILD/staging-tools/bin:$TOOLCHAIN/bin:/usr/sbin:/sbin:$PATH"
 export CC="ccfix $TARGET_FULL_ARCH-gcc"
 export CXX="ccfix $TARGET_FULL_ARCH-g++"
 export LD="ccfix $TARGET_FULL_ARCH-ld"
