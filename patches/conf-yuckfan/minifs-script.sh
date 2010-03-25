@@ -8,14 +8,19 @@ TARGET_CFLAGS="-Os -march=armv4t -mtune=arm920t -mthumb-interwork -mthumb "
 board_set_versions() {
 	VERSION_linux=2.6.32.7
 	# for a >64Mb nand with 2k blocks and 128k erase blocks
-	TARGET_FS_JFFS2="-q -l -p -e 0x20000 -s 0x800"
+	# -n prevents the
+	# CLEANMARKER node found at 0x00780000 has totlen 0xc != normal 0x0
+	# when mounting the filesystem
+	# http://www.infradead.org/pipermail/linux-mtd/2004-June/009836.html
+	TARGET_FS_JFFS2="-n -q -l -p -e 0x20000 -s 0x800"
 	TARGET_FS_EXT_SIZE=32768
 	TARGET_SHARED=1
 	TARGET_INITRD=1
+	TARGET_FS_SQUASH=0
 }
 
 board_prepare() {
-	TARGET_PACKAGES+=" mtd_utils"
+	TARGET_PACKAGES+=" mtd_utils "
 	TARGET_PACKAGES+=" libftdi lua"
 
 	TARGET_PACKAGES+=" libcurl libexpat libreadline libiconv libnetsnmp libgettext"
@@ -46,6 +51,22 @@ yuckfan-deploy-libgtk() {
 }
 yuckfan-deploy-librsvg() {
 	deploy echo Skipping RSVG tools install
+}
+yuckfan-deploy-libfontconfig() {
+	deploy echo Skipping libfontconfig tools install
+	#deploy-libfontconfig
+}
+
+yuckfan-sharedlibs-cleanup() {
+	echo Cleanup up for yuckfan
+	rm -rf "$ROOTFS"/usr/lib/directfb-1.4-0-pure \
+		"$ROOTFS"/usr/lib/mozilla \
+		"$ROOTFS"/usr/lib/glib-2.0 \
+		"$ROOTFS"/usr/lib/gio \
+		"$ROOTFS"/usr/lib/gettext \
+		"$ROOTFS"/usr/lib/gtk-2.0/include \
+		"$ROOTFS"/usr/lib/gtk-2.0/modules \
+		"$ROOTFS"/usr/lib/gtk-2.0/2.10.0/printbackends
 }
 
 hset url yuckfan "none"
