@@ -11,6 +11,7 @@ hset depends sharedlibs "systemlibs"
 
 deploy-sharedlibs() {
 	deploy echo Copying
+	rm -f $LOGFILE
 	mkdir -p "$ROOTFS/lib/" "$ROOTFS/usr/lib/"
 	echo "    Nearly there, Installing Staging binaries"
 	(
@@ -29,6 +30,8 @@ deploy-sharedlibs() {
 		"$STAGING_USR/lib/" \
 		"$ROOTFS/usr/lib/" 
 
+	optional $TARGET_BOARD-sharedlibs-cleanup
+	
 	# removes non-accessed libraries
 	cross_linker --purge
 	
