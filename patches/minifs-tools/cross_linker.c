@@ -75,12 +75,6 @@ uint16_t crc16_string(char * str)
 /*
  * data model for cross-referencing ELF files
  */
-typedef struct so_str_t {
-	struct so_str_t * next;
-	uint32_t kind;
-	uint16_t hash;
-	char *s;
-} so_str_t;
 
 typedef struct so_filelist_t {
 	int count;
@@ -92,6 +86,7 @@ enum {
 	DIR_RECURSIVE = 1,
 	DIR_PLUGINS = 2,
 	FILE_LOCK = 1,
+	FILE_PURGED = 2,
 };
 typedef struct so_dir_t {
 	struct so_dir_t * next;
@@ -99,7 +94,16 @@ typedef struct so_dir_t {
 	int flags;	// directory kind
 	so_filelist_t * loaded;
 	so_filelist_t * purged;
+	so_filelist_t * symlink;	
 } so_dir_t;
+
+typedef struct so_str_t {
+	struct so_str_t * next;
+	uint32_t kind;
+	uint16_t hash;
+	char *s;
+	struct so_file_t * link;
+} so_str_t;
 
 typedef struct so_file_t {
 	char * name;
@@ -334,6 +338,13 @@ so_dir_t * elf_scandir(so_dir_t * base, const char * dirname, int flags)
 					}
 				}
 			}	break;
+			case DT_LNK: {	// keep track of all links too
+				so_file_t * ff = malloc(sizeof(so_file_t));
+				memset(ff, 0, sizeof(so_file_t));
+				ff->name = strdup(e->d_name);
+				ff->hash = crc16_string(ff->name);
+				res->symlink = so_filelist_add(res->symlink, ff);
+			}	break;
 		}
 	}
 	closedir(d);
@@ -403,6 +414,49 @@ int purge_unused_libs(so_dir_t * dir)
 	return total;
 }
 
+int purge_orphan_symlinks(so_dir_t * dir)
+{
+	int cleared = 0;
+	do {
+		cleared = 0;
+		so_dir_t * d = dir;
+		while (d) {
+			for (int fi = 0; d->symlink && fi < d->symlink->count; fi++) {
+				so_file_t *f = d->symlink->file[fi];
+				if (f->flags & FILE_PURGED)
+					continue;
+				char path[4096], out[4096];
+				int die = 0;
+				sprintf(path, "%s/%s", d->name, f->name);
+
+				ssize_t ln = readlink(path, out, sizeof(out)-1);
+				if (ln == -1) {
+					perror(f->name);
+					die++;
+				} else {
+					char dpath[4096];
+					out[ln] = 0;
+					sprintf(dpath, "%s/%s", d->name, out);
+					struct stat o;
+					if (lstat(dpath, &o) == -1) {
+					//	printf("DANGLING %s -> %s\n", f->name, out);
+						die++; 
+					}
+					
+				}
+				if (die) {
+					cleared++;
+					f->flags |= FILE_PURGED;
+					printf("Delete dangling link %s\n", path);
+					unlink(path);
+				}
+			}
+			d = d->next;
+		}
+		printf("Purged %d links\n", cleared);
+	} while (cleared);
+}
+
 so_dir_t * load_root_directory(so_dir_t * dir, const char * name)
 {
 	const char * root[] = { "", "usr", "local", NULL };
@@ -417,6 +471,65 @@ so_dir_t * load_root_directory(so_dir_t * dir, const char * name)
 	}
 	return dir;
 }
+
+int file_depends_on(so_file_t *f, so_str_t * onedep)
+{
+	if (!f)
+		return 0;
+	so_str_t * n = f->so_needed;
+
+	while (n) {
+		if (!n->link) {
+			n = n->next;
+			continue;
+		}
+		if (n->hash == onedep->hash && !strcmp(n->s, onedep->s))
+			return 1;		
+		n = n->next;
+	}
+	return 0;
+}
+
+int file_simplify_neededs(so_file_t *f)
+{
+	so_str_t * n = f->so_needed;
+	printf("Processing %s\n", f->name);
+	sp_file_dump(f);
+	while (n) {
+		if (!n->link) {
+			n = n->next;
+			continue;
+		}
+
+		so_str_t * nn = f->so_needed, *last = NULL;
+	//	int found = 0;
+		while (nn) {
+			if (n != nn) {
+			//	printf("SIM %s:     %s look for %s\n", f->name, n->s, nn->s);
+				
+				if (file_depends_on(n->link, nn)) {
+					printf("SIM %s: %s already links to %s\n", f->name, n->s, nn->s);
+					so_filelist_remove(nn->link->used, f);
+				//	printf("SIM %s: Remove %s as dependency\n", f->name, nn->s);
+					if (last)
+						last->next = nn->next;
+					else
+						f->so_needed = nn->next;
+				//	sp_file_dump(f);
+				//	found++;	
+				//	break;	
+				}
+			}
+			last = nn;
+			nn = nn->next;
+		}
+			
+		n = n->next;
+	}
+	return 0;
+	
+}
+
 
 int main(int argc, char * argv[])
 {
@@ -494,6 +607,7 @@ int main(int argc, char * argv[])
 					printf("## Warning file %s misses %s\n",
 						f->name, n->s);
 				} else {
+					n->link = found;
 					if (found->so_name)	// help create links
 						so_set(n, n->kind, found->so_name->s);
 					found->used = so_filelist_add(found->used, f);
@@ -505,11 +619,26 @@ int main(int argc, char * argv[])
 		d = d->next;
 	}
 
+	/* Next Pass, simplify links. Remove direct links from the files
+	 * whole libraries are also linking that particular lib
+	 */
+	d = dir;
+	while (d) {
+		for (int fi = 0; d->loaded && fi < d->loaded->count; fi++) {
+			so_file_t *f = d->loaded->file[fi];
+			file_simplify_neededs(f);
+		}
+		d = d->next;
+	}
+
 	/*
-	 * Second pass, remove any orphans, recursively
+	 * Next, remove any orphans, recursively
 	 */
 	purge_unused_libs(dir);
-	
+
+	/*
+	 * Dump a graphviz
+	 */
 	if (getenv("CROSS_LINKER_DEPS")) {
 		printf("%s: Creating cross-reference with graphviz\n", argv[0]);
 		FILE *dot = fopen("._cross-linker.dot", "w");
@@ -534,9 +663,10 @@ int main(int argc, char * argv[])
 							f->used->file[ui]->name, 
 						f->so_name ? f->so_name->s : f->name);
 			}
+			#if 0
 			for (int fi = 0; d->purged && fi < d->purged->count; fi++) {
 				so_file_t *f = d->purged->file[fi];
-				fprintf(dot, "\"%s\" [color=gray];\n", 
+				fprintf(dot, "\"%s\" [color=green];\n", 
 					f->so_name ? f->so_name->s : f->name);
 
 				for (int ui = 0; f->used && ui < f->used->count; ui++)
@@ -546,6 +676,7 @@ int main(int argc, char * argv[])
 							f->used->file[ui]->name, 
 						f->so_name ? f->so_name->s : f->name);
 			}
+			#endif
 			d = d->next;
 		}
 		fprintf(dot, "}\n");
@@ -553,7 +684,7 @@ int main(int argc, char * argv[])
 		system("dot -Tpdf -o._cross-linker.pdf ._cross-linker.dot");
 	}
 	/*
-	 * last pass, print who is not used
+	 * print/delete, print who is not used
 	 */
 	d = dir;
 	while (d) {
@@ -567,5 +698,10 @@ int main(int argc, char * argv[])
 		}
 		d = d->next;
 	}
+	/*
+	 * Remove any lasting danling links
+	 */
+	if (do_actual_purge)  // now lasty cleanup unwanted symlinks
+		purge_orphan_symlinks(dir);
 
 }
