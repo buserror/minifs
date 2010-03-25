@@ -39,16 +39,6 @@ hset url libxcb "http://xcb.freedesktop.org/dist/libxcb-1.5.tar.bz2"
 hset depends libxcb "libpthreadstubs xcbproto $XCB_LIBS"
 hset url xkeyboardconfig "http://xlibs.freedesktop.org/xkbdesc/xkeyboard-config-1.7.tar.bz2"
 
-PACKAGES+=" xkbcomp" 
-hset url xkbcomp "http://www.x.org/releases/individual/app/xkbcomp-1.1.1.tar.bz2"
-hset depends xkbcomp "xkeyboardconfig"
-
-configure-xkbcomp() {
-	export LDFLAGS="$LDFLAGS_RLINK -lxcb"
-	configure-generic
-	export LDFLAGS="$LDFLAGS_BASE"	
-}
-
 PACKAGES+=" xtrans" 
 hset url xtrans "http://www.x.org/releases/individual/lib/xtrans-1.2.5.tar.bz2"
 
@@ -86,6 +76,16 @@ configure-xorgfontadobe() {
 }
 
 PACKAGES+=" $XORG_LIBS $XORG_FONTS"
+
+PACKAGES+=" xkbcomp" 
+hset url xkbcomp "http://www.x.org/releases/individual/app/xkbcomp-1.1.1.tar.bz2"
+hset depends xkbcomp "xkeyboardconfig xorglibxkbfile"
+
+configure-xkbcomp() {
+	export LDFLAGS="$LDFLAGS_RLINK -lxcb"
+	configure-generic
+	export LDFLAGS="$LDFLAGS_BASE"	
+}
 
 PACKAGES+=" libmesadrm libmesa"
 hset url libmesadrm "git!git://anongit.freedesktop.org/git/mesa/drm#libmesadrm-git.tar.bz2"
