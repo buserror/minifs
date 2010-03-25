@@ -76,14 +76,16 @@ hset dir libicu "libicu/source"
 
 # libicu needs a host version of itself
 configure-libicu-local() {
+	set -x
 	sed -i -e 's|BITS_GOT=unknown|&;DEFAULT_64BIT=no|' configure
 	if [ ! -d ../host ]; then
 		mkdir -p ../host
-		pushd ../host
+		( pushd ../host
+		unset CC CXX CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
 		../source/runConfigureICU Linux \
 			--disable-tests --disable-samples \
 			&& make -j8
-		popd
+		)
 	fi
 	../source/runConfigureICU Linux \
 		--build=$(uname -m) \
@@ -92,6 +94,7 @@ configure-libicu-local() {
 		--with-cross-build=$(pwd)/../host \
 		--disable-tests --disable-samples \
 		CC="${CROSS}-gcc" CXX="${CROSS}-g++"
+	set +x
 }
 configure-libicu() {
 	configure configure-libicu-local
