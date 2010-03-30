@@ -34,7 +34,7 @@ index 92ded6c..4f5dd7a 100644
 +	ranlib $@
 +
 +install: all
-+	mkdir -p ${DESTDIR}/{bin,lib,include}
++	mkdir -p ${DESTDIR}/bin ${DESTDIR}/lib ${DESTDIR}/include
 +	cp lib/* ${DESTDIR}/lib/
 +	cp include/* ${DESTDIR}/include/
 +	cp bin/* ${DESTDIR}/bin/ || true
