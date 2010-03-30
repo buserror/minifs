@@ -46,7 +46,7 @@ hset depends libcairo "libfreetype libglib libpixman"
 configure-libcairo() {
 	local extras=""
 	if [ "$TARGET_ARCH" == "arm" ]; then
-		extras+=" --disable-some-floating-point --enable-directfb=no"
+		extras+=" --disable-some-floating-point "
 	fi
 	if [[ $TARGET_X11 ]]; then
 		configure-generic \
