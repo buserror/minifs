@@ -36,6 +36,9 @@ board_prepare() {
 	if [ -d $HOME/Sources/Utils/yuckfan ]; then
 		TARGET_PACKAGES+=" yuckfan gdbserver"
 	fi
+	if [ -d $HOME/Sources/Utils/sensors ]; then
+		TARGET_PACKAGES+=" sensors"
+	fi
 	
 	PACKAGES=$(echo $PACKAGES|sed 's|librsvg|librsvg yuckfan|')
 
@@ -72,29 +75,22 @@ yuckfan-sharedlibs-cleanup() {
 hset url yuckfan "none"
 hset dir yuckfan "."
 hset depends yuckfan "toluapp"
-hset dir destdir "none"
+hset destdir yuckfan "$STAGING"/opt/yf
 
 configure-yuckfan() {
 	configure echo Done
 }
-compile-yuckfan-local() {
-	set -x
-	pushd $HOME/Sources/Utils/yuckfan
-	$MAKE -j8  \
-		DESTDIR="$STAGING"/opt/yf \
-		CROSS_COMPILE="$TARGET_FULL_ARCH"- \
-		CROSS_PATH="$TOOLCHAIN"/bin \
-		EXTRA_LDFLAGS="$LDFLAGS_RLINK" \
-		EXTRA_CFLAGS="$CFLAGS" \
-		install
-	popd
-	set +x
-}
 compile-yuckfan() {
-	compile compile-yuckfan-local
+	compile-generic \
+		-C $HOME/Sources/Utils/yuckfan \
+		CROSS_COMPILE="$TARGET_FULL_ARCH"- \
+		EXTRA_LDFLAGS="$LDFLAGS_RLINK" \
+		EXTRA_CFLAGS="$CFLAGS" 
 }
 install-yuckfan() {
-	log_install echo Done
+	install-generic \
+		-C $HOME/Sources/Utils/yuckfan \
+		CROSS_COMPILE="$TARGET_FULL_ARCH"-
 }
 deploy-yuckfan() {
 	ROOTFS_PLUGINS+="$ROOTFS/opt/yf:"
