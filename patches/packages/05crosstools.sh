@@ -1,5 +1,5 @@
 
-if [ ! -f "$GCC" ]; then 
+if [ ! -f "$GCC" -o "$COMMAND_PACKAGE" == "crosstools" ]; then 
 	PACKAGES+=" crosstools"
 	NEED_CROSSTOOLS="crosstools"
 	TARGET_PACKAGES+=" crosstools"
