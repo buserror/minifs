@@ -35,13 +35,5 @@ deploy-sharedlibs() {
 	# removes non-accessed libraries
 	cross_linker --purge
 	
-	"${CROSS}-strip" "$ROOTFS"/bin/* "$ROOTFS"/sbin/* "$ROOTFS"/usr/bin/* \
-		2>/dev/null
-	for lib in "$ROOTFS"/lib "$ROOTFS"/usr/lib; do
-		if [ -d "$lib" ]; then
-			find "$lib" -type f -exec "${CROSS}-strip" \
-				--strip-unneeded {} \; 
-		fi
-	done
 	) >>"$LOGFILE" 2>&1
 }
