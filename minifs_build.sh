@@ -109,6 +109,9 @@ export LD="ccfix $TARGET_FULL_ARCH-ld"
 
 export CPPFLAGS="-I$STAGING/include -I$STAGING_USR/include" 
 export LDFLAGS_BASE="-L$STAGING/lib -L$STAGING_USR/lib"
+if [ $TARGET_SHARED -eq 0 ]; then
+	LDFLAGS_BASE="-static $LDFLAGS_BASE"
+fi
 export LDFLAGS_RLINK="$LDFLAGS_BASE -Wl,-rpath-link -Wl,$STAGING/lib -Wl,-rpath-link -Wl,$STAGING_USR/lib"
 export LDFLAGS=$LDFLAGS_BASE
 export CFLAGS="$TARGET_CFLAGS" 
