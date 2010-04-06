@@ -30,6 +30,7 @@ hget() {
 }
 
 function package() {
+	export MINIFS_PACKAGE="$1"
 	export PACKAGE="$1"
 	export PACKAGE_DIR="$2"
 	local prefix=$(hget prefix $PACKAGE)

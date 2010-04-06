@@ -10,19 +10,25 @@
 
 int main(int argc, char * argv[])
 {
-	char temp[512];
+	static char temp[1024ll ];
 	int i;
+	FILE * f = NULL;
 	for (i = 2; i < argc; i++)
 		if (!strncmp(argv[i], "/usr/lib", 8) || !strncmp(argv[i], "/lib", 4)) {
-			printf("%s FIXING %s %s\n", argv[0], getenv("PACKAGE"), argv[i]);
+			if (!f) f = fopen("/tmp/ccfix.log", "a");
+			fprintf(f, "%s FIXING %s %s\n", argv[0], getenv("MINIFS_PACKAGE"), argv[i]);
 			sprintf(temp, "%s%s", getenv("STAGING"), argv[i]);
 			argv[i] = strdup(temp);
 		} else if (!strncmp(argv[i], "-L/usr/lib", 10)) {
-			printf("%s FIXING %s %s\n", argv[0], getenv("PACKAGE"), argv[i]);
+			if (!f) f = fopen("/tmp/ccfix.log", "a");
+			fprintf(f, "%s FIXING %s %s\n", argv[0], getenv("MINIFS_PACKAGE"), argv[i]);
 			sprintf(temp, "-L%s%s", getenv("STAGING"), argv[i]+2);
 			argv[i] = strdup(temp);
 		}
-
+	if (f) {
+		for (i = 0; i < argc; i++) fprintf(f, "%s ", argv[i]); fprintf(f,"\n");
+		fclose(f);
+	}
 	execvp(argv[1], argv+1);
 	perror(argv[0]);
 	exit(127);

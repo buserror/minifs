@@ -21,6 +21,7 @@ int main(int argc, char * argv[])
 	int rd, i;
 	FILE *o =  fopen("/tmp/pkg-config.log", "a");
 
+	char * package = getenv("MINIFS_PACKAGE");
 	char * staging = getenv("STAGING");
 	if (!staging)
 		staging = "STAGING";
@@ -47,7 +48,7 @@ int main(int argc, char * argv[])
 		sprintf(pfx, "--define-variable=prefix=%s%s", staging, getenv("PACKAGE_PREFIX"));
 	}
 	// copy the other arguments
-	fprintf(o, "%s ", getenv("PACKAGE"));
+	fprintf(o, "%s ", package);
 	for (i = 1; i < argc; i++) {
 		fprintf(o, "%s ", argv[i]);
 		nargv[di++] = argv[i];
@@ -81,9 +82,9 @@ int main(int argc, char * argv[])
 		buf[--rd] = 0;
 	}
 	if (rd > 0)
-		fprintf(o, "%s %s\n", getenv("PACKAGE"), buf);
+		fprintf(o, "%s %s\n", package, buf);
 	else
-		fprintf(o, "%s (return %d)\n", getenv("PACKAGE"), WEXITSTATUS(ex));		
+		fprintf(o, "%s (return %d)\n", package, WEXITSTATUS(ex));		
 
 
 	char out[8192];
@@ -113,7 +114,7 @@ int main(int argc, char * argv[])
 	*dst = 0;
 
 	if (*out && strcmp(buf, out))
-		fprintf(o, "%s FIXED %s\n", getenv("PACKAGE"), out);
+		fprintf(o, "%s FIXED %s\n", package, out);
 	if (*out) {
 		write(1, out, dst-out); write(1, "\n", 1);
 	}
