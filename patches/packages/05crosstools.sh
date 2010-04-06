@@ -8,6 +8,9 @@ hset url crosstools	"http://ymorin.is-a-geek.org/download/crosstool-ng/crosstool
 hset depends crosstools "linux-headers"
 
 configure-crosstools() {
+	# remove "read only" mode
+	chmod -R u+w "$TOOLCHAIN"
+
 	# this patch is needed on newer host kernels
 	for pd in "$PATCHES/uclibc" "$PATCHES/uclibc-${TARGET_BOARD}"; do
 		if [ -d $pd ]; then
