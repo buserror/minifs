@@ -32,9 +32,23 @@ hset url libiconv "http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.13.1.tar.gz"
 
 configure-libiconv() {
 	configure-generic \
+		--disable-rpath \
 		--disable-nls
 }
 
+PACKAGES+=" libxml2"
+hset url libxml2 "ftp://xmlsoft.org/libxml2/libxml2-2.7.6.tar.gz"
+
+install-libxml2() {
+	install-generic
+	# fix that script
+	if [ -f "$STAGING_USR"/lib/xml2Conf.sh ]; then
+		sed -i \
+			-e "s|I/usr|I$STAGING_USR|g" \
+			-e "s|L/usr|L$STAGING_USR|g" \
+				"$STAGING_USR"/lib/xml2Conf.sh
+	fi
+}
 
 PACKAGES+=" libgettext"
 hset url libgettext "http://ftp.gnu.org/pub/gnu/gettext/gettext-0.17.tar.gz"
@@ -51,19 +65,6 @@ configure-libgettext() {
                  --without-emacs
 }
 
-PACKAGES+=" libxml2"
-hset url libxml2 "ftp://xmlsoft.org/libxml2/libxml2-2.7.6.tar.gz"
-
-install-libxml2() {
-	install-generic
-	# fix that script
-	if [ -f "$STAGING_USR"/lib/xml2Conf.sh ]; then
-		sed -i \
-			-e "s|I/usr|I$STAGING_USR|g" \
-			-e "s|L/usr|L$STAGING_USR|g" \
-				"$STAGING_USR"/lib/xml2Conf.sh
-	fi
-}
 
 #######################################################################
 ## GNU/TLS bits
@@ -88,7 +89,10 @@ hset depends gnutls "libgcrypt"
 
 configure-gnutls() {
 	export LDFLAGS="$LDFLAGS_RLINK"
-	configure-generic
+	configure-generic \
+		--with-libgcrypt-prefix="$STAGING_USR" \
+		--with-libreadline-prefix="$STAGING_USR" \
+		--disable-rpath
 	export LDFLAGS="$LDFLAGS_BASE"
 }
 
@@ -177,7 +181,7 @@ configure-libcurl() {
 		extras+="--with-gnutls"
 		LDFLAGS+=" -lgcrypt -lgpg-error"
 	fi
-	echo "ac_cv_path_PKGCONFIG=$TOOLCHAIN/bin/pkg-config
+	echo "ac_cv_path_PKGCONFIG=$BUILD/staging-tools/bin/pkg-config
 ac_cv_lib_gnutls_gnutls_check_version=yes" >minifs.cache
 	configure-generic --cache=minifs.cache $extras
 	export LDFLAGS="$LDFLAGS_BASE"
