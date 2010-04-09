@@ -8,13 +8,14 @@ hset depends filesystems "busybox sharedlibs"
 if [ $TARGET_FS_SQUASH -eq 1 ]; then
 	FILESYSTEMS+=" filesystem-squash"
 fi
-
 if [ $TARGET_FS_EXT -eq 1 ]; then
 	FILESYSTEMS+=" filesystem-ext"
 fi
-
 if [ "$TARGET_FS_JFFS2" != "" ]; then
 	FILESYSTEMS+=" filesystem-jffs"
+fi
+if [ "$TARGET_FS_INITRD" != "" ]; then
+	FILESYSTEMS+=" filesystem-initrd"
 fi
 
 PACKAGES+=" $FILESYSTEMS"
@@ -31,9 +32,13 @@ hset depends filesystem-ext "filesystem-prepack"
 hset dir filesystem-jffs "."
 hset phases filesystem-jffs "deploy"
 hset depends filesystem-jffs "filesystem-prepack"
+hset dir filesystem-initrd "linux-obj"
+hset phases filesystem-initrd "deploy"
+hset depends filesystem-initrd "filesystem-prepack"
 
 deploy-filesystem-prepack() {
 	deploy echo Copying
+	echo -n "     Stripping binaries... "
 	(
 	rsync -av \
 		"$STAGING/etc/" \
@@ -53,46 +58,67 @@ deploy-filesystem-prepack() {
 				--strip-unneeded {} \; 
 		fi
 	done
-
 	) >>"$LOGFILE" 2>&1
+	echo "Done"
 }
 
 deploy-filesystem-squash() {
-	if mksquashfs "$ROOTFS" "$BUILD"/minifs-full-squashfs.img \
+	local out="$BUILD"/minifs-full-squashfs.img
+	echo -n "     Building $out "
+	if mksquashfs "$ROOTFS" "$out" \
 		-all-root \
 		-pf "$BUILD"/special_file_table.txt \
 			>>"$BUILD/._filesystem.log" 2>&1 ; then
-		echo "    " "$BUILD"/minifs-full-squashfs.img " Created"
+		echo Done
 	else
-		echo "#### ERROR Generating " "$BUILD"/minifs-full-squashfs.img
-	fi
+		echo "#### ERROR"
+	fi		
 }
 
 deploy-filesystem-ext() {
+	local out="$BUILD"/minifs-full-ext.img
+	echo -n "     Building $out "
 	local size=${TARGET_FS_EXT_SIZE:-8192}
 	if genext2fs -d "$ROOTFS" \
 		-U -i $(($size / 10)) \
 		-D "$BUILD"/special_file_table.txt \
 		-b $size \
-		"$BUILD"/minifs-full-ext.img \
+		"$out" \
 			>>"$BUILD/._filesystem.log" 2>&1 ; then
-		$TUNEFS -j "$BUILD"/minifs-full-ext.img \
+		$TUNEFS -j "$out" \
 			>>"$BUILD/._filesystem.log" 2>&1
-		echo "    " "$BUILD"/minifs-full-ext.img " Created"
-	else		
-		echo "#### ERROR Generating " "$BUILD"/minifs-full-ext.img
-	fi
+		echo Done
+	else
+		echo "#### ERROR"
+	fi		
 }
 
 deploy-filesystem-jffs() {
+	local out="$BUILD"/minifs-full-jffs2.img
+	echo -n "     Building $out "
 	if mkfs.jffs2 $TARGET_FS_JFFS2 \
 		-r "$ROOTFS" \
-		-o "$BUILD"/minifs-full-jffs2.img  \
+		-o "$out"  \
 		-D "$BUILD"/special_file_table.txt \
 			>>"$BUILD/._filesystem.log" 2>&1 ; then
 		echo "    " "$BUILD"/minifs-full-jffs2.img " Created"
 	else
 		echo "#### ERROR Generating " "$BUILD"/minifs-full-jffs2.img
+	fi		
+}
+
+# Set TARGET_FS_INITRD to whatever format you want, remember to activate
+# that format in the kernel config. Known to work are 'lzma' 'gz' etc
+deploy-filesystem-initrd() {
+	local out="$BUILD"/minifs-full-initrd.$TARGET_FS_INITRD
+	echo -n "     Building $out "
+	if sh ../linux/scripts/gen_initramfs_list.sh \
+		-o "$out" \
+		../special_file_table_kernel.txt ../rootfs \
+			>>"$BUILD/._filesystem.log" 2>&1 ; then
+		echo Done
+	else
+		echo "#### ERROR"
 	fi		
 }
 
