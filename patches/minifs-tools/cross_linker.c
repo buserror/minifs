@@ -663,20 +663,6 @@ int main(int argc, char * argv[])
 							f->used->file[ui]->name, 
 						f->so_name ? f->so_name->s : f->name);
 			}
-			#if 0
-			for (int fi = 0; d->purged && fi < d->purged->count; fi++) {
-				so_file_t *f = d->purged->file[fi];
-				fprintf(dot, "\"%s\" [color=green];\n", 
-					f->so_name ? f->so_name->s : f->name);
-
-				for (int ui = 0; f->used && ui < f->used->count; ui++)
-					fprintf(dot, "\"%s\" -> \"%s\"\n", 
-						f->used->file[ui]->so_name ?
-							f->used->file[ui]->so_name->s :
-							f->used->file[ui]->name, 
-						f->so_name ? f->so_name->s : f->name);
-			}
-			#endif
 			d = d->next;
 		}
 		fprintf(dot, "}\n");
