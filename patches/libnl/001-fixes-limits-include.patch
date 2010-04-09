@@ -1,0 +1,11 @@
+diff -ru libnl-1.0-pre6/include/netlink-local.h libnl/include/netlink-local.h
+--- libnl-1.0-pre6/include/netlink-local.h      2006-08-17 14:57:31.000000000 +0100
++++ libnl/include/netlink-local.h       2010-04-09 13:59:56.000000000 +0100
+@@ -12,6 +12,7 @@
+ #ifndef NETLINK_LOCAL_H_
+ #define NETLINK_LOCAL_H_
+
++#include <limits.h>
+ #include <stdio.h>
+ #include <errno.h>
+ #include <stdlib.h>

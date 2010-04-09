@@ -1,0 +1,16 @@
+diff -wur gst-plugins-base.orig/tests/examples/seek/seek.c gst-plugins-base/tests/examples/seek/seek.c
+--- gst-plugins-base.orig/tests/examples/seek/seek.c    2010-01-04 09:45:47.000000000 +0000
++++ gst-plugins-base/tests/examples/seek/seek.c 2010-03-02 18:14:27.000000000 +0000
+@@ -2389,10 +2389,10 @@
+   gst_element_set_state (pipeline, GST_STATE_PLAYING);
+ }
+
+-#ifdef HAVE_X
+-
+ static gulong embed_xid = 0;
+
++#ifdef HAVE_X
++
+ /* We set the xid here in response to the prepare-xwindow-id message via a
+  * bus sync handler because we don't know the actual videosink used from the
+  * start (as we don't know the pipeline, or bin elements such as autovideosink
