@@ -107,12 +107,12 @@ export CC="ccfix $TARGET_FULL_ARCH-gcc"
 export CXX="ccfix $TARGET_FULL_ARCH-g++"
 export LD="ccfix $TARGET_FULL_ARCH-ld"
 
-export CPPFLAGS="-I$STAGING/include -I$STAGING_USR/include" 
+export TARGET_CPPFLAGS="-I$STAGING/include -I$STAGING_USR/include" 
+export CPPFLAGS="$TARGET_CPPFLAGS"
 export LDFLAGS_BASE="-L$STAGING/lib -L$STAGING_USR/lib"
 export CFLAGS="$TARGET_CFLAGS" 
 export CXXFLAGS="$CFLAGS" 
 export LIBC_CFLAGS="${LIBC_CFLAGS:-$TARGET_CFLAGS}"
-#export PKGCONFIG="$TOOLCHAIN/bin/pkg-config"
 export PKG_CONFIG_PATH="$STAGING/lib/pkgconfig:$STAGING_USR/lib/pkgconfig:$STAGING_USR/share/pkgconfig"
 export PKG_CONFIG_LIBDIR="" # do not search local paths
 export ACLOCAL="aclocal -I $STAGING_USR/share/aclocal"
@@ -231,7 +231,14 @@ for package in $TARGET_PACKAGES; do
 			;;
 			svn)	if [ ! -d "$package.svn" ]; then
 					echo "#### svn clone $url $package.git"
-					git svn clone -s "$url" "$package.svn"
+					svnopt=$(hget svnopt $package)
+					case "$svnopt" in 
+						none) svnopt=""; ;;
+						*) svnopt="-s"; ;;
+					esac
+					set -x
+					git svn clone $svnopt "$url" "$package.svn"
+					set +x
 				fi
 				if [ -d "$package.svn" ]; then
 					echo "#### Compressing $url"
