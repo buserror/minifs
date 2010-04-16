@@ -39,28 +39,47 @@ install-libnl-tiny-local() {
 	rsync -av include/ "$STAGING_USR"/include/
 	cp libnl-tiny.so "$STAGING_USR"/lib/
 	ln -s libnl-tiny.so "$STAGING_USR"/lib/libnl.so
+	ln -s libnl-tiny.so "$STAGING_USR"/lib/libnl-genl.so
 }
 install-libnl-tiny() {
 	log_install install-libnl-tiny-local
 }
 
 PACKAGES+=" wpa-supplicant"
-hset url wpa-supplicant "http://hostap.epitest.fi/releases/wpa_supplicant-0.6.10.tar.gz"
+hset url wpa-supplicant "http://hostap.epitest.fi/releases/wpa_supplicant-0.7.1.tar.gz"
 hset dir wpa-supplicant "wpa-supplicant/wpa_supplicant"
 hset depends wpa-supplicant "libreadline libncurses libnl-tiny"
 
-configure-wpa-supplicant() {
+configure-wpa-supplicant-local() {
 	if [ ! -f .config ]; then rm ._* ; fi
 	if [ ! -f "$CONFIG"/config_wpa-supplicant.conf ]; then
 		echo "### Target needs a config_wpa-supplicant.conf"
 		echo "### Make one using the 'defconfig' file in the archive"
 		exit 1
 	fi
-	configure cp "$CONFIG"/config_wpa-supplicant.conf \
+	cp "$CONFIG"/config_wpa-supplicant.conf \
 		.config
+}
+configure-wpa-supplicant() {
+	configure configure-wpa-supplicant-local
 }
 
 compile-wpa-supplicant() {
-	compile $MAKE -j4 V=1 CC=$GCC EXTRA_CFLAGS="$CPPFLAGS $TARGET_CFLAGS -D_GNU_SOURCE"
+	compile $MAKE -j4 V=1 CC=$GCC \
+		EXTRA_CFLAGS="$CPPFLAGS $TARGET_CFLAGS -D_GNU_SOURCE" \
+		LIBS_c="-lreadline -lncurses"
 }
 
+install-wpa-supplicant() {
+	# let the install tool fixes the paths for us
+	install-generic \
+		LIBDIR=/usr/lib \
+		BINDIR=/usr/bin
+}
+
+deploy-wpa-supplicant() {
+	# let the install tool fixes the paths for us
+	deploy cp "$STAGING_USR"/bin/wpa* "$ROOTFS"/usr/bin/
+	cp "$PATCHES"/wpa-supplicant/firmware/* "$ROOTFS"/lib/firmware/
+	touch "$ROOTFS"/etc/wpa.conf
+}

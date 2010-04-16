@@ -1,0 +1,172 @@
+diff --git a/drivers/video/backlight/Kconfig b/drivers/video/backlight/Kconfig
+index 09bfa96..8150906 100644
+--- a/drivers/video/backlight/Kconfig
++++ b/drivers/video/backlight/Kconfig
+@@ -262,3 +262,10 @@ config BACKLIGHT_ADP5520
+ 	  To compile this driver as a module, choose M here: the module will
+ 	  be called adp5520_bl.
+ 
++config BACKLIGHT_OPENFRAME
++	tristate "Openframe Backlight Driver"
++	depends on BACKLIGHT_CLASS_DEVICE && PCI && X86
++	default n
++	help
++	  If you have an OpenFrame device say Y to enable the
++	  backlight driver.
+diff --git a/drivers/video/backlight/Makefile b/drivers/video/backlight/Makefile
+index 9a40554..aa69c64 100644
+--- a/drivers/video/backlight/Makefile
++++ b/drivers/video/backlight/Makefile
+@@ -28,4 +28,5 @@ obj-$(CONFIG_BACKLIGHT_SAHARA)	+= kb3886_bl.o
+ obj-$(CONFIG_BACKLIGHT_WM831X)	+= wm831x_bl.o
+ obj-$(CONFIG_BACKLIGHT_ADX)    += adx_bl.o
+ obj-$(CONFIG_BACKLIGHT_ADP5520)	+= adp5520_bl.o
++obj-$(CONFIG_BACKLIGHT_OPENFRAME) += openframe_bl.o
+ 
+diff --git a/drivers/video/backlight/openframe_bl.c b/drivers/video/backlight/openframe_bl.c
+new file mode 100644
+index 0000000..d34f301
+--- /dev/null
++++ b/drivers/video/backlight/openframe_bl.c
+@@ -0,0 +1,141 @@
++/*
++ *  Backlight Driver for Openframe devices
++ *
++ *  Copyright (c) 2010 Andrew de Quincey
++ *
++ *  Based onprogear_bl.c driver by Marcin Juszkiewicz
++ *  <linux at hrw dot one dot pl>
++ *
++ *  Based on Progear LCD driver by M Schacht
++ *  <mschacht at alumni dot washington dot edu>
++ *
++ *  Based on Sharp's Corgi Backlight Driver
++ *  Based on Backlight Driver for HP Jornada 680
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License version 2 as
++ *  published by the Free Software Foundation.
++ *
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/mutex.h>
++#include <linux/fb.h>
++#include <linux/backlight.h>
++#include <linux/pci.h>
++
++static struct pci_dev *gfx_dev = NULL;
++static u32 *bl_baseptr = NULL;
++
++static int openframe_set_intensity(struct backlight_device *bd)
++{
++	int intensity = bd->props.brightness;
++
++	if (bd->props.power != FB_BLANK_UNBLANK)
++		intensity = 0;
++	if (bd->props.fb_blank != FB_BLANK_UNBLANK)
++		intensity = 0;
++
++	*bl_baseptr = (intensity << 1) | 0x400000;
++
++	return 0;
++}
++
++static int openframe_get_intensity(struct backlight_device *bd)
++{
++	int intensity;
++
++	intensity = (*bl_baseptr >> 1) & 0x2f;
++
++	return intensity;
++}
++
++static struct backlight_ops openframe_ops = {
++	.get_brightness = openframe_get_intensity,
++	.update_status = openframe_set_intensity,
++};
++
++static int openframe_probe(struct platform_device *pdev)
++{
++	u32 temp;
++	struct backlight_device *openframe_backlight_device;
++
++	gfx_dev = pci_get_device(PCI_VENDOR_ID_INTEL, 0x8108, NULL);
++	if (!gfx_dev) {
++		printk("Intel SCH Poulsbo graphics controller not found.\n");
++		return -ENODEV;
++	}
++
++	pci_read_config_dword(gfx_dev, 16, &temp);
++	bl_baseptr = ioremap(temp + 0x61254, 4);
++
++	openframe_backlight_device = backlight_device_register("openframe-bl",
++							     &pdev->dev, NULL,
++							     &openframe_ops);
++	if (IS_ERR(openframe_backlight_device)) {
++		iounmap(bl_baseptr);
++		pci_dev_put(gfx_dev);
++		return PTR_ERR(openframe_backlight_device);
++	}
++	platform_set_drvdata(pdev, openframe_backlight_device);
++
++	openframe_backlight_device->props.power = FB_BLANK_UNBLANK;
++	openframe_backlight_device->props.brightness = 32;
++	openframe_backlight_device->props.max_brightness = 32;
++	openframe_set_intensity(openframe_backlight_device);
++
++	return 0;
++}
++
++static int openframe_remove(struct platform_device *pdev)
++{
++	struct backlight_device *bd = platform_get_drvdata(pdev);
++	backlight_device_unregister(bd);
++
++	iounmap(bl_baseptr);
++	pci_dev_put(gfx_dev);
++
++	return 0;
++}
++
++static struct platform_driver openframe_driver = {
++	.probe = openframe_probe,
++	.remove = openframe_remove,
++	.driver = {
++		   .name = "openframe-bl",
++		   },
++};
++
++static struct platform_device *openframe_device;
++
++static int __init openframe_init(void)
++{
++	int ret = platform_driver_register(&openframe_driver);
++
++	if (ret)
++		return ret;
++	openframe_device = platform_device_register_simple("openframe-bl", -1,
++								NULL, 0);
++	if (IS_ERR(openframe_device)) {
++		platform_driver_unregister(&openframe_driver);
++		return PTR_ERR(openframe_device);
++	}
++
++	return 0;
++}
++
++static void __exit openframe_exit(void)
++{
++	platform_device_unregister(openframe_device);
++	platform_driver_unregister(&openframe_driver);
++}
++
++module_init(openframe_init);
++module_exit(openframe_exit);
++
++MODULE_AUTHOR("Andrew de Quincey <adq@lidskialf.net>");
++MODULE_DESCRIPTION("Openframe Backlight Driver");
++MODULE_LICENSE("GPL");

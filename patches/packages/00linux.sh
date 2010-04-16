@@ -38,7 +38,7 @@ configure-linux-headers() {
 compile-linux-headers() {
 	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE="${CROSS}-" \
-			oldconfig
+			oldconfig			
 }
 
 install-linux-headers() {
@@ -46,6 +46,9 @@ install-linux-headers() {
 		CROSS_COMPILE="${CROSS}-" \
 		INSTALL_HDR_PATH="$KERNEL" \
 			headers_install
+	rm -rf "$STAGING_USR"/include/linux &&
+		ln -s "$KERNEL"/include/linux \
+			"$STAGING_USR"/include/linux
 }
 
 #######################################################################

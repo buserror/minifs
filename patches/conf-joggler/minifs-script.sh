@@ -6,6 +6,8 @@ TARGET_KERNEL_NAME=bzImage
 TARGET_KERNEL_ARCH=x86
 TARGET_CFLAGS="-O2 -march=core2 -mtune=generic -mssse3 -mfpmath=sse -fomit-frame-pointer -pipe"
 
+# kernel patches comes from http://code.google.com/p/adqmisc/
+
 board_set_versions() {
 	VERSION_linux=2.6.33
 	TARGET_FS_SQUASH=0
@@ -36,4 +38,16 @@ board_prepare() {
 #	TARGET_PACKAGES+=" libwebkit"
 #	TARGET_PACKAGES+=" flashplugin"
 #	TARGET_PACKAGES+=" module-kbus"
+}
+
+
+joggler-deploy-wpa-supplicant() {
+	deploy-wpa-supplicant
+	sed -i '
+/^# LOAD MODULES/ a\
+modprobe rt2800usb >/dev/null 2>&1\
+modprobe r8169 >/dev/null 2>&1\
+ifconfig eth0 hw ether `ifconfig wlan0|head -1|awk "{print \\\$5;}"`
+' "$ROOTFS"/etc/init.d/rcS
+
 }

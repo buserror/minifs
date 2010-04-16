@@ -1,0 +1,13 @@
+diff --git a/drivers/i2c/busses/i2c-isch.c b/drivers/i2c/busses/i2c-isch.c
+index dba6eb0..bd44784 100644
+--- a/drivers/i2c/busses/i2c-isch.c
++++ b/drivers/i2c/busses/i2c-isch.c
+@@ -47,7 +47,7 @@
+ #define SMBBLKDAT	(0x20 + sch_smba)
+ 
+ /* count for request_region */
+-#define SMBIOSIZE	64
++#define SMBIOSIZE	8
+ 
+ /* PCI Address Constants */
+ #define SMBBA_SCH	0x40
