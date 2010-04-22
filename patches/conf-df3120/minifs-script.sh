@@ -8,6 +8,7 @@ TARGET_KERNEL_NAME=uImage
 TARGET_CFLAGS="-Os -march=armv4t -mtune=arm920t -mthumb-interwork -mthumb "
 
 board_set_versions() {
+        VERSION_linux=2.6.33.2
 	TARGET_FS_SQUASH=0
 	TARGET_INITRD=0
 }
