@@ -3,11 +3,10 @@
 echo "* Mounting filesystems..."
 mount / / -o remount,noatime >/dev/null 2>&1
 mount -t proc /proc /proc
-mount -t tmpfs mdev /dev
+mount -t devtmpfs devtmpfs /dev
 mount -t sysfs none /sys
-mkdir /dev/pts
+mkdir /dev/pts dev/shm
 mount -t devpts devpts /dev/pts
-mkdir /dev/shm
 mount -t tmpfs none /dev/shm
 
 echo "* Starting system loggers..."

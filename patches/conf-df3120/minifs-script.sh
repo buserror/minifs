@@ -13,6 +13,7 @@ board_set_versions() {
 	TARGET_INITRD=0
 }
 
-board_compile() {
+df3120-deploy-linux-bare() {
+	deploy-linux-bare
 	cp "$BUILD"/kernel.ub "$ROOTFS"/linux
 }
