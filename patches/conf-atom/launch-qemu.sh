@@ -18,6 +18,12 @@ kvm -m 256 \
         -net nic,model=ne2k_pci -net tap,ifname=tap0,script= \
         -append "rdinit=/linuxrc console=ttyS0,115200 vga=0x318 rw quiet"
 
+kvm -m 32 \
+        -kernel vmlinuz-full.bin \
+        -vga none -serial stdio \
+        -net nic,model=ne2k_pci -net tap,ifname=tap0,script= \
+        -append "rdinit=/sbin/init console=ttyS0,115200 rw quiet"
+
 mount /dev/sdh1 /mnt/arm && \
 	cp /opt/minifs/build-atom/vmlinuz-full.bin /mnt/arm/vmlinuz && \
 	umount /mnt/arm
