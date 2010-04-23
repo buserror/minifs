@@ -41,14 +41,18 @@ compile-linux-headers() {
 			oldconfig			
 }
 
-install-linux-headers() {
-	log_install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
+install-linux-headers-local() {
+	$MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE="${CROSS}-" \
 		INSTALL_HDR_PATH="$KERNEL" \
 			headers_install
-	rm -rf "$STAGING_USR"/include/linux &&
-		ln -s "$KERNEL"/include/linux \
-			"$STAGING_USR"/include/linux
+	rm -rf "$STAGING_USR"/include/linux
+	ln -s "$KERNEL"/include/linux \
+		"$STAGING_USR"/include/linux
+}
+
+install-linux-headers() {
+	log_install install-linux-headers-local
 }
 
 #######################################################################
