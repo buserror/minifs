@@ -4,7 +4,7 @@
 ## zlib
 #######################################################################
 PACKAGES+=" zlib"
-hset url zlib "http://www.zlib.net/zlib-1.2.4.tar.gz" 
+hset url zlib "http://www.zlib.net/zlib-1.2.5.tar.gz" 
 
 configure-zlib() {
 	configure ./configure \

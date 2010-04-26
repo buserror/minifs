@@ -46,9 +46,9 @@ install-linux-headers-local() {
 		CROSS_COMPILE="${CROSS}-" \
 		INSTALL_HDR_PATH="$KERNEL" \
 			headers_install
-	rm -rf "$STAGING_USR"/include/linux
+	rm -rf "$STAGING_USR"/include/linux || true
 	ln -s "$KERNEL"/include/linux \
-		"$STAGING_USR"/include/linux
+		"$STAGING_USR"/include/linux || true
 }
 
 install-linux-headers() {

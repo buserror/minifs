@@ -101,7 +101,7 @@ deploy-filesystem-jffs() {
 		-o "$out"  \
 		-D "$BUILD"/special_file_table.txt \
 			>>"$BUILD/._filesystem.log" 2>&1 ; then
-		echo "    " "$BUILD"/minifs-full-jffs2.img " Created"
+		echo Done
 	else
 		echo "#### ERROR Generating " "$BUILD"/minifs-full-jffs2.img
 	fi		
