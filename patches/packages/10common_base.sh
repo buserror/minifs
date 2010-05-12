@@ -4,11 +4,13 @@
 ## zlib
 #######################################################################
 PACKAGES+=" zlib"
-hset url zlib "http://www.zlib.net/zlib-1.2.5.tar.gz" 
+hset url zlib "http://www.zlib.net/zlib-1.2.4.tar.gz" 
 
 configure-zlib() {
+	export LDFLAGS=${LDFLAGS/-static/}
 	configure ./configure \
 		--prefix="/usr"
+	export LDFLAGS="$LDFLAGS_BASE"
 }
 
 #######################################################################
