@@ -1,4 +1,22 @@
 
+# check for dependencies
+function check_host_commands() {
+	local allok=1
+	echo "*** Checking for $NEEDED_HOST_COMMANDS"
+	for de in $NEEDED_HOST_COMMANDS ; do
+		if path=$(which "$de"); then
+			echo "$de = $path"
+		else
+			echo "#### Missing '$de' host command"
+			allok=0
+		fi
+	done
+	if [ "$allok" -eq "0" ]; then
+		echo "##### Please install the missing host commands"
+		exit 1
+	fi
+}
+
 # calls an optional function(s)
 function optional() {
 	for f in $*; do

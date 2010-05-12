@@ -7,12 +7,15 @@ hset depends filesystems "busybox sharedlibs"
 
 if [ $TARGET_FS_SQUASH -eq 1 ]; then
 	FILESYSTEMS+=" filesystem-squash"
+	NEEDED_HOST_COMMANDS+=" mksquashfs"
 fi
 if [ $TARGET_FS_EXT -eq 1 ]; then
 	FILESYSTEMS+=" filesystem-ext"
+	NEEDED_HOST_COMMANDS+=" genext2fs tune2fs"
 fi
 if [ "$TARGET_FS_JFFS2" != "" ]; then
 	FILESYSTEMS+=" filesystem-jffs"
+	NEEDED_HOST_COMMANDS+=" mkfs.jffs2"
 fi
 if [ "$TARGET_FS_INITRD" != "" ]; then
 	FILESYSTEMS+=" filesystem-initrd"
@@ -85,7 +88,7 @@ deploy-filesystem-ext() {
 		-b $size \
 		"$out" \
 			>>"$BUILD/._filesystem.log" 2>&1 ; then
-		$TUNEFS -j "$out" \
+		tune2fs -j "$out" \
 			>>"$BUILD/._filesystem.log" 2>&1
 		echo Done
 	else

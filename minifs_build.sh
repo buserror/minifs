@@ -41,6 +41,8 @@ echo TARGET_BOARD $TARGET_BOARD $COMMAND
 BASE="$(pwd)"
 export MINIFS_BASE="$BASE"
 
+NEEDED_HOST_COMMANDS="make tar rsync installwatch wget git"
+
 export BUILD="$BASE/build-${TARGET_BOARD}"
 PATCHES="$BASE/patches"
 export STAGING="$BUILD/staging"
@@ -66,7 +68,6 @@ TOOLCHAIN_BUILD="$BASE/build-toolchain"
 CROSS="$TOOLCHAIN/bin/$TARGET_FULL_ARCH"
 GCC="${CROSS}-gcc"
 
-TUNEFS=/sbin/tune2fs
 WGET=wget
 MAKE=make
 
@@ -103,6 +104,7 @@ VERSION_linux=2.6.32.2
 VERSION_crosstools=1.6.1
 
 export PATH="$BUILD/staging-tools/bin:$TOOLCHAIN/bin:/usr/sbin:/sbin:$PATH"
+
 export CC="ccfix $TARGET_FULL_ARCH-gcc"
 export CXX="ccfix $TARGET_FULL_ARCH-g++"
 export LD="ccfix $TARGET_FULL_ARCH-ld"
@@ -150,6 +152,9 @@ for pd in "$PATCHES/packages" "$CONFIG/packages" ; do
 done
 
 optional board_prepare
+
+# verify we have all the commands we need to build on the host
+check_host_commands
 
 if [ "$TARGET_SHARED" -eq 0 ]; then
 	echo "### Static build!!"
