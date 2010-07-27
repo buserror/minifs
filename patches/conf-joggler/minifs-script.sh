@@ -9,7 +9,7 @@ TARGET_CFLAGS="-O2 -march=core2 -mtune=generic -mssse3 -mfpmath=sse -fomit-frame
 # kernel patches comes from http://code.google.com/p/adqmisc/
 
 board_set_versions() {
-	VERSION_linux=2.6.33
+	VERSION_linux=2.6.33.4
 	TARGET_FS_SQUASH=0
 	TARGET_FS_EXT_SIZE=262144
 	TARGET_SHARED=1 
@@ -21,7 +21,8 @@ board_set_versions() {
 board_prepare() {
 	TARGET_PACKAGES+=" e2fsprogs gdbserver strace"
 	TARGET_PACKAGES+=" libusb usbutils i2c"
-
+	TARGET_PACKAGES+=" tinc bird"
+	
 	TARGET_PACKAGES+=" curl libexpat libreadline libnetsnmp libgettext hotplug2"
 
 	# all of that for gtk
