@@ -62,9 +62,11 @@ deploy-i2c() {
 ## libusb
 #######################################################################
 PACKAGES+=" libusb"
-hset libusb url "http://kent.dl.sourceforge.net/project/libusb/libusb-0.1%20%28LEGACY%29/0.1.12/libusb-0.1.12.tar.gz"
-hset libusb prefix "$STAGING_USR"
-hset libusb destdir "none"
+hset libusb url "http://downloads.sourceforge.net/project/libusb/libusb-1.0/libusb-1.0.8/libusb-1.0.8.tar.bz2"
+
+PACKAGES+=" libusb-compat"
+hset libusb-compat url "http://downloads.sourceforge.net/project/libusb/libusb-compat-0.1/libusb-compat-0.1.3/libusb-compat-0.1.3.tar.bz2"
+hset libusb-compat depends "libusb"
 
 PACKAGES+=" usbutils"
 hset usbutils url "http://downloads.sourceforge.net/project/linux-usb/usbutils/usbutils-0.86.tar.gz"
@@ -80,7 +82,7 @@ deploy-usbutils() {
 #######################################################################
 PACKAGES+=" libftdi"
 hset libftdi url "http://www.intra2net.com/en/developer/libftdi/download/libftdi-0.18.tar.gz"
-hset libftdi depends "libusb"
+hset libftdi depends "libusb-compat"
 
 configure-libftdi() {
 	configure-generic \
