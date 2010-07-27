@@ -255,10 +255,19 @@ for package in $TARGET_PACKAGES; do
 	fi
 	baseroot=$package
 	#echo $package = $fil
+	# try to compare the URL to see if it changed, if so, remove
+	# the old source and rebuild automagically
+	if [ -f "$BUILD/$baseroot/._url" ]; then
+		old=$(cat "$BUILD/$baseroot/._url")
+		if [ "$fil" != "$old" ]; then
+			echo "  ++  Rebuilding $baseroot "
+			rm -rf "$BUILD/$baseroot" 
+		fi 
+	fi
 	if [ ! -d "$BUILD/$baseroot" ]; then
 		echo "####  Extracting $loc to $BUILD/$baseroot ($typ)"
 		mkdir -p "$BUILD/$baseroot"
-
+		echo "$fil" >"$BUILD/$baseroot/._url"
 		case "$typ" in
 			bz2)	tar jx --exclude=.git -C "$BUILD/$baseroot" --strip 1 -f "$loc"	;;
 			gz|tgz)	tar zx --exclude=.git -C "$BUILD/$baseroot" --strip 1 -f "$loc"	;;
