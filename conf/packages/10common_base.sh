@@ -79,12 +79,13 @@ deploy-usbutils() {
 ## libftdi
 #######################################################################
 PACKAGES+=" libftdi"
-hset libftdi url "http://www.intra2net.com/en/developer/libftdi/download/libftdi-0.16.tar.gz"
+hset libftdi url "http://www.intra2net.com/en/developer/libftdi/download/libftdi-0.18.tar.gz"
 hset libftdi depends "libusb"
 
 configure-libftdi() {
 	configure-generic \
-		--disable-libftdipp --with-async-mode
+		--disable-libftdipp 
+	# --with-async-mode # removed at 0.17
 }
 
 #######################################################################
