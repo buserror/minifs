@@ -43,7 +43,7 @@ board_prepare() {
 	PACKAGES=$(echo $PACKAGES|sed 's|librsvg|librsvg yuckfan|')
 
 	# get snapshot version of cairo
-	hset url libcairo "http://cairographics.org/snapshots/cairo-1.9.6.tar.gz"
+	hset libcairo url "http://cairographics.org/snapshots/cairo-1.9.6.tar.gz"
 }
 
 yuckfan-deploy-libdirectfb() {
@@ -72,10 +72,10 @@ yuckfan-sharedlibs-cleanup() {
 		"$ROOTFS"/usr/lib/gtk-2.0/2.10.0/printbackends
 }
 
-hset url yuckfan "none"
-hset dir yuckfan "."
-hset depends yuckfan "toluapp"
-hset destdir yuckfan "$STAGING"/opt/yf
+hset yuckfan url "none"
+hset yuckfan dir "."
+hset yuckfan depends "toluapp"
+hset yuckfan destdir "$STAGING"/opt/yf
 
 configure-yuckfan() {
 	configure echo Done

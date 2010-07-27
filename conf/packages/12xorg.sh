@@ -16,8 +16,8 @@ for p in \
 		evieproto xineramaproto \
 ; do
 	XORG_PROTOS+=" xorg$p"
-	hset url xorg$p "git!git://anongit.freedesktop.org/git/xorg/proto/$p#xorg$p-git.tar.bz2"
-	hset depends xorg$p "xorgmacros"
+	hset xorg$p url "git!git://anongit.freedesktop.org/git/xorg/proto/$p#xorg$p-git.tar.bz2"
+	hset xorg$p depends "xorgmacros"
 done
 PACKAGES+=" $XORG_PROTOS"
 # make this one depends on all the others
@@ -27,8 +27,8 @@ hset xorgx11proto depends "$XORG_PROTOS"
 XCB_LIBS=""
 for p in libXau libxtrans ; do
 	XCB_LIBS+=" xorg$p"
-	hset url xorg$p "git!git://anongit.freedesktop.org/git/xorg/lib/$p#xorg$p-git.tar.bz2"
-	hset depends xorg$p "xorgx11proto"
+	hset xorg$p url "git!git://anongit.freedesktop.org/git/xorg/lib/$p#xorg$p-git.tar.bz2"
+	hset xorg$p depends "xorgx11proto"
 done
 PACKAGES+=" $XCB_LIBS"
 
@@ -50,7 +50,7 @@ for p in  libXdmcp libX11 libfontenc libXfont libxkbfile \
 		libpciaccess \
 		 ; do
 	XORG_LIBS+=" xorg$p"
-	hset url xorg$p "git!git://anongit.freedesktop.org/git/xorg/lib/$p#xorg$p-git.tar.bz2"
+hset xorg$p url "git!git://anongit.freedesktop.org/git/xorg/lib/$p#xorg$p-git.tar.bz2"
 done
 # stupid documentation breaks build
 configure-xorglibXfont() {
@@ -165,8 +165,8 @@ for p in \
 		 ; do
 	PACKAGES+=" xorg$p"
 	fname=${p//-/}
-	hset url xorg$p "git!git://anongit.freedesktop.org/git/xorg/driver/xf86-$p#xorg$fname-git.tar.bz2"
-	hset depends xorg$p "xorgserver"
+	hset xorg$p url "git!git://anongit.freedesktop.org/git/xorg/driver/xf86-$p#xorg$fname-git.tar.bz2"
+	hset xorg$p depends "xorgserver"
 done
 
 PACKAGES+=" xorgvideo-nouveau"
