@@ -194,7 +194,7 @@ while true; do
 done
 
 #######################################################################
-## Dowmload the files, unpack, and patch them
+## Download the files, unpack, and patch them
 #######################################################################
 pushd download
 for package in $TARGET_PACKAGES; do 
@@ -324,10 +324,10 @@ EOF
 #######################################################################
 ## Create base rootfs tree
 #######################################################################
-rsync -a files/ "$ROOTFS/"
-if [ -d "$CONFIG/files" ]; then
+rsync -a "$PATCHES/rootfs-base/" "$ROOTFS/"
+if [ -d "$CONFIG/rootfs" ]; then
 	echo "#### Installing overrides"
-	(cd "$CONFIG/files"; tar cf - .)|(cd "$ROOTFS"; tar xf -)
+	(cd "$CONFIG/rootfs"; tar cf - .)|(cd "$ROOTFS"; tar xf -)
 fi
 
 #######################################################################
