@@ -2,11 +2,9 @@
 # check for dependencies
 function check_host_commands() {
 	local allok=1
-	echo "*** Checking for $NEEDED_HOST_COMMANDS"
+	#echo "*** Checking for $NEEDED_HOST_COMMANDS"
 	for de in $NEEDED_HOST_COMMANDS ; do
-		if path=$(which "$de"); then
-			echo "$de = $path"
-		else
+		if ! path=$(which "$de"); then
 			echo "#### Missing '$de' host command"
 			allok=0
 		fi
