@@ -1,13 +1,13 @@
 
 PACKAGES+=" libjpeg"
-hset url libjpeg	"http://www.ijg.org/files/jpegsrc.v7.tar.gz" 
+hset libjpeg url "http://www.ijg.org/files/jpegsrc.v7.tar.gz"
 
 PACKAGES+=" libpng"
-hset url libpng "ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng-1.2.42.tar.bz2"
-hset depends libpng "zlib"
+hset libpng url "ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng-1.2.42.tar.bz2"
+hset libpng depends "zlib"
 
 PACKAGES+=" libfreetype"
-hset url libfreetype "http://mirrors.aixtools.net/sv/freetype/freetype-2.3.12.tar.bz2"
+hset libfreetype url "http://mirrors.aixtools.net/sv/freetype/freetype-2.3.12.tar.bz2"
 
 install-libfreetype() {
 	install-generic
@@ -17,9 +17,9 @@ install-libfreetype() {
 }
 
 PACKAGES+=" font-bitstream-vera"
-hset url font-bitstream-vera "http://ftp.gnome.org/pub/GNOME/sources/ttf-bitstream-vera/1.10/ttf-bitstream-vera-1.10.tar.bz2"
-hset depends font-bitstream-vera "libfontconfig"
-hset phases font-bitstream-vera "deploy"
+hset font-bitstream-vera url "http://ftp.gnome.org/pub/GNOME/sources/ttf-bitstream-vera/1.10/ttf-bitstream-vera-1.10.tar.bz2"
+hset font-bitstream-vera depends "libfontconfig"
+hset font-bitstream-vera phases "deploy"
 
 deploy-font-bitstream-vera() {
 	local path="$ROOTFS"/usr/share/fonts/truetype/ttf-bitstream-vera
@@ -28,8 +28,8 @@ deploy-font-bitstream-vera() {
 }
 
 PACKAGES+=" libfontconfig"
-hset url libfontconfig "http://www.fontconfig.org/release/fontconfig-2.8.0.tar.gz"
-hset depends libfontconfig "libexpat libfreetype"
+hset libfontconfig url "http://www.fontconfig.org/release/fontconfig-2.8.0.tar.gz"
+hset libfontconfig depends "libexpat libfreetype"
 
 configure-libfontconfig-local() {
 	export LDFLAGS="$LDFLAGS_RLINK"
@@ -69,7 +69,7 @@ deploy-libfontconfig() {
 }
 
 PACKAGES+=" libpixman"
-hset url libpixman "http://xorg.freedesktop.org/archive/individual/lib/pixman-0.17.6.tar.bz2"
+hset libpixman url "http://xorg.freedesktop.org/archive/individual/lib/pixman-0.17.6.tar.bz2"
 
 configure-libpixman() {
 	local extras=""
@@ -84,7 +84,7 @@ configure-libpixman() {
 }
 
 PACKAGES+=" libts"
-hset url libts "http://download2.berlios.de/tslib/tslib-1.0.tar.bz2"
+hset libts url "http://download2.berlios.de/tslib/tslib-1.0.tar.bz2"
 
 configure-libts-local() {
 	configure-generic-local \
@@ -106,11 +106,11 @@ deploy-libts() {
 }
 #
 PACKAGES+=" libim-loaders"
-hset url libim-loaders "http://ignum.dl.sourceforge.net/project/enlightenment/imlib2-src/1.4.3/imlib2_loaders-1.4.3.tar.bz2"
+hset libim-loaders url "http://ignum.dl.sourceforge.net/project/enlightenment/imlib2-src/1.4.3/imlib2_loaders-1.4.3.tar.bz2"
 
 PACKAGES+=" libim"
-hset url libim "http://ignum.dl.sourceforge.net/project/enlightenment/imlib2-src/1.4.3/imlib2-1.4.3.tar.bz2"
-hset depends libim "libpng libjpeg"
+hset libim url "http://ignum.dl.sourceforge.net/project/enlightenment/imlib2-src/1.4.3/imlib2-1.4.3.tar.bz2"
+hset libim depends "libpng libjpeg"
 
 configure-libim() {
 	configure-generic --without-x

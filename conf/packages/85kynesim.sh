@@ -1,7 +1,7 @@
 
 PACKAGES+=" module-kbus"
-hset url module-kbus "svn!http://kbus.googlecode.com/svn/#kbus-svn.tar.bz2"
-hset depends module-kbus "linux-modules"
+hset module-kbus url "svn!http://kbus.googlecode.com/svn/#kbus-svn.tar.bz2"
+hset module-kbus depends "linux-modules"
 
 configure-module-kbus() {
 	configure echo Done

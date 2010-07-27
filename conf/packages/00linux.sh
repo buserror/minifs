@@ -2,13 +2,13 @@
 ## contains the 4 main phases of compiling the kernel
 #######################################################################
 
-hset url linux		"http://www.kernel.org/pub/linux/kernel/v2.6/linux-${VERSION_linux}.tar.bz2" 
-hset targets linux	"linux-headers linux-modules linux-bare linux-initrd"
+hset linux url "http://www.kernel.org/pub/linux/kernel/v2.6/linux-${VERSION_linux}.tar.bz2"
+hset linux targets "linux-headers linux-modules linux-bare linux-initrd"
 
-hset dir linux-headers "linux"
-hset dir linux-modules "linux"
-hset dir linux-bare "linux"
-hset dir linux-initrd "linux"
+hset linux-headers dir "linux"
+hset linux-modules dir "linux"
+hset linux-bare dir "linux"
+hset linux-initrd dir "linux"
 
 # the headers gets installed first, the other phases are later
 PACKAGES+=" linux-headers"
@@ -58,7 +58,7 @@ install-linux-headers() {
 #######################################################################
 ## linux-modules
 #######################################################################
-hset depends linux-modules "linux-headers"
+hset linux-modules depends "linux-headers"
 
 configure-linux-modules() {
 	configure echo Done
@@ -84,7 +84,7 @@ deploy-linux-modules() {
 #######################################################################
 ## linux-bare
 #######################################################################
-hset depends linux-bare "linux-modules linux-headers"
+hset linux-bare depends "linux-modules linux-headers"
 
 configure-linux-bare() {
 	sed -i "s/CONFIG_INITRAMFS_SOURCE=.*/CONFIG_INITRAMFS_SOURCE=\"\"/" \
@@ -120,7 +120,7 @@ deploy-linux-bare() {
 ## linux-initrd
 #######################################################################
 
-hset depends linux-initrd "filesystems"
+hset linux-initrd depends "filesystems"
 
 configure-linux-initrd() {
 	configure echo Done 

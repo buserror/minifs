@@ -4,8 +4,8 @@ if [ ! -f "$GCC" -o "$COMMAND_PACKAGE" == "crosstools" ]; then
 	NEED_CROSSTOOLS="crosstools"
 	TARGET_PACKAGES+=" crosstools"
 fi
-hset url crosstools	"http://ymorin.is-a-geek.org/download/crosstool-ng/crosstool-ng-${VERSION_crosstools}.tar.bz2" 
-hset depends crosstools "linux-headers"
+hset crosstools url "http://ymorin.is-a-geek.org/download/crosstool-ng/crosstool-ng-${VERSION_crosstools}.tar.bz2"
+hset crosstools depends "linux-headers"
 
 configure-crosstools() {
 	# remove "read only" mode
@@ -78,9 +78,9 @@ install-crosstools() {
 }
 
 PACKAGES+=" systemlibs"
-hset url systemlibs "none"
-hset dir systemlibs "."
-hset depends systemlibs "crosstools"
+hset systemlibs url "none"
+hset systemlibs dir "."
+hset systemlibs depends "crosstools"
 
 configure-systemlibs() {
 	configure echo Done
@@ -96,10 +96,10 @@ install-systemlibs() {
 
 
 PACKAGES+=" gdbserver"
-hset url gdbserver "none"
-hset dir gdbserver "."
-hset phases gdbserver "deploy"
-hset depends gdbserver "busybox"
+hset gdbserver url "none"
+hset gdbserver dir "."
+hset gdbserver phases "deploy"
+hset gdbserver depends "busybox"
 
 deploy-gdbserver() {
 	local src="$TOOLCHAIN/$TARGET_FULL_ARCH"/debug-root/usr/bin/gdbserver
@@ -110,8 +110,8 @@ deploy-gdbserver() {
 }
 
 PACKAGES+=" strace"
-hset url strace "http://kent.dl.sourceforge.net/project/strace/strace/4.5.19/strace-4.5.19.tar.bz2"
-hset depends strace "busybox"
+hset strace url "http://kent.dl.sourceforge.net/project/strace/strace/4.5.19/strace-4.5.19.tar.bz2"
+hset strace depends "busybox"
 
 configure-strace() {
 	sed -i -e 's|#undef HAVE_LINUX_NETLINK_H|#define HAVE_LINUX_NETLINK_H 1|' \

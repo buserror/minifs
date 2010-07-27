@@ -34,12 +34,12 @@ function optional-one-of () {
 	done
 }
 
-hset() {
+function hset() {
 	local k="${2//-/}"
 	eval "$1""$k"='$3'
 }
 
-hget() {
+function hget() {
 	local k="${2//-/}"
 	# echo GET  $1 $2 1>&2
 	eval echo '${'"$1$k"'#hash}'
@@ -145,7 +145,7 @@ function remove_package() {
 	echo Looks like $pack was removed. good luck.
 }
 
-dump-depends() {
+function dump-depends() {
 	(
 	echo 'digraph G { rankdir=LR; node [shape=rect]; '
 	local all="$PACKAGES crosstools"

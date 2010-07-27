@@ -2,8 +2,8 @@
 PACKAGES+=" filesystems"
 FILESYSTEMS="filesystem-prepack"
 
-hset url filesystems "none"
-hset depends filesystems "busybox sharedlibs"
+hset filesystems url "none"
+hset filesystems depends "busybox sharedlibs"
 
 if [ $TARGET_FS_SQUASH -eq 1 ]; then
 	FILESYSTEMS+=" filesystem-squash"
@@ -22,22 +22,22 @@ if [ "$TARGET_FS_INITRD" != "" ]; then
 fi
 
 PACKAGES+=" $FILESYSTEMS"
-hset targets filesystems "$FILESYSTEMS"
+hset filesystems targets "$FILESYSTEMS"
 
-hset dir filesystem-prepack "."
-hset phases filesystem-prepack "deploy"
-hset dir filesystem-squash "."
-hset phases filesystem-squash "deploy"
-hset depends filesystem-squash "filesystem-prepack"
-hset dir filesystem-ext "."
-hset phases filesystem-ext "deploy"
-hset depends filesystem-ext "filesystem-prepack"
-hset dir filesystem-jffs "."
-hset phases filesystem-jffs "deploy"
-hset depends filesystem-jffs "filesystem-prepack"
-hset dir filesystem-initrd "linux-obj"
-hset phases filesystem-initrd "deploy"
-hset depends filesystem-initrd "filesystem-prepack"
+hset filesystem-prepack dir "."
+hset filesystem-prepack phases "deploy"
+hset filesystem-squash dir "."
+hset filesystem-squash phases "deploy"
+hset filesystem-squash depends "filesystem-prepack"
+hset filesystem-ext dir "."
+hset filesystem-ext phases "deploy"
+hset filesystem-ext depends "filesystem-prepack"
+hset filesystem-jffs dir "."
+hset filesystem-jffs phases "deploy"
+hset filesystem-jffs depends "filesystem-prepack"
+hset filesystem-initrd dir "linux-obj"
+hset filesystem-initrd phases "deploy"
+hset filesystem-initrd depends "filesystem-prepack"
 
 deploy-filesystem-prepack() {
 	deploy echo Copying

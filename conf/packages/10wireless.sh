@@ -1,6 +1,6 @@
 
 PACKAGES+=" wireless-tools"
-hset url wireless-tools "http://www.hpl.hp.com/personal/Jean_Tourrilhes/Linux/wireless_tools.29.tar.gz"
+hset wireless-tools url "http://www.hpl.hp.com/personal/Jean_Tourrilhes/Linux/wireless_tools.29.tar.gz"
 
 compile-wireless-tools() {
 	compile $MAKE \
@@ -25,12 +25,12 @@ deploy-wireless-tools() {
 }
 
 PACKAGES+=" libnl"
-hset url libnl "http://www.infradead.org/~tgr/libnl/files/libnl-1.0-pre6.tar.gz"
+hset libnl url "http://www.infradead.org/~tgr/libnl/files/libnl-1.0-pre6.tar.gz"
 
 PACKAGES+=" libnl-tiny"
-hset url libnl-tiny "svn!svn://svn.openwrt.org/openwrt/branches/backfire/package/libnl-tiny#libnl-tiny-svn.tar.bz2"
-hset svnopt libnl-tiny "none" # no default -s
-hset dir libnl-tiny "libnl-tiny/src"
+hset libnl-tiny url "svn!svn://svn.openwrt.org/openwrt/branches/backfire/package/libnl-tiny#libnl-tiny-svn.tar.bz2"
+hset libnl-tiny svnopt "none" # no default -s
+hset libnl-tiny dir "libnl-tiny/src"
 
 compile-libnl-tiny() {
 	compile $MAKE -j4 CC=$GCC CFLAGS="$TARGET_CPPFLAGS $TARGET_CFLAGS"
@@ -46,9 +46,9 @@ install-libnl-tiny() {
 }
 
 PACKAGES+=" wpa-supplicant"
-hset url wpa-supplicant "http://hostap.epitest.fi/releases/wpa_supplicant-0.7.1.tar.gz"
-hset dir wpa-supplicant "wpa-supplicant/wpa_supplicant"
-hset depends wpa-supplicant "libreadline libncurses libnl-tiny"
+hset wpa-supplicant url "http://hostap.epitest.fi/releases/wpa_supplicant-0.7.1.tar.gz"
+hset wpa-supplicant dir "wpa-supplicant/wpa_supplicant"
+hset wpa-supplicant depends "libreadline libncurses libnl-tiny"
 
 configure-wpa-supplicant-local() {
 	if [ ! -f .config ]; then rm ._* ; fi

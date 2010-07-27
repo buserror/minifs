@@ -4,10 +4,10 @@ if [ $TARGET_SHARED -eq 1 ]; then
 	TARGET_PACKAGES+=" sharedlibs"
 fi
 
-hset url sharedlibs "none" 
-hset dir sharedlibs "."
-hset phases sharedlibs "deploy"
-hset depends sharedlibs "systemlibs"
+hset sharedlibs url "none"
+hset sharedlibs dir "."
+hset sharedlibs phases "deploy"
+hset sharedlibs depends "systemlibs"
 
 deploy-sharedlibs() {
 	deploy echo Copying

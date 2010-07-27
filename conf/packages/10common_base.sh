@@ -4,7 +4,7 @@
 ## zlib
 #######################################################################
 PACKAGES+=" zlib"
-hset url zlib "http://www.zlib.net/zlib-1.2.4.tar.gz" 
+hset zlib url "http://www.zlib.net/zlib-1.2.4.tar.gz"
 
 configure-zlib() {
 	export LDFLAGS=${LDFLAGS/-static/}
@@ -17,14 +17,14 @@ configure-zlib() {
 ## lzo
 #######################################################################
 PACKAGES+=" lzo"
-hset url lzo "http://www.oberhumer.com/opensource/lzo/download/lzo-2.03.tar.gz"
+hset lzo url "http://www.oberhumer.com/opensource/lzo/download/lzo-2.03.tar.gz"
 
 #######################################################################
 ## e2fsprog
 #######################################################################
 PACKAGES+=" e2fsprogs"
-hset url e2fsprogs	"http://heanet.dl.sourceforge.net/project/e2fsprogs/e2fsprogs/1.41.9/e2fsprogs-libs-1.41.9.tar.gz"
-hset depends e2fsprogs "busybox"
+hset e2fsprogs url "http://heanet.dl.sourceforge.net/project/e2fsprogs/e2fsprogs/1.41.9/e2fsprogs-libs-1.41.9.tar.gz"
+hset e2fsprogs depends "busybox"
 
 configure-e2fsprogs() {
 	configure-generic \
@@ -35,15 +35,15 @@ configure-e2fsprogs() {
 ## screen
 #######################################################################
 PACKAGES+=" screen"
-hset url screen "http://ftp.gnu.org/gnu/screen/screen-4.0.3.tar.gz" 
-hset depends screen "busybox"
+hset screen url "http://ftp.gnu.org/gnu/screen/screen-4.0.3.tar.gz"
+hset screen depends "busybox"
 
 #######################################################################
 ## i2c-tools
 #######################################################################
 PACKAGES+=" i2c"
-hset url i2c "http://dl.lm-sensors.org/i2c-tools/releases/i2c-tools-3.0.2.tar.bz2"
-hset depends i2c "busybox"
+hset i2c url "http://dl.lm-sensors.org/i2c-tools/releases/i2c-tools-3.0.2.tar.bz2"
+hset i2c depends "busybox"
 
 configure-i2c() {
 	configure echo Done
@@ -62,13 +62,13 @@ deploy-i2c() {
 ## libusb
 #######################################################################
 PACKAGES+=" libusb"
-hset url libusb "http://kent.dl.sourceforge.net/project/libusb/libusb-0.1%20%28LEGACY%29/0.1.12/libusb-0.1.12.tar.gz"
-hset prefix libusb "$STAGING_USR"
-hset destdir libusb "none"
+hset libusb url "http://kent.dl.sourceforge.net/project/libusb/libusb-0.1%20%28LEGACY%29/0.1.12/libusb-0.1.12.tar.gz"
+hset libusb prefix "$STAGING_USR"
+hset libusb destdir "none"
 
 PACKAGES+=" usbutils"
-hset url usbutils "http://downloads.sourceforge.net/project/linux-usb/usbutils/usbutils-0.86.tar.gz"
-hset depends usbutils "libusb busybox"
+hset usbutils url "http://downloads.sourceforge.net/project/linux-usb/usbutils/usbutils-0.86.tar.gz"
+hset usbutils depends "libusb busybox"
 
 deploy-usbutils() {
 	deploy cp "$STAGING_USR"/sbin/lsusb "$ROOTFS"/usr/bin/
@@ -79,8 +79,8 @@ deploy-usbutils() {
 ## libftdi
 #######################################################################
 PACKAGES+=" libftdi"
-hset url libftdi "http://www.intra2net.com/en/developer/libftdi/download/libftdi-0.16.tar.gz"
-hset depends libftdi "libusb"
+hset libftdi url "http://www.intra2net.com/en/developer/libftdi/download/libftdi-0.16.tar.gz"
+hset libftdi depends "libusb"
 
 configure-libftdi() {
 	configure-generic \
@@ -91,8 +91,8 @@ configure-libftdi() {
 ## mtd_utils
 #######################################################################
 PACKAGES+=" mtd_utils"
-hset url mtd_utils "http://git.infradead.org/mtd-utils.git/snapshot/a67747b7a314e685085b62e8239442ea54959dbc.tar.gz#mtd_utils.tgz"
-hset depends mtd_utils "zlib lzo e2fsprogs"
+hset mtd_utils url "http://git.infradead.org/mtd-utils.git/snapshot/a67747b7a314e685085b62e8239442ea54959dbc.tar.gz#mtd_utils.tgz"
+hset mtd_utils depends "zlib lzo e2fsprogs"
 
 configure-mtd_utils() {
 	configure echo Done
@@ -114,16 +114,16 @@ deploy-mtd_utils() {
 #######################################################################
 
 PACKAGES+=" udev"
-hset url udev "http://www.kernel.org/pub/linux/utils/kernel/hotplug/udev-151.tar.bz2"
-hset depends udev "busybox"
+hset udev url "http://www.kernel.org/pub/linux/utils/kernel/hotplug/udev-151.tar.bz2"
+hset udev depends "busybox"
 
 install-udev() {
 	log_install echo Skipping udev install. yuck
 }
 
 PACKAGES+=" hotplug2"
-hset url hotplug2 "http://isteve.bofh.cz/~isteve/hotplug2/downloads/hotplug2-0.9.tar.gz"
-hset depends hotplug2 "busybox"
+hset hotplug2 url "http://isteve.bofh.cz/~isteve/hotplug2/downloads/hotplug2-0.9.tar.gz"
+hset hotplug2 depends "busybox"
 
 configure-hotplug2() {
 	configure echo Done

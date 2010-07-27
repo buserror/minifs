@@ -2,8 +2,8 @@
 NVIDIA_VERSION=195.36.15
 NVIDIA_NAME=NVIDIA-Linux-x86-${NVIDIA_VERSION}-pkg1
 PACKAGES+=" nvidia"
-hset url nvidia "http://us.download.nvidia.com/XFree86/Linux-x86/$NVIDIA_VERSION/$NVIDIA_NAME.run"
-hset depends nvidia "xorgserver linux-modules"
+hset nvidia url "http://us.download.nvidia.com/XFree86/Linux-x86/$NVIDIA_VERSION/$NVIDIA_NAME.run"
+hset nvidia depends "xorgserver linux-modules"
 
 uncompress-nvidia() {
 	echo nvidia: $*

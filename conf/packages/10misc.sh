@@ -1,16 +1,16 @@
 
 
 PACKAGES+=" libexpat"
-hset url libexpat "http://downloads.sourceforge.net/project/expat/expat/2.0.1/expat-2.0.1.tar.gz"
+hset libexpat url "http://downloads.sourceforge.net/project/expat/expat/2.0.1/expat-2.0.1.tar.gz"
 
 PACKAGES+=" libreadline"
-hset url libreadline "ftp://ftp.gnu.org/gnu/readline/readline-6.1.tar.gz"
+hset libreadline url "ftp://ftp.gnu.org/gnu/readline/readline-6.1.tar.gz"
 
 PACKAGES+=" libncurses"
-hset url libncurses "http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.7.tar.gz"
+hset libncurses url "http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.7.tar.gz"
 
 PACKAGES+=" libnetsnmp"
-hset url libnetsnmp "http://downloads.sourceforge.net/project/net-snmp/net-snmp/5.5/net-snmp-5.5.tar.gz#netsnmp-5.5.tgz"
+hset libnetsnmp url "http://downloads.sourceforge.net/project/net-snmp/net-snmp/5.5/net-snmp-5.5.tar.gz#netsnmp-5.5.tgz"
 
 configure-libnetsnmp() {
 	configure-generic \
@@ -28,7 +28,7 @@ configure-libnetsnmp() {
 
 # this is only needed for uclibc! otherwise eglibc has one already
 PACKAGES+=" libiconv"
-hset url libiconv "http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.13.1.tar.gz"
+hset libiconv url "http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.13.1.tar.gz"
 
 configure-libiconv() {
 	configure-generic \
@@ -37,7 +37,7 @@ configure-libiconv() {
 }
 
 PACKAGES+=" libxml2"
-hset url libxml2 "ftp://xmlsoft.org/libxml2/libxml2-2.7.6.tar.gz"
+hset libxml2 url "ftp://xmlsoft.org/libxml2/libxml2-2.7.6.tar.gz"
 
 install-libxml2() {
 	install-generic
@@ -51,7 +51,7 @@ install-libxml2() {
 }
 
 PACKAGES+=" libgettext"
-hset url libgettext "http://ftp.gnu.org/pub/gnu/gettext/gettext-0.17.tar.gz"
+hset libgettext url "http://ftp.gnu.org/pub/gnu/gettext/gettext-0.17.tar.gz"
 
 configure-libgettext() {
 	configure-generic \
@@ -71,11 +71,11 @@ configure-libgettext() {
 #######################################################################
 
 PACKAGES+=" libgpg-error"
-hset url libgpg-error "ftp://ftp.gnupg.org/gcrypt/libgpg-error/libgpg-error-1.7.tar.bz2"
+hset libgpg-error url "ftp://ftp.gnupg.org/gcrypt/libgpg-error/libgpg-error-1.7.tar.bz2"
 
 PACKAGES+=" libgcrypt"
-hset url libgcrypt "ftp://ftp.gnupg.org/gcrypt/libgcrypt/libgcrypt-1.4.5.tar.bz2"
-hset depends libgcrypt "libgpg-error"
+hset libgcrypt url "ftp://ftp.gnupg.org/gcrypt/libgcrypt/libgcrypt-1.4.5.tar.bz2"
+hset libgcrypt depends "libgpg-error"
 
 configure-libgcrypt() {
 	export LDFLAGS="$LDFLAGS_RLINK"
@@ -84,8 +84,8 @@ configure-libgcrypt() {
 }
 
 PACKAGES+=" gnutls"
-hset url gnutls "http://ftp.gnu.org/pub/gnu/gnutls/gnutls-2.8.6.tar.bz2"
-hset depends gnutls "libgcrypt"
+hset gnutls url "http://ftp.gnu.org/pub/gnu/gnutls/gnutls-2.8.6.tar.bz2"
+hset gnutls depends "libgcrypt"
 
 configure-gnutls() {
 	export LDFLAGS="$LDFLAGS_RLINK"
@@ -100,7 +100,7 @@ configure-gnutls() {
 ## OpenSSL
 #######################################################################
 PACKAGES+=" openssl"
-hset url openssl "http://www.openssl.org/source/openssl-0.9.8m.tar.gz"
+hset openssl url "http://www.openssl.org/source/openssl-0.9.8m.tar.gz"
 
 configure-openssl() {
 	configure ./config --prefix=/usr --install_prefix="$STAGING" no-asm shared
@@ -115,13 +115,13 @@ compile-openssl() {
 ## Netscape security API
 #######################################################################
 PACKAGES+=" libnspr"
-hset url libnspr "https://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v4.8.4/src/nspr-4.8.4.tar.gz"
-hset dir libnspr "libnspr/mozilla/nsprpub"
-hset phases libnspr "none"
+hset libnspr url "https://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v4.8.4/src/nspr-4.8.4.tar.gz"
+hset libnspr dir "libnspr/mozilla/nsprpub"
+hset libnspr phases "none"
 
 PACKAGES+=" libnss"
-hset url libnss "https://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_3_12_3_RTM/src/nss-3.12.3.tar.bz2"
-hset depends libnss "libnspr"
+hset libnss url "https://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_3_12_3_RTM/src/nss-3.12.3.tar.bz2"
+hset libnss depends "libnspr"
 
 configure-libnss() {
 	rm -f mozilla/nsprpub
@@ -163,13 +163,13 @@ install-libnss() {
 ## curl
 #######################################################################
 PACKAGES+=" libcurl"
-hset url libcurl "http://curl.haxx.se/download/curl-7.20.0.tar.bz2"
+hset libcurl url "http://curl.haxx.se/download/curl-7.20.0.tar.bz2"
 
 PACKAGES+=" curl"
-hset url curl "none"
-hset depends curl "libcurl busybox"
-hset dir curl "libcurl"
-hset phases curl "deploy"
+hset curl url "none"
+hset curl depends "libcurl busybox"
+hset curl dir "libcurl"
+hset curl phases "deploy"
 
 configure-libcurl() {
 	local extras=""	
@@ -192,8 +192,8 @@ deploy-curl() {
 }
 
 PACKAGES+=" rsync"
-hset url rsync "http://samba.anu.edu.au/ftp/rsync/src/rsync-3.0.7.tar.gz"
-hset depends "busybox"
+hset rsync url "http://samba.anu.edu.au/ftp/rsync/src/rsync-3.0.7.tar.gz"
+hset "busybox" depends
 
 deploy-rsync() {
 	deploy cp "$STAGING_USR"/bin/rsync "$ROOTFS"/bin/

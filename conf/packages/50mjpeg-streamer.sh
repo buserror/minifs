@@ -4,8 +4,8 @@
 #######################################################################
 PACKAGES+=" mjpg"
 
-hset url mjpg 		"mjpg-streamer.tar.bz2"
-hset depends mjpg "busybox libjpeg"
+hset mjpg url "mjpg-streamer.tar.bz2"
+hset mjpg depends "busybox libjpeg"
 
 download-mjpg() {
 	pushd "$DOWNLOAD"

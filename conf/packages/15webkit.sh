@@ -1,10 +1,10 @@
 
 PACKAGES+=" libenchant"
-hset url libenchant "http://www.abisource.com/downloads/enchant/1.5.0/enchant-1.5.0.tar.gz"
+hset libenchant url "http://www.abisource.com/downloads/enchant/1.5.0/enchant-1.5.0.tar.gz"
 #hset depends libwebkit "libgperf libgtk"
 
 PACKAGES+=" libsoup"
-hset url libsoup "git!git://git.gnome.org/libsoup#libsoup-git.tar.bz2"
+hset libsoup url "git!git://git.gnome.org/libsoup#libsoup-git.tar.bz2"
 
 configure-libsoup() {
 	configure-generic \
@@ -14,11 +14,11 @@ configure-libsoup() {
 }
 
 PACKAGES+=" sqlite3"
-hset url sqlite3 "http://www.sqlite.org/sqlite-3.6.22.tar.gz"
+hset sqlite3 url "http://www.sqlite.org/sqlite-3.6.22.tar.gz"
 
 PACKAGES+=" libxslt"
-hset url libxslt "ftp://ftp.gnome.org/pub/GNOME/sources/libxslt/1.1/libxslt-1.1.22.tar.bz2"
-hset depends libxslt "libxml2"
+hset libxslt url "ftp://ftp.gnome.org/pub/GNOME/sources/libxslt/1.1/libxslt-1.1.22.tar.bz2"
+hset libxslt depends "libxml2"
 
 configure-libxslt() {
 	configure-generic --without-crypto 
@@ -26,20 +26,20 @@ configure-libxslt() {
 
 # for gst-plugins-base etc
 PACKAGES+=" liboil"
-hset url liboil "http://liboil.freedesktop.org/download/liboil-0.3.17.tar.gz"
+hset liboil url "http://liboil.freedesktop.org/download/liboil-0.3.17.tar.gz"
 
 PACKAGES+=" libalsa"
-hset url libalsa "ftp://ftp.alsa-project.org/pub/lib/alsa-lib-1.0.22.tar.bz2"
+hset libalsa url "ftp://ftp.alsa-project.org/pub/lib/alsa-lib-1.0.22.tar.bz2"
 
 deploy-libalsa() {
 	deploy rsync -a "$STAGING_USR"/share/alsa "$ROOTFS"/usr/share/
 }
 
 PACKAGES+=" libogg"
-hset url libogg "http://downloads.xiph.org/releases/ogg/libogg-1.1.4.tar.gz"
+hset libogg url "http://downloads.xiph.org/releases/ogg/libogg-1.1.4.tar.gz"
 
 PACKAGES+=" libvorbis"
-hset url libvorbis "http://downloads.xiph.org/releases/vorbis/libvorbis-1.2.3.tar.gz"
+hset libvorbis url "http://downloads.xiph.org/releases/vorbis/libvorbis-1.2.3.tar.gz"
 
 configure-libvorbis() {
 	export LDFLAGS="$LDFLAGS_RLINK"
@@ -50,10 +50,10 @@ configure-libvorbis() {
 CONFIG_GSTREAMER_VERSION=0.10.26
 
 PACKAGES+=" gstreamer gst-plugins-base"
-hset url gstreamer "http://gstreamer.freedesktop.org/src/gstreamer/gstreamer-$CONFIG_GSTREAMER_VERSION.tar.bz2"
-hset url gst-plugins-base "http://gstreamer.freedesktop.org/src/gst-plugins-base/gst-plugins-base-$CONFIG_GSTREAMER_VERSION.tar.bz2"
-hset depends gst-plugins-base "liboil libalsa libogg libvorbis gstreamer"
-hset depends gstreamer "gst-plugins-base"
+hset gstreamer url "http://gstreamer.freedesktop.org/src/gstreamer/gstreamer-$CONFIG_GSTREAMER_VERSION.tar.bz2"
+hset gst-plugins-base url "http://gstreamer.freedesktop.org/src/gst-plugins-base/gst-plugins-base-$CONFIG_GSTREAMER_VERSION.tar.bz2"
+hset gst-plugins-base depends "liboil libalsa libogg libvorbis gstreamer"
+hset gstreamer depends "gst-plugins-base"
 
 configure-gstreamer() {
 	export LDFLAGS="$LDFLAGS_RLINK"
@@ -71,8 +71,8 @@ configure-gst-plugins-base() {
 }
 
 PACKAGES+=" libicu"
-hset url libicu "http://download.icu-project.org/files/icu4c/4.2.1/icu4c-4_2_1-src.tgz"
-hset dir libicu "libicu/source"
+hset libicu url "http://download.icu-project.org/files/icu4c/4.2.1/icu4c-4_2_1-src.tgz"
+hset libicu dir "libicu/source"
 
 # libicu needs a host version of itself
 configure-libicu-local() {
@@ -109,8 +109,8 @@ install-libicu() {
 
 
 PACKAGES+=" libwebkit"
-hset url libwebkit "git!git://git.webkit.org/WebKit.git#libwebkit-git.tar.bz2"
-hset depends libwebkit "libicu libenchant libsoup sqlite3 libxslt libgtk gstreamer"
+hset libwebkit url "git!git://git.webkit.org/WebKit.git#libwebkit-git.tar.bz2"
+hset libwebkit depends "libicu libenchant libsoup sqlite3 libxslt libgtk gstreamer"
 
 # needs on the host
 # gtk-docize 
@@ -136,9 +136,9 @@ deploy-libwebkit() {
 
 PACKAGES+=" flashplugin"
 #hset url flashplugin "http://fpdownload.macromedia.com/get/flashplayer/current/install_flash_player_10_linux.tar.gz#flashplugin-10.tarb"
-hset url flashplugin "http://download.macromedia.com/pub/labs/flashplayer10/flashplayer10_1_p3_linux_022310.tar.gz#flashplugin-10.1.tarb"
-hset phases flashplugin "deploy"
-hset depends flashplugin "gnutls libcurl libnss libwebkit"
+hset flashplugin url "http://download.macromedia.com/pub/labs/flashplayer10/flashplayer10_1_p3_linux_022310.tar.gz#flashplugin-10.1.tarb"
+hset flashplugin phases "deploy"
+hset flashplugin depends "gnutls libcurl libnss libwebkit"
 
 deploy-flashplugin() {
 	deploy echo Deploying flashplugin

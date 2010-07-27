@@ -1,7 +1,7 @@
 
 PACKAGES+=" libdirectfb"
-hset url libdirectfb "http://www.directfb.org/downloads/Core/DirectFB-1.4/DirectFB-1.4.3.tar.gz"
-hset depends libdirectfb "libts"
+hset libdirectfb url "http://www.directfb.org/downloads/Core/DirectFB-1.4/DirectFB-1.4.3.tar.gz"
+hset libdirectfb depends "libts"
 
 configure-libdirectfb() {
 	configure-generic \
@@ -19,9 +19,9 @@ deploy-libdirectfb() {
 }
 
 PACKAGES+=" libglib"
-hset url libglib "http://ftp.gnome.org/pub/gnome/sources/glib/2.23/glib-2.23.4.tar.bz2"
-hset prefix libglib "$STAGING_USR"
-hset destdir libglib "none"
+hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.23/glib-2.23.4.tar.bz2"
+hset libglib prefix "$STAGING_USR"
+hset libglib destdir "none"
 # this is needed for uclibc not NOT otherwise!
 # hset depends libglib "libiconv"
 
@@ -40,8 +40,8 @@ glib_cv_uscore=no
 }
 
 PACKAGES+=" libcairo"
-hset url libcairo "http://www.cairographics.org/releases/cairo-1.8.10.tar.gz"
-hset depends libcairo "libfreetype libglib libpixman"
+hset libcairo url "http://www.cairographics.org/releases/cairo-1.8.10.tar.gz"
+hset libcairo depends "libfreetype libglib libpixman"
 
 configure-libcairo() {
 	local extras=""
@@ -64,8 +64,8 @@ configure-libcairo() {
 }
 
 PACKAGES+=" libpango"
-hset url libpango "http://ftp.gnome.org/pub/gnome/sources/pango/1.26/pango-1.26.2.tar.bz2"
-hset depends libpango "libglib libcairo"
+hset libpango url "http://ftp.gnome.org/pub/gnome/sources/pango/1.26/pango-1.26.2.tar.bz2"
+hset libpango depends "libglib libcairo"
 
 configure-libpango() {
 	export LDFLAGS="$LDFLAGS_RLINK"
@@ -94,11 +94,11 @@ deploy-libpango() {
 }
 
 PACKAGES+=" libatk"
-hset url libatk "http://ftp.gnome.org/pub/gnome/sources/atk/1.28/atk-1.28.0.tar.bz2"
+hset libatk url "http://ftp.gnome.org/pub/gnome/sources/atk/1.28/atk-1.28.0.tar.bz2"
 
 PACKAGES+=" libgtk"
-hset url libgtk "http://ftp.gnome.org/pub/gnome/sources/gtk+/2.18/gtk+-2.18.7.tar.gz#libgtk-2.18.tar.gz"
-hset depends libgtk "libpango libatk libgtkhicolor"
+hset libgtk url "http://ftp.gnome.org/pub/gnome/sources/gtk+/2.18/gtk+-2.18.7.tar.gz#libgtk-2.18.tar.gz"
+hset libgtk depends "libpango libatk libgtkhicolor"
 
 configure-libgtk() {
 	printf "gio_can_sniff=yes" >fake_gtk_cache.conf
@@ -119,7 +119,7 @@ configure-libgtk() {
 	export LDFLAGS="$LDFLAGS_BASE"
 }
 PACKAGES+=" libgtkhicolor"
-hset url libgtkhicolor "http://icon-theme.freedesktop.org/releases/hicolor-icon-theme-0.12.tar.gz"
+hset libgtkhicolor url "http://icon-theme.freedesktop.org/releases/hicolor-icon-theme-0.12.tar.gz"
 
 deploy-libgtk-local() {
 	cp -r "$STAGING_USR"/etc/gtk-2.0 "$ROOTFS"/etc
@@ -135,11 +135,11 @@ deploy-libgtk() {
 }
 
 PACKAGES+=" libcroco"
-hset url libcroco "ftp://ftp.gnome.org/pub/GNOME/sources/libcroco/0.6/libcroco-0.6.2.tar.bz2"
+hset libcroco url "ftp://ftp.gnome.org/pub/GNOME/sources/libcroco/0.6/libcroco-0.6.2.tar.bz2"
 
 PACKAGES+=" librsvg"
-hset url librsvg "http://ftp.gnome.org/pub/gnome/sources/librsvg/2.26/librsvg-2.26.0.tar.bz2"
-hset depends librsvg "libcroco libxml2 libgtk"
+hset librsvg url "http://ftp.gnome.org/pub/gnome/sources/librsvg/2.26/librsvg-2.26.0.tar.bz2"
+hset librsvg depends "libcroco libxml2 libgtk"
 
 configure-librsvg() {
 	export LDFLAGS="$LDFLAGS_RLINK"

@@ -3,9 +3,9 @@
 #######################################################################
 PACKAGES+=" dropbear"
 
-hset url dropbear	"http://matt.ucc.asn.au/dropbear/releases/dropbear-0.52.tar.bz2" 
-hset prefix dropbear "/"
-hset depends dropbear "busybox"
+hset dropbear url "http://matt.ucc.asn.au/dropbear/releases/dropbear-0.52.tar.bz2"
+hset dropbear prefix "/"
+hset dropbear depends "busybox"
 
 configure-dropbear() {
 	configure-generic \

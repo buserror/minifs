@@ -1,8 +1,8 @@
 
 PACKAGES+=" lua"
-hset url lua "http://www.lua.org/ftp/lua-5.1.4.tar.gz"
-hset depends lua "libreadline libncurses busybox"
-hset destdir lua "none"
+hset lua url "http://www.lua.org/ftp/lua-5.1.4.tar.gz"
+hset lua depends "libreadline libncurses busybox"
+hset lua destdir "none"
 
 configure-lua() {
 	configure echo Done
@@ -15,8 +15,8 @@ install-lua() {
 }
 
 PACKAGES+=" toluapp"
-hset url toluapp "http://www.codenix.com/~tolua/tolua++-1.0.93.tar.bz2"
-hset depends toluapp "lua"
+hset toluapp url "http://www.codenix.com/~tolua/tolua++-1.0.93.tar.bz2"
+hset toluapp depends "lua"
 
 configure-toluapp() {
 	configure echo Done

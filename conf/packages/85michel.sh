@@ -1,9 +1,9 @@
 
 PACKAGES+=" sensors"
-hset url sensors "none"
-hset dir sensors "."
-hset destdir sensors "$STAGING_USR"
-hset depends sensors "libusb"
+hset sensors url "none"
+hset sensors dir "."
+hset sensors destdir "$STAGING_USR"
+hset sensors depends "libusb"
 
 configure-sensors() {
 	configure echo Done

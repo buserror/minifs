@@ -1,6 +1,6 @@
 
 PACKAGES+=" xorgmacros"
-hset url xorgmacros "git!git://anongit.freedesktop.org/git/xorg/util/macros#xorgmacros-git.tar.bz2"
+hset xorgmacros url "git!git://anongit.freedesktop.org/git/xorg/util/macros#xorgmacros-git.tar.bz2"
 
 XORG_LIBS=""
 XORG_PROTOS=""
@@ -21,7 +21,7 @@ for p in \
 done
 PACKAGES+=" $XORG_PROTOS"
 # make this one depends on all the others
-hset depends xorgx11proto "$XORG_PROTOS"
+hset xorgx11proto depends "$XORG_PROTOS"
 
 # these are a bit special, they are needed by libxcb :/
 XCB_LIBS=""
@@ -33,14 +33,14 @@ done
 PACKAGES+=" $XCB_LIBS"
 
 PACKAGES+=" libpthreadstubs xcbproto libxcb xkeyboardconfig"
-hset url libpthreadstubs "http://xcb.freedesktop.org/dist/libpthread-stubs-0.3.tar.gz"
-hset url xcbproto "http://xcb.freedesktop.org/dist/xcb-proto-1.6.tar.gz"
-hset url libxcb "http://xcb.freedesktop.org/dist/libxcb-1.5.tar.bz2"
-hset depends libxcb "libpthreadstubs xcbproto $XCB_LIBS"
-hset url xkeyboardconfig "http://xlibs.freedesktop.org/xkbdesc/xkeyboard-config-1.7.tar.bz2"
+hset libpthreadstubs url "http://xcb.freedesktop.org/dist/libpthread-stubs-0.3.tar.gz"
+hset xcbproto url "http://xcb.freedesktop.org/dist/xcb-proto-1.6.tar.gz"
+hset libxcb url "http://xcb.freedesktop.org/dist/libxcb-1.5.tar.bz2"
+hset libxcb depends "libpthreadstubs xcbproto $XCB_LIBS"
+hset xkeyboardconfig url "http://xlibs.freedesktop.org/xkbdesc/xkeyboard-config-1.7.tar.bz2"
 
 PACKAGES+=" xtrans" 
-hset url xtrans "http://www.x.org/releases/individual/lib/xtrans-1.2.5.tar.bz2"
+hset xtrans url "http://www.x.org/releases/individual/lib/xtrans-1.2.5.tar.bz2"
 
 # libXfont needs "xmlto" tool on the host
 for p in  libXdmcp libX11 libfontenc libXfont libxkbfile \
@@ -60,7 +60,7 @@ configure-xorglibX11() {
 	configure-generic
 	sed -i -e "s|^CFLAGS = .*|CFLAGS =|g" src/util/Makefile
 }
-hset depends xorglibX11 "libxcb xtrans xorgx11proto $XORG_LIBS"
+hset xorglibX11 depends "libxcb xtrans xorgx11proto $XORG_LIBS"
 
 configure-xorglibXt() {
 	configure-generic
@@ -68,8 +68,8 @@ configure-xorglibXt() {
 }
 
 XORG_FONTS+=" xorgfontutil xorgfontadobe"
-hset url xorgfontutil "http://www.x.org/releases/individual/font/font-util-1.1.1.tar.bz2"
-hset url xorgfontadobe "http://www.x.org/releases/individual/font/font-adobe-100dpi-1.0.1.tar.bz2"
+hset xorgfontutil url "http://www.x.org/releases/individual/font/font-util-1.1.1.tar.bz2"
+hset xorgfontadobe url "http://www.x.org/releases/individual/font/font-adobe-100dpi-1.0.1.tar.bz2"
 
 configure-xorgfontadobe() {
 	configure-generic --with-fontrootdir="/usr/share/fonts"
@@ -78,8 +78,8 @@ configure-xorgfontadobe() {
 PACKAGES+=" $XORG_LIBS $XORG_FONTS"
 
 PACKAGES+=" xkbcomp" 
-hset url xkbcomp "http://www.x.org/releases/individual/app/xkbcomp-1.1.1.tar.bz2"
-hset depends xkbcomp "xkeyboardconfig xorglibxkbfile"
+hset xkbcomp url "http://www.x.org/releases/individual/app/xkbcomp-1.1.1.tar.bz2"
+hset xkbcomp depends "xkeyboardconfig xorglibxkbfile"
 
 configure-xkbcomp() {
 	export LDFLAGS="$LDFLAGS_RLINK -lxcb"
@@ -88,9 +88,9 @@ configure-xkbcomp() {
 }
 
 PACKAGES+=" libmesadrm libmesa"
-hset url libmesadrm "git!git://anongit.freedesktop.org/git/mesa/drm#libmesadrm-git.tar.bz2"
-hset url libmesa "git!git://anongit.freedesktop.org/git/mesa/mesa#libmesa-git.tar.bz2"
-hset depends libmesa "libmesadrm xorglibX11"
+hset libmesadrm url "git!git://anongit.freedesktop.org/git/mesa/drm#libmesadrm-git.tar.bz2"
+hset libmesa url "git!git://anongit.freedesktop.org/git/mesa/mesa#libmesa-git.tar.bz2"
+hset libmesa depends "libmesadrm xorglibX11"
 
 configure-libmesadrm() {
 	configure-generic \
@@ -112,11 +112,11 @@ compile-libmesa() {
 }
 
 PACKAGES+=" libsha1"
-hset url libsha1 "git!git://github.com/dottedmag/libsha1.git#libsha1-git.tar.bz2"
+hset libsha1 url "git!git://github.com/dottedmag/libsha1.git#libsha1-git.tar.bz2"
 
 PACKAGES+=" xorgserver"
-hset url xorgserver "git!git://anongit.freedesktop.org/xorg/xserver#xorgserver-git.tar.bz2"
-hset depends xorgserver \
+hset xorgserver url "git!git://anongit.freedesktop.org/xorg/xserver#xorgserver-git.tar.bz2"
+hset xorgserver depends \
 	"busybox libsha1 libmesa xorglibX11 xorgfontutil \
 	xkbcomp xtrans \
 	xorgfontadobe \
@@ -170,8 +170,8 @@ for p in \
 done
 
 PACKAGES+=" xorgvideo-nouveau"
-hset url xorgvideo-nouveau "git!git://anongit.freedesktop.org/git/nouveau/xf86-video-nouveau#xorgvideonouveau-git.tar.bz2"
-hset depends xorgvideo-nouveau "xorgserver libmesadrm"
+hset xorgvideo-nouveau url "git!git://anongit.freedesktop.org/git/nouveau/xf86-video-nouveau#xorgvideonouveau-git.tar.bz2"
+hset xorgvideo-nouveau depends "xorgserver libmesadrm"
 
 export X11_LIBS="$STAGING_USR/lib"
 

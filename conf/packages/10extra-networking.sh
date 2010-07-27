@@ -3,8 +3,8 @@
 # tinc tunelling
 #
 PACKAGES+=" tinc"
-hset url tinc "http://www.tinc-vpn.org/packages/tinc-1.0.13.tar.gz"
-hset depends tinc "zlib lzo openssl"
+hset tinc url "http://www.tinc-vpn.org/packages/tinc-1.0.13.tar.gz"
+hset tinc depends "zlib lzo openssl"
 
 deploy-tinc-local() {
 	cp "$STAGING_USR"/sbin/tincd "$ROOTFS"/sbin/
@@ -26,11 +26,11 @@ deploy-tinc() {
 # Internet routing daemon
 #
 PACKAGES+=" bird"
-hset url bird "ftp://bird.network.cz/pub/bird/bird-1.2.2.tar.gz"
+hset bird url "ftp://bird.network.cz/pub/bird/bird-1.2.2.tar.gz"
 
 #
 # Secure Shell (bigger version than dropbear)
 #
 PACKAGES+=" openssh"
-hset url openssh "ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-5.5p1.tar.gz"
-hset depends openssh "openssl"
+hset openssh url "ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-5.5p1.tar.gz"
+hset openssh depends "openssl"
