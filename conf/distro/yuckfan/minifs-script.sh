@@ -1,31 +1,16 @@
 #!/bin/bash
 
-TARGET_ARCH=arm
-TARGET_FULL_ARCH=$TARGET_ARCH-v4t-linux-uclibcgnueabi
-TARGET_KERNEL_NAME=uImage
-TARGET_CFLAGS="-Os -march=armv4t -mtune=arm920t -mthumb-interwork -mthumb "
-
-board_set_versions() {
-	VERSION_linux=2.6.32.7
-	# for a >64Mb nand with 2k blocks and 128k erase blocks
-	# -n prevents the
-	# CLEANMARKER node found at 0x00780000 has totlen 0xc != normal 0x0
-	# when mounting the filesystem
-	# http://www.infradead.org/pipermail/linux-mtd/2004-June/009836.html
-	TARGET_FS_JFFS2="-n -q -l -p -e 0x20000 -s 0x800"
+distro_set_versions() {
 	TARGET_FS_EXT_SIZE=32768
 	TARGET_SHARED=1
 	TARGET_INITRD=1
 	TARGET_FS_SQUASH=0
 }
 
-board_prepare() {
-	TARGET_PACKAGES+=" mtd_utils "
-	TARGET_PACKAGES+=" libftdi lua"
+distro_prepare() {
+	TARGET_PACKAGES+=" lua libcurl libexpat libreadline libiconv libnetsnmp libgettext"
 
-	TARGET_PACKAGES+=" libcurl libexpat libreadline libiconv libnetsnmp libgettext"
-
-	# all of thqt for gtk
+	# all of that for gtk
 	TARGET_PACKAGES+=" libjpeg libpng libfreetype libfontconfig libpixman"
 	TARGET_PACKAGES+=" libts libdirectfb"
 	TARGET_PACKAGES+=" libgtk"
@@ -34,7 +19,7 @@ board_prepare() {
 	TARGET_PACKAGES+=" librsvg font-bitstream-vera libim"
 
 	if [ -d $HOME/Sources/Utils/yuckfan ]; then
-		TARGET_PACKAGES+=" yuckfan gdbserver"
+		TARGET_PACKAGES+=" yuckfan"
 	fi
 	if [ -d $HOME/Sources/Utils/sensors ]; then
 		TARGET_PACKAGES+=" sensors"
