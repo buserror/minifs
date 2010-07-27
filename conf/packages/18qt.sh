@@ -1,6 +1,8 @@
 
 PACKAGES+=" qt"
-hset qt url "http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.6.2.tar.gz"
+V="4.6.2"
+hset qt version $V
+hset qt url "http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-$V.tar.gz"
 hset qt depends "libts libfontconfig"
 
 configure-qt() {

@@ -150,7 +150,7 @@ function dump-depends() {
 	echo 'digraph G { rankdir=LR; node [shape=rect]; '
 	local all="$PACKAGES crosstools"
 	for pack in $all; do
-		deps=$(hget depends $pack)
+		deps=$(hget $pack depends)
 		echo \"$pack\"
 		for d in $deps; do 
 			echo "\"$pack\" -> \"$d\""

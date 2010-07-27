@@ -3,7 +3,9 @@
 #######################################################################
 PACKAGES+=" dropbear"
 
-hset dropbear url "http://matt.ucc.asn.au/dropbear/releases/dropbear-0.52.tar.bz2"
+V="0.52"
+hset dropbear version $V
+hset dropbear url "http://matt.ucc.asn.au/dropbear/releases/dropbear-$V.tar.bz2"
 hset dropbear prefix "/"
 hset dropbear depends "busybox"
 

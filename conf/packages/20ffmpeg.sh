@@ -3,7 +3,9 @@
 #######################################################################
 PACKAGES+=" ffmpeg"
 
-hset ffmpeg url "http://ffmpeg.org/releases/ffmpeg-0.5.tar.bz2"
+V="0.5"
+hset ffmpeg version $V
+hset ffmpeg url "http://ffmpeg.org/releases/ffmpeg-$V.tar.bz2"
 hset ffmpeg depends "busybox"
 
 configure-ffmpeg() {

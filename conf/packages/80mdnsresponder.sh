@@ -1,8 +1,10 @@
 #######################################################################
 ## mDSNResponder
 #######################################################################
-PACKAGES="$PACKAGES mDSNResponder"
-hset mDSNResponder url "http://www.opensource.apple.com/darwinsource/tarballs/other/mDNSResponder-107.6.tar.gz"
+PACKAGES+=" mDSNResponder"
+V="107.6"
+hset mDSNResponder version $V
+hset mDSNResponder url "http://www.opensource.apple.com/darwinsource/tarballs/other/mDNSResponder-$V.tar.gz"
 hset mDSNResponder depends "busybox"
 
 configure-mDSNResponder() {

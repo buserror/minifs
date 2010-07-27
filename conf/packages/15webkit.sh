@@ -1,6 +1,8 @@
 
 PACKAGES+=" libenchant"
-hset libenchant url "http://www.abisource.com/downloads/enchant/1.5.0/enchant-1.5.0.tar.gz"
+V="1.5.0"
+hset libenchant version $V
+hset libenchant url "http://www.abisource.com/downloads/enchant/1.5.0/enchant-$V.tar.gz"
 #hset depends libwebkit "libgperf libgtk"
 
 PACKAGES+=" libsoup"
@@ -14,10 +16,14 @@ configure-libsoup() {
 }
 
 PACKAGES+=" sqlite3"
-hset sqlite3 url "http://www.sqlite.org/sqlite-3.6.22.tar.gz"
+V="3.6.22"
+hset sqlite3 version $V
+hset sqlite3 url "http://www.sqlite.org/sqlite-$V.tar.gz"
 
 PACKAGES+=" libxslt"
-hset libxslt url "ftp://ftp.gnome.org/pub/GNOME/sources/libxslt/1.1/libxslt-1.1.22.tar.bz2"
+V="1.1.22"
+hset libxslt version $V
+hset libxslt url "ftp://ftp.gnome.org/pub/GNOME/sources/libxslt/1.1/libxslt-$V.tar.bz2"
 hset libxslt depends "libxml2"
 
 configure-libxslt() {
