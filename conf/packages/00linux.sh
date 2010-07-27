@@ -2,7 +2,7 @@
 ## contains the 4 main phases of compiling the kernel
 #######################################################################
 
-hset linux url "http://www.kernel.org/pub/linux/kernel/v2.6/linux-${VERSION_linux}.tar.bz2"
+hset linux url "http://www.kernel.org/pub/linux/kernel/v2.6/linux-$(hget linux version).tar.bz2"
 hset linux targets "linux-headers linux-modules linux-bare linux-initrd"
 
 hset linux-headers dir "linux"

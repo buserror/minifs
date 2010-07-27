@@ -97,9 +97,9 @@ for tool in "$PATCHES"/host-tools/*.c; do
 done
 if [ "$COMMAND" == "tools" ]; then exit ;fi
 
-VERSION_busybox=1.16.1
-VERSION_linux=2.6.32.2
-VERSION_crosstools=1.6.2
+hset busybox version "1.17.1"
+hset linux version "2.6.32.2"
+hset crosstools version "1.6.2"
 
 # PATH needs sbin (for depmod), the host tools, and the cross toolchain
 export PATH="$BUILD/staging-tools/bin:$TOOLCHAIN/bin:/usr/sbin:/sbin:$PATH"
@@ -261,7 +261,7 @@ for package in $TARGET_PACKAGES; do
 		old=$(cat "$BUILD/$baseroot/._url")
 		if [ "$fil" != "$old" ]; then
 			echo "  ++  Rebuilding $baseroot "
-			rm -rf "$BUILD/$baseroot" 
+			remove_package $baseroot
 		fi 
 	fi
 	if [ ! -d "$BUILD/$baseroot" ]; then

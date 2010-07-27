@@ -19,7 +19,7 @@ install-module-kbus-local() {
 	cp kbus/kbus_defns.h "$STAGING_USR"/include/kbus/
 	cp libkbus/kbus.h "$STAGING_USR"/include/kbus/
 	cp "$BUILD"/linux-obj/kbus/kbus.ko \
-		"$KERNEL"/lib/modules/$VERSION_linux/kernel/
+		"$KERNEL/lib/modules/$(hget linux version)/kernel/"
 	cp utils/kmsg "$STAGING_USR"/bin/
 	set +x
 }
