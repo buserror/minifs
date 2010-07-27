@@ -35,8 +35,9 @@ function optional-one-of () {
 }
 
 function hset() {
-	local k="${2//-/}"
-	eval "$1""$k"='$3'
+	local ka="${1//-/}"
+	local kb="${2//-/}"
+	eval "$ka$kb"='$3'
 }
 
 function hget() {

@@ -42,7 +42,7 @@ export MINIFS_BASE="$BASE"
 NEEDED_HOST_COMMANDS="make tar rsync installwatch wget git"
 
 export BUILD="$BASE/build-${TARGET_BOARD}"
-PATCHES="$BASE/patches"
+PATCHES="$BASE/conf"
 export STAGING="$BUILD/staging"
 export STAGING_USR="$STAGING/usr"
 export ROOTFS="$BUILD/rootfs"
@@ -50,7 +50,7 @@ export ROOTFS_PLUGINS=""
 export ROOTFS_KEEPERS="libnss_dns.so.2:libnss_dns-2.10.2.so:"
 export STAGING_TOOLS="$BUILD"/staging-tools
 KERNEL="$BUILD/kernel"
-CONFIG="$PATCHES/conf-$TARGET_BOARD"
+CONFIG="$PATCHES/board/$TARGET_BOARD"
  
 source "$PATCHES"/minifs-script-utils.sh
 source "$CONFIG"/minifs-script.sh
@@ -86,13 +86,13 @@ TARGET_FS_EXT=1
 TARGET_SHARED=0
 
 rm -f /tmp/pkg-config.log
-for tool in "$PATCHES"/minifs-tools/*.c; do
+for tool in "$PATCHES"/host-tools/*.c; do
 	tool=$(basename $tool)
 	tool=${tool/.c}
-	if [ "$STAGING_TOOLS"/bin/$tool -ot "$PATCHES"/minifs-tools/$tool.c ]; then
+	if [ "$STAGING_TOOLS"/bin/$tool -ot "$PATCHES"/host-tools/$tool.c ]; then
 		echo "#### compiling $tool"
-		compile=$(head -1 "$PATCHES"/minifs-tools/$tool.c|sed 's|//||')
-		$compile -o "$STAGING_TOOLS"/bin/$tool "$PATCHES"/minifs-tools/$tool.c || exit 1
+		compile=$(head -1 "$PATCHES"/host-tools/$tool.c|sed 's|//||')
+		$compile -o "$STAGING_TOOLS"/bin/$tool "$PATCHES"/host-tools/$tool.c || exit 1
 	fi
 done
 if [ "$COMMAND" == "tools" ]; then exit ;fi
@@ -123,7 +123,7 @@ export HOST_INSTALL="/usr/bin/install"
 CONFIG_MODULES=$(grep '^CONFIG_MODULES=y' "$CONFIG/config_kernel.conf")
 
 # PACKAGES is the entire list of possible packages, as filled by the 
-# patches/packages/*.sh scripts, in their ideal build order.
+# conf/packages/*.sh scripts, in their ideal build order.
 # TARGET_PACKAGES are the ones requested by the target build script, in any
 # order
 # BUILD_PACKAGES is the same, but with alias resolved so "linux" becomes
@@ -174,7 +174,7 @@ fi
 while true; do
 	changed=0; newlist=""
 	for pack in $TARGET_PACKAGES; do 
-		deps=$(hget depends $pack)
+		deps=$(hget $pack depends)
 		for d in $deps; do
 			isthere=0
 			for look in $TARGET_PACKAGES; do 
@@ -198,13 +198,13 @@ done
 #######################################################################
 pushd download
 for package in $TARGET_PACKAGES; do 
-	fil=$(hget url $package)
+	fil=$(hget $package url)
 
 	if [ "$fil" = "" ]; then continue ; fi
 
 	# adds the list of targets provided by this package
 	# to the list of the ones we want to build
-	targets=$(hget targets $package)
+	targets=$(hget $package targets)
 	BUILD_PACKAGES+=" ${targets:-$package}"
 	
 	if [ "$fil" = "none" ]; then 
@@ -235,7 +235,7 @@ for package in $TARGET_PACKAGES; do
 			;;
 			svn)	if [ ! -d "$package.svn" ]; then
 					echo "#### svn clone $url $package.git"
-					svnopt=$(hget svnopt $package)
+					svnopt=$(hget $package svnopt)
 					case "$svnopt" in 
 						none) svnopt=""; ;;
 						*) svnopt="-s"; ;;
@@ -269,7 +269,7 @@ for package in $TARGET_PACKAGES; do
 				;;
 			*)	echo ### error file format '$typ' ($base) not supported" ; exit 1
 		esac
-		for pd in "$CONFIG/$baseroot" "$PATCHES/$baseroot" ; do
+		for pd in "$CONFIG/$baseroot" "$PATCHES/patches/$baseroot" ; do
 			if [ -d "$pd" ]; then
 				echo "#### Patching $base"
 				pushd "$BUILD/$baseroot"
@@ -356,7 +356,7 @@ compile-generic() {
 ## The install default handler tries to fix libtool stupiditiew
 #######################################################################
 install-generic-local() {
-	local destdir=$(hget destdir $PACKAGE)
+	local destdir=$(hget $PACKAGE destdir)
 	local makei="installwatch -o ._dist $MAKE install"
 	case "$destdir" in
 		none) $makei "$@" ;;
@@ -414,12 +414,12 @@ done
 export DEFAULT_PHASES="configure compile install deploy"
 
 for pack in $PROCESS_PACKAGES; do 	
-	dir=$(hget dir $pack)
+	dir=$(hget $pack dir)
 	dir=${dir:-$pack}
 	# echo PACK $pack dir $dir
 	if [ -d "$BUILD/$dir" ]; then
 		package $pack $dir
-			phases=$(hget phases $pack)
+			phases=$(hget $pack phases)
 			phases=${phases:-$DEFAULT_PHASES}
 
 			if [ "$COMMAND_PACKAGE" = "$PACKAGE" ]; then
@@ -451,12 +451,12 @@ done
 echo "Deploying packages"
 # this pass does just the 'deploy' bits
 for pack in $PROCESS_PACKAGES; do 	
-	dir=$(hget dir $pack)
+	dir=$(hget $pack dir)
 	dir=${dir:-$pack}
 	# echo PACK $pack dir $dir
 	if [ -d "$BUILD/$dir" ]; then
 		package $pack $dir
-			phases=$(hget phases $pack)
+			phases=$(hget $pack phases)
 			phases=${phases:-$DEFAULT_PHASES}
 			
 			for ph in $phases; do
