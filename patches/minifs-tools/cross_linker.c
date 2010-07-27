@@ -118,6 +118,7 @@ so_str_t * so_new(so_str_t * link, uint32_t kind, char * string)
 {
 	so_str_t * str = malloc(sizeof(so_str_t));
 	str->next = link;
+	str->link = NULL;
 	str->kind = kind;
 	str->s = string ? strdup(string) : NULL;
 	str->hash = string ? crc16_string(string) : 0;
@@ -530,14 +531,33 @@ int file_simplify_neededs(so_file_t *f)
 	
 }
 
+FILE * invoke = NULL;
+
+static char * my_getenv(const char *name)
+{
+	char * en = getenv(name);
+	if (en && invoke)
+		fprintf(invoke, "export %s=\"%s\"\n", name, en);
+	return en;
+}
 
 int main(int argc, char * argv[])
 {
-	/* this is actualy mandatory !! otherwise elf_begin() fails */
+	/* this is actually mandatory !! otherwise elf_begin() fails */
 	elf_version(EV_CURRENT);
 
 	so_dir_t * dir = NULL;
 	int do_actual_purge = 0;
+
+	if (getenv("CROSS_LINKER_INVOKE"))
+		invoke = fopen(getenv("CROSS_LINKER_INVOKE"), "w");
+	my_getenv("ROOTFS");
+	my_getenv("ROOTFS_PLUGINS");
+	my_getenv("ROOTFS_KEEPERS");
+	my_getenv("CROSS_LINKER_DUMP");
+	my_getenv("CROSS_LINKER_DEPS");
+	if (invoke)
+		fprintf(invoke, "gdb %s/staging-tools/bin/%s ", getenv("BUILD"), argv[0]);
 
 	for (int pi = 1; pi < argc; pi++) {
 		if (!strcmp(argv[pi], "--root")) {
@@ -549,6 +569,12 @@ int main(int argc, char * argv[])
 		} else if (!strcmp(argv[pi], "--purge")) {
 			do_actual_purge++;
 		}
+		if (invoke)
+			fprintf(invoke, "%s ", argv[pi]);
+	}
+	if (invoke) {
+		fprintf(invoke, "\n");
+		fflush(invoke);
 	}
 	/*
 	 * Load parameters from the environment, if any
@@ -578,7 +604,7 @@ int main(int argc, char * argv[])
 		}
 	}
 
-	if (getenv("CROSS_LINKER_DUMP") && atoi(getenv("CROSS_LINKER_DUMP"))) {
+	if (my_getenv("CROSS_LINKER_DUMP") && atoi(getenv("CROSS_LINKER_DUMP"))) {
 		so_dir_t * d = dir;
 		while (d) {
 			printf("*** %s has %d files\n", d->name, d->loaded->count);
@@ -604,8 +630,8 @@ int main(int argc, char * argv[])
 			while (n) {
 				so_file_t * found = so_dir_search(dir, n->s);
 				if (!found) {
-					printf("## Warning file %s misses %s\n",
-						f->name, n->s);
+					fprintf(stderr, "%s ## Warning file %s misses %s -- possible cross compile snafu\n",
+						argv[0], f->name, n->s);
 				} else {
 					n->link = found;
 					if (found->so_name)	// help create links

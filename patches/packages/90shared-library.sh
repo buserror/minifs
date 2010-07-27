@@ -31,9 +31,10 @@ deploy-sharedlibs() {
 		"$ROOTFS/usr/lib/" 
 
 	optional $TARGET_BOARD-sharedlibs-cleanup
-	
-	# removes non-accessed libraries
-	cross_linker --purge
-	
 	) >>"$LOGFILE" 2>&1
+	# removes non-accessed libraries. We want the errors here
+	(
+	# export CROSS_LINKER_INVOKE="/tmp/cross_linker_run.sh"
+	cross_linker --purge
+	) >>"$LOGFILE"
 }
