@@ -41,9 +41,10 @@ function hset() {
 }
 
 function hget() {
-	local k="${2//-/}"
+	local ka="${1//-/}"
+	local kb="${2//-/}"
 	# echo GET  $1 $2 1>&2
-	eval echo '${'"$1$k"'#hash}'
+	eval echo '${'"$ka$kb"'#hash}'
 }
 
 function package() {
