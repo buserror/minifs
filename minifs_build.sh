@@ -4,8 +4,6 @@
 # libtool, bison, flex, genext2fs, squashfs, svn -- probably more
 # u-boot-mkimage -- for the arm targets
 
-# NOTE default root password for sshing in is "biff"
-
 # This script generates a minimal root filesystems ready to use
 # + It downloads a kernel, crosstools and busybox and does
 # + Uncompress the lot, patches if necessary
@@ -101,8 +99,9 @@ if [ "$COMMAND" == "tools" ]; then exit ;fi
 
 VERSION_busybox=1.16.1
 VERSION_linux=2.6.32.2
-VERSION_crosstools=1.6.1
+VERSION_crosstools=1.6.2
 
+# PATH needs sbin (for depmod), the host tools, and the cross toolchain
 export PATH="$BUILD/staging-tools/bin:$TOOLCHAIN/bin:/usr/sbin:/sbin:$PATH"
 
 export CC="ccfix $TARGET_FULL_ARCH-gcc"
