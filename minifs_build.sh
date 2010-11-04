@@ -4,30 +4,14 @@
 # libtool, bison, flex, genext2fs, squashfs, svn -- probably more
 # u-boot-mkimage -- for the arm targets
 
-# This script generates a minimal root filesystems ready to use
-# + It downloads a kernel, crosstools and busybox and does
-# + Uncompress the lot, patches if necessary
-# + Builds the kernel modules
-# + Installs the headers and modules in build/
-# + Builds crosstools toolchain
-# + Builds and install busybox into rootfs/
-# Then
-# + Generates a ext3 base filesystem, ready to put on a SD/USB
-# 	It is created small, but you can always use resize2fs to "fit"
-# 	it to your partition size afterward.
-# + Generates a compact squashfs filesystem [optional]
-# Then
-# + Builds the kernel proper.
-# + Builds the "ramdisk" CPIO filesystem using the kernel method
-# + Install the kernel+initrd combo file in build
-# 
-# The resulting kernel + initrd containing a pretty usefull system in 1.4MB
 # 
 # (C) Michel Pollet <buserror@gmail.com>
-
-# this is the board we are making. Several boards can co-exist, the toolchains
-# are "compatible" and live in the toolchain/ subdirectory. Several board of the
-# same arch can also coexist, sharing the same toolchain
+#
+# this is the board we are making. Several boards can co-exist, the
+# toolchains are "compatible" and live in the toolchain/ subdirectory.
+# Several board of the same arch can also coexist, sharing the same
+# toolchain
+#
 TARGET_BOARD=${TARGET_BOARD:-"atom"}
 
 COMMAND=$1
@@ -63,7 +47,8 @@ fi
 
 TOOLCHAIN="$BASE/toolchain"
 TOOLCHAIN_BUILD="$BASE/build-toolchain"
-CROSS="$TOOLCHAIN/bin/$TARGET_FULL_ARCH"
+CROSS_BASE="$TOOLCHAIN/$TARGET_FULL_ARCH/"
+CROSS="$CROSS_BASE/bin/$TARGET_FULL_ARCH"
 GCC="${CROSS}-gcc"
 
 WGET=wget
@@ -82,9 +67,10 @@ TARGET_FS_EXT=1
 # only set this if you /know/ the parameters for your NAND
 # TARGET_FS_JFFS2="-q -l -p -e 0x20000 -s 0x800"
 
-# use shared libraries ?
+# use shared libraries ? overridable in the target's scripts
 TARGET_SHARED=0
 
+# compile the "tools" for the host
 rm -f /tmp/pkg-config.log
 for tool in "$PATCHES"/host-tools/*.c; do
 	tool=$(basename $tool)
@@ -97,13 +83,15 @@ for tool in "$PATCHES"/host-tools/*.c; do
 done
 if [ "$COMMAND" == "tools" ]; then exit ;fi
 
-hset busybox version "1.17.1"
+hset busybox version "1.17.3"
 hset linux version "2.6.32.2"
-hset crosstools version "1.6.2"
+#hset crosstools version "1.6.2"
+hset crosstools version "1.8.2"
 
 # PATH needs sbin (for depmod), the host tools, and the cross toolchain
-export PATH="$BUILD/staging-tools/bin:$TOOLCHAIN/bin:/usr/sbin:/sbin:$PATH"
+export PATH="$TOOLCHAIN/bin:$TOOLCHAIN/$TARGET_FULL_ARCH/bin:$BUILD/staging-tools/bin:/usr/sbin:/sbin:$PATH"
 
+# ccfix is the prefixer for gcc that warns of "absolute" host paths
 export CC="ccfix $TARGET_FULL_ARCH-gcc"
 export CXX="ccfix $TARGET_FULL_ARCH-g++"
 export LD="ccfix $TARGET_FULL_ARCH-ld"
@@ -362,7 +350,7 @@ compile-generic() {
 	compile $MAKE -j8 $MAKE_CLEAN "$@"
 }
 #######################################################################
-## The install default handler tries to fix libtool stupiditiew
+## The install default handler tries to fix libtool stupidities
 #######################################################################
 install-generic-local() {
 	local destdir=$(hget $PACKAGE destdir)

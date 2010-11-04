@@ -3,9 +3,14 @@ if [ ! -f "$GCC" -o "$COMMAND_PACKAGE" == "crosstools" ]; then
 	PACKAGES+=" crosstools"
 	NEED_CROSSTOOLS="crosstools"
 	TARGET_PACKAGES+=" crosstools"
+	echo Rebuilding crosstools cancelled here
+	exit
 fi
 hset crosstools url "http://ymorin.is-a-geek.org/download/crosstool-ng/crosstool-ng-$(hget crosstools version).tar.bz2"
 hset crosstools depends "linux-headers"
+
+# ${HOME}/x-tools/${CT_TARGET}
+# MINIFS_TOOLCHAIN/${CT_TARGET}
 
 configure-crosstools() {
 	# remove "read only" mode
@@ -19,7 +24,7 @@ configure-crosstools() {
 		fi
 	done
 
-	configure ./configure --prefix="$TOOLCHAIN" &&
+	configure ./configure --prefix="$STAGING_TOOLS" &&
 		$MAKE &&
 		$MAKE install
 
@@ -27,12 +32,15 @@ configure-crosstools() {
 
 	# handles crosstools_menuconfig and so on
 	if [ "$COMMAND_PACKAGE" = "crosstools" ] ; then
+		set -x
 		pushd "$TOOLCHAIN_BUILD"
 			rm -f config_crosstools.conf config_uclibc.conf .config
-			cp "$CONFIG"/config_crosstools.conf \
-				"$CONFIG"/config_uclibc.conf .
-			cp config_crosstools.conf .config
-			"$TOOLCHAIN"/bin/ct-ng $COMMAND_TARGET &&
+			if [ -f "$CONFIG"/config_crosstools.conf ]; then
+				cp "$CONFIG"/config_crosstools.conf \
+					"$CONFIG"/config_uclibc.conf .
+				cp config_crosstools.conf .config
+			fi
+			"$STAGING_TOOLS"/bin/ct-ng $COMMAND_TARGET &&
 			cp .config config_crosstools.conf &&
 			cp config_crosstools.conf config_uclibc.conf \
 				"$CONFIG"/ &&
@@ -57,9 +65,9 @@ configure-crosstools() {
 		done
 
 		cp config_crosstools.conf .config
-		( unset CC CXX GCC LD CFLAGS CXXFLAGS CPPFLAGS LDFLAGS ACLOCAL; 
-		  unset PKG_CONFIG_PATH PKG_CONFIG_LIBDIR
-		"$TOOLCHAIN"/bin/ct-ng build )
+		( unset CC CXX GCC LD CFLAGS CXXFLAGS CPPFLAGS LDFLAGS ACLOCAL ; 
+		  unset PKG_CONFIG_PATH PKG_CONFIG_LIBDIR LD_LIBRARY_PATH ;
+		"$STAGING_TOOLS"/bin/ct-ng build )
 		#"$STAGING"/bin/ct-ng build.4
 	popd
 }
@@ -70,6 +78,7 @@ compile-crosstools() {
 
 # installing crosstools is just the beginning!
 install-crosstools() {
+	GCC=$(which $TARGET_FULL_ARCH-gcc)
 	if [ ! -f "$GCC" ]; then 
 		echo "GCC doesn't exists!! $GCC"
 		exit 1
@@ -90,7 +99,7 @@ compile-systemlibs() {
 }
 install-systemlibs() {
 	log_install rsync -a \
-		"$TOOLCHAIN/$TARGET_FULL_ARCH"/sys-root/lib \
+		"$CROSS_BASE/$TARGET_FULL_ARCH"/sys-root/lib \
 		"$STAGING"/
 }
 
@@ -102,7 +111,7 @@ hset gdbserver phases "deploy"
 hset gdbserver depends "busybox"
 
 deploy-gdbserver() {
-	local src="$TOOLCHAIN/$TARGET_FULL_ARCH"/debug-root/usr/bin/gdbserver
+	local src="$CROSS_BASE/$TARGET_FULL_ARCH"/debug-root/usr/bin/gdbserver
 	if [ -f "$src" ]; then
 		mkdir -p "$ROOTFS"/usr/bin
 		cp "$src" "$ROOTFS"/usr/bin/gdbserver
