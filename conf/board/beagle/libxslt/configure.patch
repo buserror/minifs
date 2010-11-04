@@ -1,0 +1,15 @@
+diff -ur libusb-0.1.12/config.sub libusb.new/config.sub
+--- libusb-0.1.12/config.sub	2004-04-12 03:01:57.000000000 +0100
++++ libusb.new/config.sub	2010-02-20 17:34:19.000000000 +0000
+@@ -152,6 +152,10 @@
+ 		os=
+ 		basic_machine=$1
+ 		;;
++	-uclibc*)
++		basic_machine=`echo $1 | sed 's/-.*//' `
++		os=`echo $1 | sed 's/-/ /g'|awk '{print "-" $3}' `
++		;;
+ 	-scout)
+ 		;;
+ 	-wrs)
+ esac
