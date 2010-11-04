@@ -27,8 +27,10 @@ hset e2fsprogs url "http://heanet.dl.sourceforge.net/project/e2fsprogs/e2fsprogs
 hset e2fsprogs depends "busybox"
 
 configure-e2fsprogs() {
+	save=$CFLAGS; CFLAGS+=" -fPIC"
 	configure-generic \
 		--disable-tls
+	CFLAGS=$save
 }
 
 #######################################################################
@@ -70,7 +72,13 @@ hset libusb-compat depends "libusb"
 
 PACKAGES+=" usbutils"
 hset usbutils url "http://downloads.sourceforge.net/project/linux-usb/usbutils/usbutils-0.86.tar.gz"
-hset usbutils depends "libusb busybox"
+hset usbutils depends "libusb-compat busybox"
+
+configure-usbutils() {
+	export LDFLAGS="$LDFLAGS_RLINK"
+	configure-generic
+	export LDFLAGS="$LDFLAGS_BASE"
+}
 
 deploy-usbutils() {
 	deploy cp "$STAGING_USR"/sbin/lsusb "$ROOTFS"/usr/bin/

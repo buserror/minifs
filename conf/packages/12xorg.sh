@@ -67,6 +67,13 @@ configure-xorglibXt() {
 	sed -i -e "s|^CFLAGS = .*|CFLAGS =|g" util/Makefile
 }
 
+configure-xorglibSM() {
+	save=$CFLAGS
+	CFLAGS+=" -fPIC"
+	configure-generic
+	CFLAGS=$save	
+}
+
 XORG_FONTS+=" xorgfontutil xorgfontadobe"
 hset xorgfontutil url "http://www.x.org/releases/individual/font/font-util-1.1.1.tar.bz2"
 hset xorgfontadobe url "http://www.x.org/releases/individual/font/font-adobe-100dpi-1.0.1.tar.bz2"
@@ -90,7 +97,7 @@ configure-xkbcomp() {
 PACKAGES+=" libmesadrm libmesa"
 hset libmesadrm url "git!git://anongit.freedesktop.org/git/mesa/drm#libmesadrm-git.tar.bz2"
 hset libmesa url "git!git://anongit.freedesktop.org/git/mesa/mesa#libmesa-git.tar.bz2"
-hset libmesa depends "libmesadrm xorglibX11"
+hset libmesa depends "libtalloc libmesadrm xorglibX11"
 
 configure-libmesadrm() {
 	configure-generic \
@@ -117,11 +124,11 @@ hset libsha1 url "git!git://github.com/dottedmag/libsha1.git#libsha1-git.tar.bz2
 PACKAGES+=" xorgserver"
 hset xorgserver url "git!git://anongit.freedesktop.org/xorg/xserver#xorgserver-git.tar.bz2"
 hset xorgserver depends \
-	"busybox libsha1 libmesa xorglibX11 xorgfontutil \
+	"busybox libsha1 xorglibX11 xorgfontutil \
 	xkbcomp xtrans \
 	xorgfontadobe \
 	xorginput-evdev xorginput-keyboard xorginput-mouse \
-	xorgvideo-fbdev"
+	xorgvideo-fbdev libmesa"
 
 configure-xorgserver-local() {
 	export LDFLAGS="$LDFLAGS_RLINK"
@@ -136,7 +143,7 @@ configure-xorgserver-local() {
 		--disable-local-transport \
 		--enable-xfbdev \
    		--disable-xorgcfg \
-   		--with-mesa-source="$BUILD/libmesa"
+		--with-mesa-source="$BUILD/libmesa"
 	export LDFLAGS="$LDFLAGS_BASE"
 }
 configure-xorgserver() {

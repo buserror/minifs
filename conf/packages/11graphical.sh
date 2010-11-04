@@ -87,6 +87,7 @@ PACKAGES+=" libts"
 hset libts url "http://download2.berlios.de/tslib/tslib-1.0.tar.bz2"
 
 configure-libts-local() {
+	export CFLAGS="$TARGET_CFLAGS -U_FORTIFY_SOURCE" # due to open() problem
 	configure-generic-local \
 		--disable-linear-h2200 \
 		--disable-ucb1x00 \
@@ -95,6 +96,7 @@ configure-libts-local() {
 		--disable-h3600 \
 		--disable-mk712 \
 		--disable-arctic2
+	export CFLAGS="$TARGET_CFLAGS"
 	sed -i -e 's:^#define malloc rpl_malloc:// #define malloc rpl_malloc:g' config.h
 }
 configure-libts() {

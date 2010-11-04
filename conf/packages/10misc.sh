@@ -1,4 +1,6 @@
 
+PACKAGES+=" libtalloc"
+hset libtalloc url "http://samba.org/ftp/talloc/talloc-2.0.1.tar.gz"
 
 PACKAGES+=" libexpat"
 hset libexpat url "http://downloads.sourceforge.net/project/expat/expat/2.0.1/expat-2.0.1.tar.gz"
@@ -39,6 +41,11 @@ configure-libiconv() {
 PACKAGES+=" libxml2"
 hset libxml2 url "ftp://xmlsoft.org/libxml2/libxml2-2.7.6.tar.gz"
 
+configure-libxml2() {
+	configure-generic \
+		--without-python
+}
+
 install-libxml2() {
 	install-generic
 	# fix that script
@@ -51,7 +58,7 @@ install-libxml2() {
 }
 
 PACKAGES+=" libgettext"
-hset libgettext url "http://ftp.gnu.org/pub/gnu/gettext/gettext-0.17.tar.gz"
+hset libgettext url "http://ftp.gnu.org/pub/gnu/gettext/gettext-0.18.1.1.tar.gz"
 
 configure-libgettext() {
 	configure-generic \
