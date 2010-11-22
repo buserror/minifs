@@ -96,7 +96,9 @@ configure-xkbcomp() {
 
 PACKAGES+=" libmesadrm libmesa"
 hset libmesadrm url "git!git://anongit.freedesktop.org/git/mesa/drm#libmesadrm-git.tar.bz2"
-hset libmesa url "git!git://anongit.freedesktop.org/git/mesa/mesa#libmesa-git.tar.bz2"
+#hset libmesa url "git!git://anongit.freedesktop.org/git/mesa/mesa#libmesa-git.tar.bz2"
+hset libmesa url "ftp://ftp.freedesktop.org/pub/mesa/7.8.2/MesaLib-7.8.2.tar.bz2"
+
 hset libmesa depends "libtalloc libmesadrm xorglibX11"
 
 configure-libmesadrm() {
@@ -106,16 +108,23 @@ configure-libmesadrm() {
 }
 
 configure-libmesa() {
-	export LDFLAGS="$LDFLAGS_RLINK"
+	(
+	export X11_LIBS="" # needs that otherwise the config/compile fails
+#	export LDFLAGS="$LDFLAGS_RLINK"
 	configure-generic \
 		--with-dri-drivers="swrast" \
+		--disable-gallium \
 		--without-demos
-	export LDFLAGS="$LDFLAGS_BASE"
+#	export LDFLAGS="$LDFLAGS_BASE"
+	# fixes cross compilation
+#	sed -i -e 's:(CFLAGS):\(APP_CFLAGS\):g' \
+#		src/glsl/apps/Makefile
+	) || return 1
 }
 compile-libmesa() {
-	export LDFLAGS="$LDFLAGS_RLINK"
-	compile-generic APP_CC=gcc
-	export LDFLAGS="$LDFLAGS_BASE"
+#	export LDFLAGS="$LDFLAGS_RLINK"
+	compile-generic APP_CC=$GCC # APP_CFLAGS=
+#	export LDFLAGS="$LDFLAGS_BASE"
 }
 
 PACKAGES+=" libsha1"

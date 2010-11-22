@@ -1,5 +1,19 @@
 
 #
+# Internet routing daemon
+#
+PACKAGES+=" bird"
+hset bird url "ftp://bird.network.cz/pub/bird/bird-1.2.2.tar.gz"
+hset bird depends "libreadline"
+
+#
+# Secure Shell (bigger version than dropbear)
+#
+PACKAGES+=" openssh"
+hset openssh url "ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-5.5p1.tar.gz"
+hset openssh depends "openssl"
+
+#
 # tinc tunelling
 #
 PACKAGES+=" tinc"
@@ -21,16 +35,3 @@ deploy-tinc() {
 	deploy deploy-tinc-local
 }
 
-
-#
-# Internet routing daemon
-#
-PACKAGES+=" bird"
-hset bird url "ftp://bird.network.cz/pub/bird/bird-1.2.2.tar.gz"
-
-#
-# Secure Shell (bigger version than dropbear)
-#
-PACKAGES+=" openssh"
-hset openssh url "ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-5.5p1.tar.gz"
-hset openssh depends "openssl"

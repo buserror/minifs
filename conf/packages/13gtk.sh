@@ -18,10 +18,10 @@ deploy-libdirectfb() {
 	deploy cp "$STAGING_USR"/bin/dfb* "$ROOTFS/usr/bin"
 }
 
+# More recent version of glib fails to conf because of lack of glib-compile-schemas
 PACKAGES+=" libglib"
 hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.23/glib-2.23.4.tar.bz2"
 hset libglib prefix "$STAGING_USR"
-hset libglib destdir "none"
 # this is needed for uclibc not NOT otherwise!
 # hset depends libglib "libiconv"
 
@@ -64,7 +64,7 @@ configure-libcairo() {
 }
 
 PACKAGES+=" libpango"
-hset libpango url "http://ftp.gnome.org/pub/gnome/sources/pango/1.26/pango-1.26.2.tar.bz2"
+hset libpango url "http://ftp.gnome.org/pub/gnome/sources/pango/1.28/pango-1.28.3.tar.bz2"
 hset libpango depends "libglib libcairo"
 
 configure-libpango() {
@@ -94,13 +94,20 @@ deploy-libpango() {
 }
 
 PACKAGES+=" libatk"
-hset libatk url "http://ftp.gnome.org/pub/gnome/sources/atk/1.28/atk-1.28.0.tar.bz2"
+hset libatk url "http://ftp.gnome.org/pub/gnome/sources/atk/1.32/atk-1.32.0.tar.bz2"
 
 PACKAGES+=" libgtk"
 hset libgtk url "http://ftp.gnome.org/pub/gnome/sources/gtk+/2.18/gtk+-2.18.7.tar.gz#libgtk-2.18.tar.gz"
 hset libgtk depends "libpango libatk libgtkhicolor"
 
 configure-libgtk() {
+	if [ ! -d "$CROSS_BASE/$TARGET_FULL_ARCH/lib" ];then 
+		# stupid gtk needs that, somehow
+		pushd "$CROSS_BASE/$TARGET_FULL_ARCH"
+		ln -s sys-root/lib lib
+		popd
+	fi
+
 	printf "gio_can_sniff=yes" >fake_gtk_cache.conf
 	export LDFLAGS="$LDFLAGS_RLINK"
 	if [[ $TARGET_X11 ]]; then

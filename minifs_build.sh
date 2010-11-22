@@ -4,6 +4,7 @@
 # libtool, bison, flex, genext2fs, squashfs, svn -- probably more
 # u-boot-mkimage -- for the arm targets
 
+#######################################################################
 # 
 # (C) Michel Pollet <buserror@gmail.com>
 #
@@ -12,6 +13,7 @@
 # Several board of the same arch can also coexist, sharing the same
 # toolchain
 #
+#######################################################################
 TARGET_BOARD=${TARGET_BOARD:-"atom"}
 
 COMMAND=$1
@@ -71,24 +73,17 @@ TARGET_FS_EXT=1
 TARGET_SHARED=0
 
 # compile the "tools" for the host
+( make -C "$PATCHES"/host-tools DESTDIR="$STAGING_TOOLS" ) >"$BUILD"/._tools.log 2>&1 || \
+	( echo '## Unable to build tools :'; cat  "$BUILD"/._tools.log; exit 1 ) || exit 1
 rm -f /tmp/pkg-config.log
-for tool in "$PATCHES"/host-tools/*.c; do
-	tool=$(basename $tool)
-	tool=${tool/.c}
-	if [ "$STAGING_TOOLS"/bin/$tool -ot "$PATCHES"/host-tools/$tool.c ]; then
-		echo "#### compiling $tool"
-		compile=$(head -1 "$PATCHES"/host-tools/$tool.c|sed 's|//||')
-		$compile -o "$STAGING_TOOLS"/bin/$tool "$PATCHES"/host-tools/$tool.c || exit 1
-	fi
-done
 if [ "$COMMAND" == "tools" ]; then exit ;fi
 
 hset busybox version "1.17.3"
 hset linux version "2.6.32.2"
-#hset crosstools version "1.6.2"
-hset crosstools version "1.8.2"
+hset crosstools version "1.9.0"
 
 # PATH needs sbin (for depmod), the host tools, and the cross toolchain
+export BASE_PATH="$PATH"
 export PATH="$TOOLCHAIN/bin:$TOOLCHAIN/$TARGET_FULL_ARCH/bin:$BUILD/staging-tools/bin:/usr/sbin:/sbin:$PATH"
 
 # ccfix is the prefixer for gcc that warns of "absolute" host paths
@@ -110,6 +105,7 @@ export HOST_INSTALL="/usr/bin/install"
 # Look in this target's kernel config to know if we need/want modules
 CONFIG_MODULES=$(grep '^CONFIG_MODULES=y' "$CONFIG/config_kernel.conf")
 
+#######################################################################
 # PACKAGES is the entire list of possible packages, as filled by the 
 # conf/packages/*.sh scripts, in their ideal build order.
 # TARGET_PACKAGES are the ones requested by the target build script, in any
@@ -118,7 +114,7 @@ CONFIG_MODULES=$(grep '^CONFIG_MODULES=y' "$CONFIG/config_kernel.conf")
 # "linux-headers", "linux-modules" etc.
 # The script for the union of these and can then have a list of packages
 # to build.
-# 
+#######################################################################
 export PACKAGES=""
 export TARGET_PACKAGES="linux $NEED_CROSSTOOLS systemlibs busybox filesystems"
 export BUILD_PACKAGES=""
@@ -171,7 +167,7 @@ while true; do
 				fi
 			done
 			if [ $isthere -eq 0 ]; then
-			#	echo ADD $pack depends on $d
+		#		echo ADD $pack depends on $d
 				newlist+=" $d"; changed=1
 			fi
 		done
@@ -281,9 +277,11 @@ for package in $TARGET_PACKAGES; do
 done
 popd
 
+#######################################################################
 # Create the text files used to make the device files in ROOTFS
 # the count parameter can't be used because of mksquashfs 
 # name    	type mode uid gid major minor start inc count
+#######################################################################
 cat << EOF | tee "$BUILD"/special_file_table.txt |\
 	awk '{nod=$2=="c"||$2=="b";print nod?"nod":"dir",$1,"0"$3,$4,$5, nod? $2" "$6" "$7:"";}' \
 	>"$BUILD"/special_file_table_kernel.txt 
@@ -349,12 +347,14 @@ configure-generic() {
 compile-generic() {
 	compile $MAKE -j8 $MAKE_CLEAN "$@"
 }
+
 #######################################################################
 ## The install default handler tries to fix libtool stupidities
 #######################################################################
 install-generic-local() {
 	local destdir=$(hget $PACKAGE destdir)
 	local makei="installwatch -o ._dist $MAKE install"
+	set -x
 	case "$destdir" in
 		none) $makei "$@" ;;
 		"") $makei DESTDIR="$STAGING" "$@" ;;
@@ -365,6 +365,7 @@ install-generic-local() {
 		echo LDCONFIG PATCH $n
 		sed -i -e "s|\([ ']\)/usr|\1$STAGING_USR|g" $n
 	done
+	set +x
 }
 install-generic() {
 	log_install install-generic-local "$@"
@@ -373,8 +374,10 @@ deploy-generic() {
 	return 0
 }
 
+#######################################################################
 # shell handler allows dropping the user in an interactive shell
-# you you call ./minifsbuild <package>_shell
+# when you call ./minifsbuild <package>_shell
+#######################################################################
 shell-generic() {
 	echo "--- Entering interactive shell mode; type control D to exit"
 	echo "    Environment is set so make & stuff should cross compile."
@@ -399,7 +402,9 @@ for pack in $PACKAGES; do
 	PROCESS_PACKAGES+=" $pack"
 done
 
-# echo "Will build :" $PROCESS_PACKAGES
+#echo TARGET_PACKAGES $TARGET_PACKAGES
+#echo BUILD_PACKAGES $BUILD_PACKAGES
+#echo "Will build :" $PROCESS_PACKAGES
 
 #######################################################################
 ## Build each packages

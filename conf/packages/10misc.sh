@@ -107,7 +107,7 @@ configure-gnutls() {
 ## OpenSSL
 #######################################################################
 PACKAGES+=" openssl"
-hset openssl url "http://www.openssl.org/source/openssl-0.9.8m.tar.gz"
+hset openssl url "http://www.openssl.org/source/openssl-0.9.8o.tar.gz"
 
 configure-openssl() {
 	configure ./config --prefix=/usr --install_prefix="$STAGING" no-asm shared
@@ -170,7 +170,7 @@ install-libnss() {
 ## curl
 #######################################################################
 PACKAGES+=" libcurl"
-hset libcurl url "http://curl.haxx.se/download/curl-7.20.0.tar.bz2"
+hset libcurl url "http://curl.haxx.se/download/curl-7.21.2.tar.bz2"
 
 PACKAGES+=" curl"
 hset curl url "none"
@@ -179,13 +179,13 @@ hset curl dir "libcurl"
 hset curl phases "deploy"
 
 configure-libcurl() {
-	local extras=""	
+	local extras="--with-random=/dev/urandom "	
 	export LDFLAGS="$LDFLAGS_RLINK"
 	if [ -d ../openssl ]; then 
-		extras+="--with-ssl";
+		extras+="--with-ssl ";
 	fi
 	if [ -d ../gnutls ]; then 
-		extras+="--with-gnutls"
+		extras+="--with-gnutls "
 		LDFLAGS+=" -lgcrypt -lgpg-error"
 	fi
 	echo "ac_cv_path_PKGCONFIG=$BUILD/staging-tools/bin/pkg-config

@@ -1,10 +1,9 @@
 
+echo GCC PATH = $GCC
 if [ ! -f "$GCC" -o "$COMMAND_PACKAGE" == "crosstools" ]; then 
 	PACKAGES+=" crosstools"
 	NEED_CROSSTOOLS="crosstools"
 	TARGET_PACKAGES+=" crosstools"
-	echo Rebuilding crosstools cancelled here
-	exit
 fi
 hset crosstools url "http://ymorin.is-a-geek.org/download/crosstool-ng/crosstool-ng-$(hget crosstools version).tar.bz2"
 hset crosstools depends "linux-headers"
@@ -12,21 +11,30 @@ hset crosstools depends "linux-headers"
 # ${HOME}/x-tools/${CT_TARGET}
 # MINIFS_TOOLCHAIN/${CT_TARGET}
 
+reset-crossrools-env() {
+	export PATH="$BASE_PATH"
+	unset CC CXX GCC LD CFLAGS CXXFLAGS CPPFLAGS LDFLAGS ACLOCAL ; 
+	unset PKG_CONFIG_PATH PKG_CONFIG_LIBDIR LD_LIBRARY_PATH ;
+}
+
 configure-crosstools() {
-	# remove "read only" mode
-	chmod -R u+w "$TOOLCHAIN"
+	(	# make sure the environment is clean before we start here
+		reset-crossrools-env
+		# remove "read only" mode
+		chmod -R u+w "$TOOLCHAIN"
 
-	# this patch is needed on newer host kernels
-	for pd in "$PATCHES/uclibc" "$PATCHES/uclibc-${TARGET_BOARD}"; do
-		if [ -d $pd ]; then
-			echo "##### Installing $pd patches"
-			cp $pd/*.patch patches/uClibc/0.9.30.1/
+		# Install missing patches
+		if [ -d "$PATCHES/patches/crosstools/patches" ]; then
+			here=$(pwd)
+			pushd $PATCHES/patches/crosstools/
+			tar cf - patches | (cd "$here"; tar xvf -) 
+			popd
 		fi
-	done
 
-	configure ./configure --prefix="$STAGING_TOOLS" &&
-		$MAKE &&
-		$MAKE install
+		configure ./configure --prefix="$STAGING_TOOLS" &&
+			$MAKE &&
+			$MAKE install
+	)
 
 	mkdir -p "$TOOLCHAIN_BUILD"
 
@@ -41,6 +49,7 @@ configure-crosstools() {
 				cp config_crosstools.conf .config
 			fi
 			"$STAGING_TOOLS"/bin/ct-ng $COMMAND_TARGET &&
+			"$STAGING_TOOLS"/bin/ct-ng show-tuple &&
 			cp .config config_crosstools.conf &&
 			cp config_crosstools.conf config_uclibc.conf \
 				"$CONFIG"/ &&
@@ -49,7 +58,9 @@ configure-crosstools() {
 		popd	
 	fi
 
-	pushd "$TOOLCHAIN_BUILD"
+	(
+		reset-crossrools-env
+		pushd "$TOOLCHAIN_BUILD"
 		rm -f config* .config log.*
 		# doctor new config
 		for cf in "$CONFIG"/config_crosstools.conf "$CONFIG"/config_uclibc.conf ; do
@@ -65,11 +76,10 @@ configure-crosstools() {
 		done
 
 		cp config_crosstools.conf .config
-		( unset CC CXX GCC LD CFLAGS CXXFLAGS CPPFLAGS LDFLAGS ACLOCAL ; 
-		  unset PKG_CONFIG_PATH PKG_CONFIG_LIBDIR LD_LIBRARY_PATH ;
-		"$STAGING_TOOLS"/bin/ct-ng build )
-		#"$STAGING"/bin/ct-ng build.4
-	popd
+
+		"$STAGING_TOOLS"/bin/ct-ng show-tuple
+		"$STAGING_TOOLS"/bin/ct-ng build
+	)
 }
 
 compile-crosstools() {

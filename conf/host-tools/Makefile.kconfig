@@ -1,0 +1,60 @@
+#
+# Compile an out of tree kconfig/menuconfig program
+# Made so that the original kernel tree kconfig can be used
+# without any change
+#
+CONFIG_SHELL = /bin/bash
+CC = gcc
+PFX = k
+
+DESTDIR = /tmp/tt
+
+BIN = $(DESTDIR)/bin
+OBJ = $(DESTDIR)/tmp
+src = kconfig
+
+all:	$(OBJ) $(BIN)/$(PFX)conf $(BIN)/$(PFX)mconf
+
+# look in this one, first!
+VPATH = $(src)/lxdialog
+VPATH += $(src)
+VPATH += $(OBJ)
+
+check-lxdialog  := $(src)/lxdialog/check-lxdialog.sh
+
+CFLAGS 	= -g -Os -I$(src) -I$(src)/lxdialog -I$(OBJ)
+CFLAGS += -DLOCALE
+CFLAGS 	+= $(shell $(CONFIG_SHELL) $(check-lxdialog) -ccflags)
+LDFLAGS   = $(shell $(CONFIG_SHELL) $(check-lxdialog) -ldflags $(CC))
+
+lxdialog := $(OBJ)/checklist.o $(OBJ)/inputbox.o $(OBJ)/util.o
+lxdialog += $(OBJ)/textbox.o $(OBJ)/yesno.o $(OBJ)/menubox.o
+
+conf-o	:= $(OBJ)/conf.o  $(OBJ)/zconf.tab.o
+mconf-o := $(OBJ)/mconf.o $(OBJ)/zconf.tab.o $(lxdialog)
+
+clean:
+	rm -rf $(OBJ)
+
+install: all
+	# nothing to do here, there are already in place
+
+$(OBJ):
+	mkdir -p $(OBJ) $(BIN)
+
+$(OBJ)/lkc_defs.h: $(src)/lkc_proto.h
+	sed < $< > $@ 's/P(\([^,]*\),.*/#define \1 (\*\1_p)/'
+
+$(OBJ)/zconf.tab.o : $(OBJ)/zconf.hash.c $(OBJ)/lex.zconf.c
+
+$(BIN)/$(PFX)conf:	$(conf-o)
+	$(CC) $^ -o $@
+
+$(BIN)/$(PFX)mconf: $(OBJ)/lkc_defs.h $(mconf-o)
+	$(CC) $^ -o $@ $(LDFLAGS)
+
+$(OBJ)/%.o : %.c
+	$(CC) $(CFLAGS) $< -c -o $@
+
+$(OBJ)/%.c : %.c_shipped
+	cp $< $@
