@@ -1,15 +1,14 @@
 #!/bin/hush
 
 echo "* Mounting filesystems..."
-mount / / -o remount,noatime >/dev/null 2>&1
+mount / / -o remount,noatime,commit=20 >/dev/null 2>&1
 mount -t proc /proc /proc
-mount -t devtmpfs devtmpfs /dev
 mount -t sysfs none /sys
-mkdir /dev/pts dev/shm
+mkdir -p /dev/pts dev/shm
 mount -t devpts devpts /dev/pts
 mount -t tmpfs none /dev/shm
 
-echo "* Starting system loggers..."
+# echo "* Starting system loggers..."
 syslogd -C16
 klogd
 
@@ -17,10 +16,8 @@ klogd
 echo "* Creating devices..."
 /sbin/mdev -s
 
-echo "* Configuring loopback interface..."
-ifconfig lo 127.0.0.1
-
-echo "* Configuring udb network"
+echo "* Configuring network"
+ifconfig lo 127.0.0.1 up
 ifconfig usb0 172.16.61.1 netmask 255.255.255.0 up
 
 echo "* Starting telnetd..."
