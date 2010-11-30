@@ -332,7 +332,7 @@ configure-generic-local() {
 	if [ -f configure ]; then
 		./configure \
 			--build=$(uname -m) \
-			--host=$TARGET_FULL_ARCH \
+			--host="$TARGET_ARCH"-linux \
 			--prefix="$PACKAGE_PREFIX" \
 			"$@" || ret=1
 	else
