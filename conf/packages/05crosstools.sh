@@ -139,5 +139,6 @@ configure-strace() {
 }
 
 deploy-strace() {
+	mkdir -p "$ROOTFS"/usr/bin
 	deploy cp "$STAGING_USR"/bin/strace "$ROOTFS"/usr/bin/
 }
