@@ -8,12 +8,19 @@ TARGET_KERNEL_NAME=uImage
 TARGET_CFLAGS="-Os -march=armv4t -mtune=arm920t -mthumb-interwork -mthumb "
 
 board_set_versions() {
-	hset linux version "2.6.33.2"
+	hset linux version "2.6.36.1"
 	TARGET_FS_SQUASH=0
 	TARGET_INITRD=0
+	TARGET_SHARED=1
+}
+
+board_prepare() {
+	TARGET_PACKAGES+=" strace gdbserver mtd_utils libsdl libvncserver"
 }
 
 df3120-deploy-linux-bare() {
 	deploy-linux-bare
 	cp "$BUILD"/kernel.ub "$ROOTFS"/linux
 }
+
+# 
