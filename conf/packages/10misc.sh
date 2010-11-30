@@ -200,9 +200,24 @@ deploy-curl() {
 
 PACKAGES+=" rsync"
 hset rsync url "http://samba.anu.edu.au/ftp/rsync/src/rsync-3.0.7.tar.gz"
-hset "busybox" depends
+hset rsync depends "busybox"
 
 deploy-rsync() {
 	deploy cp "$STAGING_USR"/bin/rsync "$ROOTFS"/bin/
 }
 
+PACKAGES+=" picocom"
+hset picocom url "http://picocom.googlecode.com/files/picocom-1.6.tar.gz"
+hset picocom depends "busybox"
+
+compile-picocom() {
+	compile make CFLAGS="$CFLAGS"
+}
+
+install-picocom() {
+	log_install cp picocom "$STAGING_USR"/bin/
+}
+
+deploy-picocom() {
+	deploy cp "$STAGING_USR"/bin/picocom "$ROOTFS"/bin/
+}
