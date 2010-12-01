@@ -28,3 +28,27 @@ deploy-sensors() {
 	/usr/bin/sensors-mcast -d
 	EOF
 }
+
+
+PACKAGES+=" fbvncslave"
+hset fbvncslave url "none"
+hset fbvncslave dir "."
+hset fbvncslave destdir "$STAGING_USR"
+hset fbvncslave depends "libvncserver"
+
+configure-fbvncslave() {
+	configure echo Done
+}
+compile-fbvncslave() {
+	compile-generic \
+		-C $HOME/Sources/Utils/fbvncslave \
+		LDFLAGS="$LDFLAGS_RLINK"
+}
+install-fbvncslave() {
+	install-generic \
+		-C $HOME/Sources/Utils/fbvncslave
+}
+deploy-fbvncslave() {
+	deploy cp "$STAGING_USR"/bin/fbvncslave "$ROOTFS"/usr/bin/
+}
+

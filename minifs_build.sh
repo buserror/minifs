@@ -143,7 +143,7 @@ if [ "$TARGET_SHARED" -eq 0 ]; then
 	echo "### Static build!!"
 	LDFLAGS_BASE="-static $LDFLAGS_BASE"
 fi
-export LDFLAGS_RLINK="$LDFLAGS_BASE -Wl,-rpath-link -Wl,$STAGING/lib -Wl,-rpath-link -Wl,$STAGING_USR/lib"
+export LDFLAGS_RLINK="$LDFLAGS_BASE -Wl,-rpath -Wl,/usr/lib -Wl,-rpath-link -Wl,$STAGING/lib -Wl,-rpath-link -Wl,$STAGING_USR/lib"
 export LDFLAGS=$LDFLAGS_BASE
 
 if [ "$COMMAND" == "depends" ]; then

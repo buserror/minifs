@@ -28,6 +28,8 @@ configure-libvncserver() {
 
 install-libvncserver() {
 	install-generic
+	sed -i -e "s|prefix=/usr|prefix=$STAGING_USR|g" \
+		"$STAGING_USR"/bin/libvncserver-config
 	viewer=client_examples/.libs/SDLvncviewer
 	if [ -x $viewer ]; then
 		cp $viewer "$STAGING_USR"/bin

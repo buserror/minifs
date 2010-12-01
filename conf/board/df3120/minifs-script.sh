@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Xvnc :1 -ac -geometry 320x200 -depth 16 -AlwaysShared -SecurityTypes None
+
 TARGET_ARCH=arm
 TARGET_FULL_ARCH=$TARGET_ARCH-v4t-linux-uclibcgnueabi
 TARGET_KERNEL_NAME=uImage
@@ -17,7 +19,8 @@ board_set_versions() {
 }
 
 board_prepare() {
-	TARGET_PACKAGES+=" strace gdbserver mtd_utils libsdl libvncserver picocom uboot"
+	TARGET_PACKAGES+=" strace gdbserver libsdl libvncserver picocom uboot"
+#	TARGET_PACKAGES+=" fbvncslave"
 }
 
 df3120-deploy-linux-bare() {
