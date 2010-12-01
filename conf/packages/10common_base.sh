@@ -4,7 +4,7 @@
 ## zlib
 #######################################################################
 PACKAGES+=" zlib"
-hset zlib url "http://www.zlib.net/zlib-1.2.4.tar.gz"
+hset zlib url "http://www.zlib.net/zlib-1.2.5.tar.gz"
 
 configure-zlib() {
 	export LDFLAGS=${LDFLAGS/-static/}
