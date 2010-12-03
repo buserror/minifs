@@ -20,7 +20,9 @@ board_set_versions() {
 
 board_prepare() {
 	TARGET_PACKAGES+=" strace gdbserver libsdl libvncserver picocom uboot"
-#	TARGET_PACKAGES+=" fbvncslave"
+	if [ -d ~/Sources/Utils/fbvncslave ]; then
+		TARGET_PACKAGES+=" fbvncslave"
+	fi
 }
 
 df3120-deploy-linux-bare() {
