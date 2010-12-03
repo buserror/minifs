@@ -104,6 +104,11 @@ export HOST_INSTALL="/usr/bin/install"
 
 # Look in this target's kernel config to know if we need/want modules
 CONFIG_MODULES=$(grep '^CONFIG_MODULES=y' "$CONFIG/config_kernel.conf")
+CONFIG_KERNEL_LZO=$(grep '^CONFIG_KERNEL_LZO=y' "$CONFIG/config_kernel.conf")
+
+if [ "$CONFIG_KERNEL_LZO" != "" ]; then
+	NEEDED_HOST_COMMANDS+=" lzop"
+fi
 
 #######################################################################
 # PACKAGES is the entire list of possible packages, as filled by the 
@@ -214,7 +219,8 @@ for package in $TARGET_PACKAGES; do
 				if [ -d "$package.git" ]; then
 					echo "#### Compressing $url"
 					tar jcf "$loc" "$package.git" &&
-						rm -rf "$package.git"
+						rm -rf "$package.git" &&
+						rm -rf "$BUILD/$package"
 				fi
 			;;
 			svn)	if [ ! -d "$package.svn" ]; then
@@ -231,7 +237,8 @@ for package in $TARGET_PACKAGES; do
 				if [ -d "$package.svn" ]; then
 					echo "#### Compressing $url"
 					tar jcf "$loc" "$package.svn" &&
-						rm -rf "$package.svn"
+						rm -rf "$package.svn" &&
+						rm -rf "$BUILD/$package"
 				fi
 			;;
 			*) $WGET "$fil" -O "$loc" || exit 1 ;;
