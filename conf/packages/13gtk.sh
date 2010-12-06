@@ -20,7 +20,7 @@ deploy-libdirectfb() {
 
 # More recent version of glib fails to conf because of lack of glib-compile-schemas
 PACKAGES+=" libglib"
-hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.23/glib-2.23.4.tar.bz2"
+hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.24/glib-2.24.1.tar.bz2"
 hset libglib prefix "$STAGING_USR"
 # this is needed for uclibc not NOT otherwise!
 # hset depends libglib "libiconv"
@@ -33,6 +33,7 @@ glib_cv_uscore=no
 " >fake_glib_cache.conf
 	# yuck yuck yuck. fixes ARM thumb build
 	sed -i -e 's:swp %0, %1, \[%2\]:nop:g' glib/gatomic.c
+	rm -f configure
 	export LDFLAGS="$LDFLAGS_RLINK"
 	configure-generic \
 		--cache=fake_glib_cache.conf 
