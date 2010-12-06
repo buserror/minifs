@@ -73,7 +73,11 @@ TARGET_FS_EXT=1
 TARGET_SHARED=0
 
 # compile the "tools" for the host
-( make -C "$PATCHES"/host-tools DESTDIR="$STAGING_TOOLS" ) >"$BUILD"/._tools.log 2>&1 || \
+( 	set -x
+	make -C "$PATCHES"/host-tools DESTDIR="$STAGING_TOOLS" &&
+	cd "$STAGING_TOOLS"/bin &&
+	ln -s $(which libtool) "$TARGET_FULL_ARCH"-libtool
+) >"$BUILD"/._tools.log 2>&1 || \
 	( echo '## Unable to build tools :'; cat  "$BUILD"/._tools.log; exit 1 ) || exit 1
 rm -f /tmp/pkg-config.log
 if [ "$COMMAND" == "tools" ]; then exit ;fi
@@ -339,7 +343,7 @@ configure-generic-local() {
 	if [ -f configure ]; then
 		./configure \
 			--build=$(uname -m) \
-			--host="$TARGET_ARCH"-linux \
+			--host=$TARGET_FULL_ARCH \
 			--prefix="$PACKAGE_PREFIX" \
 			"$@" || ret=1
 	else
