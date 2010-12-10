@@ -7,11 +7,10 @@ TARGET_KERNEL_ARCH=x86
 TARGET_CFLAGS="-O2 -march=core2 -mtune=generic -mssse3 -mfpmath=sse -fomit-frame-pointer -pipe"
 
 board_set_versions() {
-	hset linux version "2.6.33"
+	hset linux version "2.6.36.1"
 	TARGET_FS_SQUASH=0
 	TARGET_FS_EXT_SIZE=262144
 	TARGET_SHARED=1 
-	#TARGET_DIRECTFB=0
 	TARGET_X11=1
 	#TARGET_INITRD=1
 }
@@ -32,6 +31,8 @@ board_prepare() {
 	TARGET_PACKAGES+=" xorgserver nvidia"	
 	TARGET_PACKAGES+=" libwebkit"
 	TARGET_PACKAGES+=" flashplugin"
-
-	TARGET_PACKAGES+=" module-kbus"
+	
+	TARGET_PACKAGES+=" fbgrab"	
+	
+	TARGET_PACKAGES+=" libetpan"	
 }
