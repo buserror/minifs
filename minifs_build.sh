@@ -14,20 +14,23 @@
 # toolchain
 #
 #######################################################################
-TARGET_BOARD=${TARGET_BOARD:-"atom"}
+MINIFS_BOARD=${MINIFS_BOARD:-"atom"}
+# MINIFS_PATH contains collumn separated directories with extra
+# package directories
+# MINIFS_PACKAGES contains a list of space separated packaged to add
 
 COMMAND=$1
 COMMAND_PACKAGE=${COMMAND/_*}
 COMMAND_TARGET=${COMMAND/*_}
 
-echo TARGET_BOARD $TARGET_BOARD $COMMAND
+echo MINIFS_BOARD $MINIFS_BOARD $COMMAND
 
 BASE="$(pwd)"
 export MINIFS_BASE="$BASE"
 
 NEEDED_HOST_COMMANDS="make tar rsync installwatch wget git"
 
-export BUILD="$BASE/build-${TARGET_BOARD}"
+export BUILD="$BASE/build-${MINIFS_BOARD}"
 PATCHES="$BASE/conf"
 export STAGING="$BUILD/staging"
 export STAGING_USR="$STAGING/usr"
@@ -36,7 +39,7 @@ export ROOTFS_PLUGINS=""
 export ROOTFS_KEEPERS="libnss_dns.so.2:libnss_dns-2.10.2.so:"
 export STAGING_TOOLS="$BUILD"/staging-tools
 KERNEL="$BUILD/kernel"
-CONFIG="$PATCHES/board/$TARGET_BOARD"
+CONFIG="$PATCHES/board/$MINIFS_BOARD"
  
 source "$PATCHES"/minifs-script-utils.sh
 source "$CONFIG"/minifs-script.sh
@@ -76,7 +79,7 @@ TARGET_SHARED=0
 ( 	set -x
 	make -C "$PATCHES"/host-tools DESTDIR="$STAGING_TOOLS" &&
 	cd "$STAGING_TOOLS"/bin &&
-	ln -s $(which libtool) "$TARGET_FULL_ARCH"-libtool
+	ln -f -s $(which libtool) "$TARGET_FULL_ARCH"-libtool
 ) >"$BUILD"/._tools.log 2>&1 || \
 	( echo '## Unable to build tools :'; cat  "$BUILD"/._tools.log; exit 1 ) || exit 1
 rm -f /tmp/pkg-config.log
@@ -134,14 +137,31 @@ optional board_set_versions
 #######################################################################
 ## Load all the package scripts
 #######################################################################
-for pd in "$PATCHES/packages" "$CONFIG/packages" ; do
+
+minifs_path_split() {
+	for pd in $(echo "$MINIFS_PATH"| tr ":" "\n") ; do
+		if [ -d "$pd/$1" ]; then
+			echo "$pd/$1"
+		fi
+	done
+}
+
+package_files=""
+for pd in "$PATCHES/packages" "$CONFIG/packages" $(minifs_path_split "packages"); do
+	echo $pd
 	if [ -d "$pd" ]; then
-		# echo "#### Loading $pd"
-		for p in "$pd"/*.sh; do 
-			source $p
-		done
+		package_files+="$(echo $pd/*.sh) "
 	fi
 done
+package_files=$(filename_sort $package_files)
+#echo $package_files
+
+for p in $package_files; do 
+	source $p
+done
+
+# Add the list of external packages
+TARGET_PACKAGES+=" $MINIFS_PACKAGES"
 
 optional board_prepare
 
@@ -273,15 +293,15 @@ for package in $TARGET_PACKAGES; do
 				;;
 			*)	echo ### error file format '$typ' ($base) not supported" ; exit 1
 		esac
-		for pd in "$CONFIG/$baseroot" "$PATCHES/patches/$baseroot" ; do
+		for pd in "$CONFIG/$baseroot" "$PATCHES/patches/$baseroot" $(minifs_path_split "patches/$baseroot"); do
 			if [ -d "$pd" ]; then
 				echo "#### Patching $base"
-				pushd "$BUILD/$baseroot"
+				( pushd "$BUILD/$baseroot"
 					for pf in "$pd/"/*.patch; do
 						echo "     Applying $pf"
 						cat $pf | patch -t -p1
 					done
-				popd
+				popd ) >"._patch_$baseroot.log"
 			fi
 		done
 	fi
@@ -440,7 +460,7 @@ for pack in $PROCESS_PACKAGES; do
 				case "$ph" in
 					shell|rebuild|clean)
 						optional-one-of \
-							$TARGET_BOARD-$ph-$pack \
+							$MINIFS_BOARD-$ph-$pack \
 							$ph-$pack \
 							$ph-generic || break
 						;;
@@ -450,7 +470,7 @@ for pack in $PROCESS_PACKAGES; do
 			for ph in $phases; do
 				if [[ $ph == "deploy" ]]; then continue ;fi
 				optional-one-of \
-					$TARGET_BOARD-$ph-$pack \
+					$MINIFS_BOARD-$ph-$pack \
 					$ph-$pack \
 					$ph-generic || break
 			done
@@ -475,7 +495,7 @@ for pack in $PROCESS_PACKAGES; do
 			for ph in $phases; do
 				if [[ $ph != "deploy" ]]; then continue ;fi
 				optional-one-of \
-					$TARGET_BOARD-$ph-$pack \
+					$MINIFS_BOARD-$ph-$pack \
 					$ph-$pack \
 					$ph-generic || break
 			done

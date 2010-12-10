@@ -1,0 +1,35 @@
+diff -rcw fbgrab-1.0/Makefile fbgrab-1.0.new/Makefile
+*** fbgrab-1.0/Makefile	Wed Mar 20 19:49:06 2002
+--- fbgrab-1.0.new/Makefile	Thu Dec  9 16:15:07 2010
+***************
+*** 3,16 ****
+  ### modular. So this is a simple gnu Makefile...
+  ###
+  
+  fbgrab: fbgrab.c
+! 	splint +posixlib fbgrab.c
+! 	gcc -g -Wall fbgrab.c -lpng -lz -o fbgrab
+  
+  install:
+! 	strip fbgrab
+! 	install fbgrab /usr/bin/fbgrab
+! 	install fbgrab.1.man /usr/man/man1/fbgrab.1
+  
+  clean:
+  	rm -f fbgrab *~ \#*\#
+\ No newline at end of file
+--- 3,16 ----
+  ### modular. So this is a simple gnu Makefile...
+  ###
+  
++ DESTDIR ?= /usr/local
++ 
+  fbgrab: fbgrab.c
+! 	$(CC) $(CPPFLAGS) $(CFLAGS) $^ -lpng -lz -o $@ $(LDFLAGS)
+  
+  install:
+! 	install -s fbgrab $(DESTDIR)/bin/fbgrab
+! 	install fbgrab.1.man $(DESTDIR)/man/man1/fbgrab.1
+  
+  clean:
+  	rm -f fbgrab *~ \#*\#

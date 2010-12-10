@@ -30,7 +30,7 @@ deploy-sharedlibs() {
 		"$STAGING_USR/lib/" \
 		"$ROOTFS/usr/lib/" 
 
-	optional $TARGET_BOARD-sharedlibs-cleanup
+	optional $MINIFS_BOARD-sharedlibs-cleanup
 	) >>"$LOGFILE" 2>&1
 	# removes non-accessed libraries. We want the errors here
 	(

@@ -37,6 +37,10 @@ hset liboil url "http://liboil.freedesktop.org/download/liboil-0.3.17.tar.gz"
 PACKAGES+=" libalsa"
 hset libalsa url "ftp://ftp.alsa-project.org/pub/lib/alsa-lib-1.0.22.tar.bz2"
 
+configure-libalsa() {
+	configure-generic --disable-python
+}
+
 deploy-libalsa() {
 	deploy rsync -a "$STAGING_USR"/share/alsa "$ROOTFS"/usr/share/
 }

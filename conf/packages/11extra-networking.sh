@@ -35,3 +35,6 @@ deploy-tinc() {
 	deploy deploy-tinc-local
 }
 
+PACKAGES+=" libetpan"
+hset libetpan url "http://downloads.sourceforge.net/project/libetpan/libetpan/1.0/libetpan-1.0.tar.gz"
+hset libetpan depends "zlib"

@@ -120,3 +120,12 @@ configure-libim() {
 deploy-libim() {
 	ROOTFS_PLUGINS+="$STAGING_USR/lib/imlib2:"
 }
+
+PACKAGES+=" fbgrab"
+hset fbgrab url "http://hem.bredband.net/gmogmo/fbgrab/fbgrab-1.0.tar.gz"
+hset fbgrab depends "libpng"
+hset fbgrab destdir "$STAGING_USR"
+
+deploy-fbgrab() {
+	deploy cp "$STAGING_USR"/bin/fbgrab "$ROOTFS"/bin/
+}

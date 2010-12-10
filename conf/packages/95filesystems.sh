@@ -51,7 +51,7 @@ deploy-filesystem-prepack() {
 	rm -rf "$ROOTFS"/usr/etc/ "$ROOTFS"/usr/var/
 	ln -s ../etc $ROOTFS/usr/etc
 	ln -s ../var $ROOTFS/usr/var
-	echo minifs-$TARGET_BOARD >$ROOTFS/etc/hostname
+	echo minifs-$MINIFS_BOARD >$ROOTFS/etc/hostname
 
 	"${CROSS}-strip" "$ROOTFS"/bin/* "$ROOTFS"/sbin/* "$ROOTFS"/usr/bin/* \
 		2>/dev/null

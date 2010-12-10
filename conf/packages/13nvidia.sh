@@ -1,6 +1,6 @@
 
-NVIDIA_VERSION=195.36.15
-NVIDIA_NAME=NVIDIA-Linux-x86-${NVIDIA_VERSION}-pkg1
+NVIDIA_VERSION=260.19.21
+NVIDIA_NAME=NVIDIA-Linux-x86-${NVIDIA_VERSION}
 PACKAGES+=" nvidia"
 hset nvidia url "http://us.download.nvidia.com/XFree86/Linux-x86/$NVIDIA_VERSION/$NVIDIA_NAME.run"
 hset nvidia depends "xorgserver linux-modules"
@@ -8,29 +8,39 @@ hset nvidia depends "xorgserver linux-modules"
 uncompress-nvidia() {
 	echo nvidia: $*
 	sh $2 -x
-	ln -s $NVIDIA_NAME/usr/src src
 }
 
 configure-nvidia() {
 	configure echo Configure nvidia
-	pushd $NVIDIA_NAME/usr/src/nv
-	popd
 }
 
-compile-nvidia() {
-	echo Compile nvidia
-	( pushd $NVIDIA_NAME/usr/src/nv
+compile-nvidia-local() {
+	( pushd $NVIDIA_NAME/kernel
 		set -x
-		$MAKE NVDEBUG=1 \
+		$MAKE \
+			NVDEBUG=1 \
 			SYSOUT="$BUILD/linux-obj" \
 			SYSSRC="$BUILD/linux" \
 			CC=$GCC \
 			HOST_CC=gcc \
-				module || exit 1
+				$1 || exit 1
 	) || exit 1
 }
 
+compile-nvidia() {
+	compile compile-nvidia-local module
+}
+
+install-nvidia-local() {
+	set -x
+	pushd $NVIDIA_NAME/kernel
+	mkdir -p "$BUILD"/kernel/lib/modules/$(hget linux version)/kernel/drivers/video/
+	cp nvidia.ko "$BUILD"/kernel/lib/modules/$(hget linux version)/kernel/drivers/video/
+	popd
+	set +x
+}
+
 install-nvidia() {
-	echo Install nVidia
+	log_install install-nvidia-local
 }
 
