@@ -460,7 +460,7 @@ int purge_orphan_symlinks(so_dir_t * dir)
 
 so_dir_t * load_root_directory(so_dir_t * dir, const char * name)
 {
-	const char * root[] = { "", "usr", "local", NULL };
+	const char * root[] = { "", "usr", "local", "opt", NULL };
 	const char * load[] = { "lib", "bin", "sbin", NULL };
 	for (int ri = 0; root[ri]; ri++) {
 		const char * r = root[ri];
