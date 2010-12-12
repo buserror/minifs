@@ -34,10 +34,14 @@ glib_cv_uscore=no
 	# yuck yuck yuck. fixes ARM thumb build
 	sed -i -e 's:swp %0, %1, \[%2\]:nop:g' glib/gatomic.c
 	rm -f configure
-	export LDFLAGS="$LDFLAGS_RLINK"
+	save=$CFLAGS
+	CFLAGS+=" -DDISABLE_IPV6"
+	export CFLAGS
+	export LDFLAGS="$LDFLAGS_RLINK -Wl,-rpath -Wl,$BUILD/libglib/gthread/.libs -Wl,-rpath -Wl,$BUILD/libglib/gmodule/.libs"
 	configure-generic \
 		--cache=fake_glib_cache.conf 
 	export LDFLAGS="$LDFLAGS_BASE"
+	export CFLAGS=$save
 }
 
 PACKAGES+=" libcairo"
@@ -156,7 +160,7 @@ configure-librsvg() {
 	else
 		extras="--without-x"
 	fi
-	#	--without-croco \
+	#	--without-croco 
 	configure-generic \
 		--with-defaults \
 		--without-svgz \
