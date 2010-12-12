@@ -19,6 +19,11 @@ MINIFS_BOARD=${MINIFS_BOARD:-"atom"}
 # package directories
 # MINIFS_PACKAGES contains a list of space separated packaged to add
 
+# if you want a .dot and .pdf file with all the .elf dependencies
+# in your build folder, add this to your environment, you'll need
+# GraphViz obviously 
+# export CROSS_LINKER_DEPS=1
+
 COMMAND=$1
 COMMAND_PACKAGE=${COMMAND/_*}
 COMMAND_TARGET=${COMMAND/*_}
@@ -137,14 +142,6 @@ optional board_set_versions
 #######################################################################
 ## Load all the package scripts
 #######################################################################
-
-minifs_path_split() {
-	for pd in $(echo "$MINIFS_PATH"| tr ":" "\n") ; do
-		if [ -d "$pd/$1" ]; then
-			echo "$pd/$1"
-		fi
-	done
-}
 
 package_files=""
 for pd in "$PATCHES/packages" "$CONFIG/packages" $(minifs_path_split "packages"); do
@@ -341,11 +338,12 @@ EOF
 #######################################################################
 ## Create base rootfs tree
 #######################################################################
-rsync -a "$PATCHES/rootfs-base/" "$ROOTFS/"
-if [ -d "$CONFIG/rootfs" ]; then
-	echo "#### Installing overrides"
-	(cd "$CONFIG/rootfs"; tar cf - .)|(cd "$ROOTFS"; tar xf -)
-fi
+for pd in "$PATCHES/rootfs-base" "$CONFIG/rootfs" $(minifs_path_split "rootfs"); do
+	if [ -d "$pd" ]; then
+	#	(cd "$d"; tar cf - .)|(cd "$ROOTFS"; tar xf -)
+		rsync -a "$pd/" "$ROOTFS/"
+	fi
+done
 
 #######################################################################
 ## Default "build" phases Definitions -- for Autoconf targets

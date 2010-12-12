@@ -15,6 +15,16 @@ function check_host_commands() {
 	fi
 }
 
+# split the MINIFS_PATH evn and return all existing directories
+# also adding the first parameter to the path
+minifs_path_split() {
+	for pd in $(echo "$MINIFS_PATH"| tr ":" "\n") ; do
+		if [ -d "$pd/$1" ]; then
+			echo "$pd/$1"
+		fi
+	done
+}
+
 # calls an optional function(s)
 function optional() {
 	for f in $*; do
@@ -145,6 +155,14 @@ function remove_package() {
 	fi
 	rm -rf "$BUILD"/$pack
 	echo Looks like $pack was removed. good luck.
+}
+
+function get_installed_binaries() {
+	if [ -f ._dist ]; then
+		cat ._dist | \
+			awk -v pp="^$STAGING.*/bin/" \
+				'{if ($2=="open" && match($3,pp)) print $3;}' 
+	fi
 }
 
 function dump-depends() {
