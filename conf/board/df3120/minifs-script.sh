@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Xvnc :1 -ac -geometry 320x200 -depth 16 -AlwaysShared -SecurityTypes None
+# Xvnc :1 -ac -geometry 320x240 -depth 16 -AlwaysShared -SecurityTypes None
 
 TARGET_ARCH=arm
 TARGET_FULL_ARCH=$TARGET_ARCH-v4t-linux-uclibcgnueabi
@@ -19,7 +19,8 @@ board_set_versions() {
 }
 
 board_prepare() {
-	TARGET_PACKAGES+=" strace gdbserver libsdl libvncserver picocom uboot"
+	TARGET_PACKAGES+=" strace gdbserver libvncserver picocom uboot"
+	TARGET_PACKAGES+=" bluez btscanner"
 	if [ -d ~/Sources/Utils/fbvncslave ]; then
 		TARGET_PACKAGES+=" fbvncslave"
 	fi
