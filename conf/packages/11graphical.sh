@@ -7,7 +7,7 @@ hset libpng url "ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng-1.2.42.ta
 hset libpng depends "zlib"
 
 PACKAGES+=" libfreetype"
-hset libfreetype url "http://mirrors.aixtools.net/sv/freetype/freetype-2.3.12.tar.bz2"
+hset libfreetype url "http://download.savannah.gnu.org/releases/freetype/freetype-2.3.12.tar.bz2"
 
 install-libfreetype() {
 	install-generic
