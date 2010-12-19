@@ -160,9 +160,13 @@ function remove_package() {
 function get_installed_binaries() {
 	if [ -f ._dist ]; then
 		cat ._dist | \
-			awk -v pp="^$STAGING.*/bin/" \
+			awk -v pp="^$STAGING.*/s?bin/" \
 				'{if ($2=="open" && match($3,pp)) print $3;}' 
 	fi
+}
+
+function deploy_staging_path() {
+	(cd "$STAGING_USR/$1"; tar cf - .)|(mkdir -p "$ROOTFS/$1"; cd "$ROOTFS/$1"; tar xf -)
 }
 
 function dump-depends() {

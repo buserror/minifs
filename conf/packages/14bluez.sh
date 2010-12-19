@@ -15,8 +15,13 @@ PACKAGES+=" bluez"
 hset bluez url "http://www.kernel.org/pub/linux/bluetooth/bluez-4.81.tar.gz"
 hset bluez depends "dbus libiconv libgettext libglib"
 
+deploy-bluez-local() {
+	cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
+	deploy_staging_path "/etc/bluetooth"
+}
+
 deploy-bluez() {
-	deploy cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
+	deploy deploy-bluez-local
 }
 
 PACKAGES+=" btscanner"
