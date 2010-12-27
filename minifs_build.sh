@@ -382,14 +382,14 @@ compile-generic() {
 #######################################################################
 install-generic-local() {
 	local destdir=$(hget $PACKAGE destdir)
-	local makei="installwatch -o ._dist $MAKE install"
+	local makei="installwatch -o ._dist_$PACKAGE.log $MAKE install"
 	set -x
 	case "$destdir" in
 		none) $makei "$@" ;;
 		"") $makei DESTDIR="$STAGING" "$@" ;;
 		*) $makei DESTDIR="$destdir" "$@" ;;
 	esac
-	lafiles=$(awk '{if ($2 == "open" && match($3,/.la$/)) print $3;}' ._dist)
+	lafiles=$(awk '{if ($2 == "open" && match($3,/.la$/)) print $3;}' ._dist_$PACKAGE.log)
 	for n in $lafiles; do
 		echo LDCONFIG PATCH $n
 		sed -i -e "s|\([ ']\)/usr|\1$STAGING_USR|g" $n

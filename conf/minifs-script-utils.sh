@@ -146,9 +146,9 @@ function remove_package() {
 		echo Not removing $pack - was not installed anyway
 		return
 	fi
-	if [ -f "$BUILD"/$pack/._dist ]; then
+	if [ -f "$BUILD/$pack/._dist_$pack.log" ]; then
 		echo $pack was installed in staging, trying to remove
-		cat "$BUILD"/$pack/._dist | \
+		cat "$BUILD/$pack/._dist_$pack.log" | \
 			awk -v pp="$STAGING" \
 				'{if ($2=="open" && match($3,pp)) print $3;}' | \
 					xargs rm -f
@@ -158,9 +158,17 @@ function remove_package() {
 }
 
 function get_installed_binaries() {
-	if [ -f ._dist ]; then
-		cat ._dist | \
+	if [ -f "$BUILD/$pack/._dist_$PACKAGE.log" ]; then
+		cat "$BUILD/$pack/._dist_$PACKAGE.log" | \
 			awk -v pp="^$STAGING.*/s?bin/" \
+				'{if ($2=="open" && match($3,pp)) print $3;}' 
+	fi
+}
+
+function get_installed_etc() {
+	if [ -f "$BUILD/$pack/._dist_$PACKAGE.log" ]; then
+		cat "$BUILD/$pack/._dist_$PACKAGE.log" | \
+			awk -v pp="^$STAGING.*/etc/" \
 				'{if ($2=="open" && match($3,pp)) print $3;}' 
 	fi
 }
