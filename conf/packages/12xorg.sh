@@ -166,7 +166,7 @@ configure-xorgserver-local() {
 #		--enable-kdrive --enable-kdrive-kbd --enable-kdrive-mouse --enable-kdrive-evdev 
 	configure-generic-local \
 		--disable-xwin --disable-xprint --disable-ipv6 \
-		--disable-dmx --disable-xvfb --disable-xnest \
+		--disable-dmx --enable-xvfb --disable-xnest \
 		--disable-dbus \
 		--enable-xorg --disable-xnest \
 		--with-sha1=libsha1 \
