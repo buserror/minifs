@@ -15,6 +15,33 @@ PACKAGES+=" bluez"
 hset bluez url "http://www.kernel.org/pub/linux/bluetooth/bluez-4.81.tar.gz"
 hset bluez depends "dbus libiconv libgettext libglib"
 
+configure-bluez() {
+	 configure-generic \
+		--disable-alsa \
+		--disable-audio \
+		--disable-bccmd \
+		--enable-configfiles \
+		--disable-cups  \
+		--disable-debug \
+		--disable-dfutool \
+		--enable-dund   \
+		--disable-fortify \
+            	--disable-gstreamer \
+		--disable-hid2hci \
+		--enable-hidd \
+		--enable-input \
+		--disable-netlink \
+		--enable-network \
+		--enable-pand \
+		--disable-pcmcia \
+		--disable-pie \
+		--enable-serial \
+		--enable-service \
+		--enable-tools \
+		--disable-udevrules \
+		--disable-usb
+}
+
 deploy-bluez-local() {
 	cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
 	deploy_staging_path "/etc/bluetooth"
@@ -41,3 +68,20 @@ configure-btscanner() {
 deploy-btscanner() {
 	deploy cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
 }
+
+
+PACKAGES+=" cwiid"
+hset cwiid url "http://abstrakraft.org/cwiid/downloads/cwiid-0.6.00.tgz"
+
+configure-cwiid() {
+	#export LDFLAGS='-lbluetooth -lrt -lpthread'
+	autoreconf
+	configure-generic \
+		--without-python --disable-ldconfig
+}
+
+deploy-cwiid() {
+        deploy cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
+	deploy_staging_path "/etc/cwiid"
+}
+
