@@ -23,10 +23,26 @@ install-libsdl() {
 }
 
 PACKAGES+=" sdlquake"
-hset sdlquake url "https://sites.google.com/site/repurposelinux/df3120/sdlquake-1.0.9.tar.gz"
+hset sdlquake url "http://www.libsdl.org/projects/quake/src/sdlquake-1.0.9.tar.gz"
 hset sdlquake depends "libsdl"
 
 configure-sdlquake() {
 	autoconf
-	configure-generic --enable-asm=no
+	configure-generic \
+		--disable-asm
 }
+
+PACKAGES+=" sdlplasma"
+hset sdlplasma url "http://www.libsdl.org/projects/plasma/src/plasma-1.0.tar.gz"
+
+deploy-sdlplasma() {
+        deploy cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
+}
+
+PACKAGES+=" sdlvoxel"
+hset sdlvoxel url "http://www.libsdl.org/projects/newvox/src/newvox-1.0.tar.gz"
+
+deploy-sdlvoxel() {
+        deploy cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
+}
+
