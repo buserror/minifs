@@ -79,14 +79,15 @@ configure-libgettext() {
 
 PACKAGES+=" libgpg-error"
 hset libgpg-error url "ftp://ftp.gnupg.org/gcrypt/libgpg-error/libgpg-error-1.7.tar.bz2"
+hset libgpg-error depends "libiconv libgettext"
 
 PACKAGES+=" libgcrypt"
 hset libgcrypt url "ftp://ftp.gnupg.org/gcrypt/libgcrypt/libgcrypt-1.4.5.tar.bz2"
-hset libgcrypt depends "libgpg-error"
+hset libgcrypt depends "libgettext libgpg-error"
 
 configure-libgcrypt() {
 	export LDFLAGS="$LDFLAGS_RLINK"
-	configure-generic --disable-asm
+	configure-generic --disable-asm --disable-tests
 	export LDFLAGS="$LDFLAGS_BASE"
 }
 
