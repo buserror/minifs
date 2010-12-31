@@ -1,0 +1,76 @@
+diff -rwc ppp/chat/Makefile.linux patch_ppp/chat/Makefile.linux
+*** ppp/chat/Makefile.linux	1999-08-13 03:54:32.000000000 +0200
+--- patch_ppp/chat/Makefile.linux	2010-12-25 17:22:58.000000000 +0100
+***************
+*** 20,26 ****
+  
+  install: chat
+  	mkdir -p $(BINDIR)
+! 	$(INSTALL) -s -c chat $(BINDIR)
+  	$(INSTALL) -c -m 644 chat.8 $(MANDIR)/man8
+  
+  clean:
+--- 20,26 ----
+  
+  install: chat
+  	mkdir -p $(BINDIR)
+! 	$(INSTALL) -c chat $(BINDIR)
+  	$(INSTALL) -c -m 644 chat.8 $(MANDIR)/man8
+  
+  clean:
+diff -rwc ppp/pppd/Makefile.linux patch_ppp/pppd/Makefile.linux
+*** ppp/pppd/Makefile.linux	2001-03-08 06:00:35.000000000 +0100
+--- patch_ppp/pppd/Makefile.linux	2010-12-25 17:23:36.000000000 +0100
+***************
+*** 116,122 ****
+  
+  install: pppd
+  	mkdir -p $(BINDIR) $(MANDIR)
+! 	$(INSTALL) -s -c -m 555 pppd $(BINDIR)/pppd
+  	if chgrp pppusers $(BINDIR)/pppd 2>/dev/null; then \
+  	  chmod o-rx,u+s $(BINDIR)/pppd; fi
+  	$(INSTALL) -c -m 444 pppd.8 $(MANDIR)/man8
+--- 116,122 ----
+  
+  install: pppd
+  	mkdir -p $(BINDIR) $(MANDIR)
+! 	$(INSTALL) -c -m 555 pppd $(BINDIR)/pppd
+  	if chgrp pppusers $(BINDIR)/pppd 2>/dev/null; then \
+  	  chmod o-rx,u+s $(BINDIR)/pppd; fi
+  	$(INSTALL) -c -m 444 pppd.8 $(MANDIR)/man8
+diff -rwc ppp/pppdump/Makefile.linux patch_ppp/pppdump/Makefile.linux
+*** ppp/pppdump/Makefile.linux	1999-07-26 13:09:29.000000000 +0200
+--- patch_ppp/pppdump/Makefile.linux	2010-12-25 17:34:43.000000000 +0100
+***************
+*** 13,17 ****
+  
+  install:
+  	mkdir -p $(BINDIR) $(MANDIR)/man8
+! 	$(INSTALL) -s -c pppdump $(BINDIR)
+  	$(INSTALL) -c -m 444 pppdump.8 $(MANDIR)/man8
+--- 13,17 ----
+  
+  install:
+  	mkdir -p $(BINDIR) $(MANDIR)/man8
+! 	$(INSTALL) -c pppdump $(BINDIR)
+  	$(INSTALL) -c -m 444 pppdump.8 $(MANDIR)/man8
+diff -rwc ppp/pppstats/Makefile.linux patch_ppp/pppstats/Makefile.linux
+*** ppp/pppstats/Makefile.linux	1998-03-25 03:21:19.000000000 +0100
+--- patch_ppp/pppstats/Makefile.linux	2010-12-25 17:34:57.000000000 +0100
+***************
+*** 18,24 ****
+  all: pppstats
+  
+  install: pppstats
+! 	$(INSTALL) -s -c pppstats $(BINDIR)/pppstats
+  	$(INSTALL) -c -m 444 pppstats.8 $(MANDIR)/man8/pppstats.8
+  
+  pppstats: $(PPPSTATSRCS)
+--- 18,24 ----
+  all: pppstats
+  
+  install: pppstats
+! 	$(INSTALL) -c pppstats $(BINDIR)/pppstats
+  	$(INSTALL) -c -m 444 pppstats.8 $(MANDIR)/man8/pppstats.8
+  
+  pppstats: $(PPPSTATSRCS)
