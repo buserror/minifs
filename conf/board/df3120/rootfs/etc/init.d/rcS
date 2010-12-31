@@ -22,3 +22,19 @@ ifconfig usb0 172.16.61.1 netmask 255.255.255.0 up
 
 echo "* Starting telnetd..."
 telnetd -l /bin/sh
+
+echo "* Starting Bluetooth"
+hciattach -s 115200 /dev/ttySAC0 bcm2035 115200 noflow 00:00:00:00:00 >/dev/null 2>&1
+hciconfig hci0 up
+
+echo "* Starting DUN connection"
+rfcomm bind /dev/rfcomm0 08:00:06:5E:8D:F5 2
+pppd /dev/rfcomm0 noauth defaultroute lcp-echo-interval 10 lcp-echo-failure 12
+
+
+
+#echo "* Starting PAN connection"
+#pand -c 00:11:F6:06:8B:AD
+#sleep 1
+#ifconfig bnep0 192.168.1.2
+
