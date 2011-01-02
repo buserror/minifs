@@ -30,7 +30,11 @@ configure-libnetsnmp() {
 
 # this is only needed for uclibc! otherwise eglibc has one already
 PACKAGES+=" libiconv"
-hset libiconv url "http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.13.1.tar.gz"
+if [ "$CONFIG_UCLIBC" != "" ]; then
+	# echo UCLIBC build - add libiconv
+	hset libiconv url "http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.13.1.tar.gz"
+fi
+
 
 configure-libiconv() {
 	configure-generic \
@@ -83,7 +87,7 @@ hset libgpg-error depends "libiconv libgettext"
 
 PACKAGES+=" libgcrypt"
 hset libgcrypt url "ftp://ftp.gnupg.org/gcrypt/libgcrypt/libgcrypt-1.4.5.tar.bz2"
-hset libgcrypt depends "libgettext libgpg-error"
+hset libgcrypt depends "libgpg-error"
 
 configure-libgcrypt() {
 	export LDFLAGS="$LDFLAGS_RLINK"
