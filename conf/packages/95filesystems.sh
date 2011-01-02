@@ -81,7 +81,10 @@ deploy-filesystem-squash() {
 deploy-filesystem-ext() {
 	local out="$BUILD"/minifs-full-ext.img
 	echo -n "     Building $out "
-	local size=${TARGET_FS_EXT_SIZE:-8192}
+	local basesize=$(du -s "$ROOTFS"|awk '{print $1;}')
+	#local size=${TARGET_FS_EXT_SIZE:-8192}
+	local size=$(((($basesize*4)/3)&~512))
+	echo -n "$basesize/$size "
 	if genext2fs -d "$ROOTFS" \
 		-U -i $(($size / 10)) \
 		-D "$BUILD"/special_file_table.txt \
