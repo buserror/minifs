@@ -24,6 +24,7 @@
 	along with cross_linker.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdint.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
