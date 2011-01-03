@@ -10,14 +10,22 @@ hset dropbear prefix "/"
 hset dropbear depends "busybox"
 
 configure-dropbear() {
-	configure-generic \
-		--enable-static --disable-shared \
-		--with-zlib="$STAGING"/lib \
-		LDFLAGS="-static"
+	if [ "$TARGET_SHARED" -eq 0 ]; then
+		configure-generic \
+			--enable-static --disable-shared LDFLAGS=-static 
+	else
+		configure-generic
+	fi
 }
+
 compile-dropbear() {
-	compile $MAKE -j8 PROGRAMS="dropbear dropbearkey scp" STATIC=1 SCPPROGRESS=1
+	if [ "$TARGET_SHARED" -eq 0 ]; then
+		compile $MAKE -j8 PROGRAMS="dropbear dropbearkey scp" STATIC=1 SCPPROGRESS=1
+	else
+		compile $MAKE -j8 PROGRAMS="dropbear dropbearkey scp" SCPPROGRESS=1
+	fi
 }
+
 install-dropbear() {
 	install echo Done
 }
