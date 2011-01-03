@@ -1,4 +1,35 @@
 
+
+#######################################################################
+# Create the text files used to make the device files in ROOTFS
+# the count parameter can't be used because of mksquashfs 
+# name    	type mode uid gid major minor start inc count
+#######################################################################
+cat << EOF | tee "$STAGING_TOOLS"/special_file_table.txt |\
+	awk '{nod=$2=="c"||$2=="b";print nod?"nod":"dir",$1,"0"$3,$4,$5, nod? $2" "$6" "$7:"";}' \
+	>"$STAGING_TOOLS"/special_file_table_kernel.txt 
+/dev		d    755  0    0    -    -    -    -    -
+/dev/console	c    600  0    0    5    1    0    0    -
+/dev/ptmx	c    666  0    0    5    2    0    0    -
+/dev/null	c    666  0    0    1    3    0    0    -
+/dev/mem	c    640  0    0    1    1    0    0    -
+/dev/tty0	c    666  0    0    4    0    0    -    -
+/dev/tty1	c    666  0    0    4    1    0    -    -
+/dev/tty2	c    666  0    0    4    2    0    -    -
+/dev/tty3	c    666  0    0    4    3    0    -    -
+/dev/tty4	c    666  0    0    4    4    0    -    -
+/dev/tty5	c    666  0    0    4    5    0    -    -
+/root		d    700  0    0    -    -    -    -    -
+/tmp		d    777  0    0    -    -    -    -    -
+/sys		d    755  0    0    -    -    -    -    -
+/proc		d    755  0    0    -    -    -    -    -
+/mnt		d    755  0    0    -    -    -    -    -
+/var		d    755  0    0    -    -    -    -    -
+/var/log	d    755  0    0    -    -    -    -    -
+/var/cache	d    755  0    0    -    -    -    -    -
+/var/run	d    755  0    0    -    -    -    -    -
+EOF
+
 PACKAGES+=" filesystems"
 FILESYSTEMS="filesystem-prepack"
 
@@ -70,7 +101,7 @@ deploy-filesystem-squash() {
 	echo -n "     Building $out "
 	if mksquashfs "$ROOTFS" "$out" \
 		-all-root \
-		-pf "$BUILD"/special_file_table.txt \
+		-pf "$STAGING_TOOLS"/special_file_table.txt \
 			>>"$BUILD/._filesystem.log" 2>&1 ; then
 		echo Done
 	else
@@ -87,7 +118,7 @@ deploy-filesystem-ext() {
 	echo -n "$basesize/$size "
 	if genext2fs -d "$ROOTFS" \
 		-U -i $(($size / 10)) \
-		-D "$BUILD"/special_file_table.txt \
+		-D "$STAGING_TOOLS"/special_file_table.txt \
 		-b $size \
 		"$out" \
 			>>"$BUILD/._filesystem.log" 2>&1 ; then
@@ -105,7 +136,7 @@ deploy-filesystem-jffs() {
 	if mkfs.jffs2 $TARGET_FS_JFFS2 \
 		-r "$ROOTFS" \
 		-o "$out"  \
-		-D "$BUILD"/special_file_table.txt \
+		-D "$STAGING_TOOLS"/special_file_table.txt \
 			>>"$BUILD/._filesystem.log" 2>&1 ; then
 		echo Done
 	else
@@ -120,7 +151,7 @@ deploy-filesystem-initrd() {
 	echo -n "     Building $out "
 	if sh ../linux/scripts/gen_initramfs_list.sh \
 		-o "$out" \
-		../special_file_table_kernel.txt ../rootfs \
+		"$STAGING_TOOLS"/special_file_table_kernel.txt ../rootfs \
 			>>"$BUILD/._filesystem.log" 2>&1 ; then
 		echo Done
 	else

@@ -65,7 +65,7 @@ WGET=wget
 MAKE=make
 
 mkdir -p "$STAGING_TOOLS"/bin
-mkdir -p download "$KERNEL" "$ROOTFS" "$STAGING_USR" "$TOOLCHAIN"/bin
+mkdir -p download "$KERNEL" "$ROOTFS" "$STAGING_USR" "$TOOLCHAIN"
 mkdir -p "$STAGING_USR"/share/aclocal
 
 # Always regenerate the rootfs
@@ -90,7 +90,7 @@ TARGET_SHARED=0
 rm -f /tmp/pkg-config.log
 if [ "$COMMAND" == "tools" ]; then exit ;fi
 
-hset busybox version "1.17.3"
+hset busybox version "1.18.1"
 hset linux version "2.6.32.2"
 hset crosstools version "1.9.0"
 
@@ -299,7 +299,7 @@ for package in $TARGET_PACKAGES; do
 						echo "     Applying $pf"
 						cat $pf | patch -t -p1
 					done
-				popd ) >"._patch_$baseroot.log"
+				popd ) >"$BUILD/$baseroot/._patch_$baseroot.log"
 			fi
 		done
 	fi
@@ -307,41 +307,10 @@ done
 popd
 
 #######################################################################
-# Create the text files used to make the device files in ROOTFS
-# the count parameter can't be used because of mksquashfs 
-# name    	type mode uid gid major minor start inc count
-#######################################################################
-cat << EOF | tee "$BUILD"/special_file_table.txt |\
-	awk '{nod=$2=="c"||$2=="b";print nod?"nod":"dir",$1,"0"$3,$4,$5, nod? $2" "$6" "$7:"";}' \
-	>"$BUILD"/special_file_table_kernel.txt 
-/dev		d    755  0    0    -    -    -    -    -
-/dev/console	c    600  0    0    5    1    0    0    -
-/dev/ptmx	c    666  0    0    5    2    0    0    -
-/dev/null	c    666  0    0    1    3    0    0    -
-/dev/mem	c    640  0    0    1    1    0    0    -
-/dev/tty0	c    666  0    0    4    0    0    -    -
-/dev/tty1	c    666  0    0    4    1    0    -    -
-/dev/tty2	c    666  0    0    4    2    0    -    -
-/dev/tty3	c    666  0    0    4    3    0    -    -
-/dev/tty4	c    666  0    0    4    4    0    -    -
-/dev/tty5	c    666  0    0    4    5    0    -    -
-/root		d    700  0    0    -    -    -    -    -
-/tmp		d    777  0    0    -    -    -    -    -
-/sys		d    755  0    0    -    -    -    -    -
-/proc		d    755  0    0    -    -    -    -    -
-/mnt		d    755  0    0    -    -    -    -    -
-/var		d    755  0    0    -    -    -    -    -
-/var/log	d    755  0    0    -    -    -    -    -
-/var/cache	d    755  0    0    -    -    -    -    -
-/var/run	d    755  0    0    -    -    -    -    -
-EOF
-
-#######################################################################
 ## Create base rootfs tree
 #######################################################################
 for pd in "$PATCHES/rootfs-base" "$CONFIG/rootfs" $(minifs_path_split "rootfs"); do
 	if [ -d "$pd" ]; then
-	#	(cd "$d"; tar cf - .)|(cd "$ROOTFS"; tar xf -)
 		rsync -a "$pd/" "$ROOTFS/"
 	fi
 done
@@ -400,6 +369,12 @@ install-generic-local() {
 install-generic() {
 	log_install install-generic-local "$@"
 }
+#######################################################################
+# the default deploy phase does... nothing. Most packages are libraries
+# and these are installed automaticaly in the target filesystem. The
+# deploy phase is made only for the pakcages that want to install
+# anything in the rootfs, like utils, etc, fonts etc etc
+#######################################################################
 deploy-generic() {
 	return 0
 }
