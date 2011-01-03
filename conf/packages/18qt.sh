@@ -1,9 +1,9 @@
 
 PACKAGES+=" qt"
-V="4.6.2"
+V="4.7.2"
 hset qt version $V
 hset qt url "http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-$V.tar.gz"
-hset qt depends "libts libfontconfig"
+hset qt depends "zlib libjpeg libpng libfreetype libts libfontconfig"
 
 configure-qt() {
 	(
@@ -19,10 +19,6 @@ configure-qt() {
 		-no-qt3support \
 		-qt-sql-sqlite \
 		-no-libtiff -no-libmng \
-		-qt-libjpeg \
-		-qt-zlib \
-		-qt-libpng \
-		-qt-freetype \
 		-no-openssl \
 		-nomake examples -nomake demos -nomake tools\
 		-optimized-qmake \
