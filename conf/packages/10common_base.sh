@@ -1,7 +1,7 @@
 
 
 #######################################################################
-## zlib
+## zlib - http://www.zlib.net/
 #######################################################################
 PACKAGES+=" zlib"
 hset zlib url "http://www.zlib.net/zlib-1.2.5.tar.gz"
@@ -14,16 +14,16 @@ configure-zlib() {
 }
 
 #######################################################################
-## lzo
+## lzo - http://www.oberhumer.com/opensource/lzo/
 #######################################################################
 PACKAGES+=" lzo"
-hset lzo url "http://www.oberhumer.com/opensource/lzo/download/lzo-2.03.tar.gz"
+hset lzo url "http://www.oberhumer.com/opensource/lzo/download/lzo-2.04.tar.gz"
 
 #######################################################################
-## e2fsprog
+## e2fsprog - http://e2fsprogs.sourceforge.net/
 #######################################################################
 PACKAGES+=" e2fsprogs"
-hset e2fsprogs url "http://heanet.dl.sourceforge.net/project/e2fsprogs/e2fsprogs/1.41.9/e2fsprogs-libs-1.41.9.tar.gz"
+hset e2fsprogs url "http://heanet.dl.sourceforge.net/project/e2fsprogs/e2fsprogs/1.41.9/e2fsprogs-libs-1.41.14.tar.gz"
 hset e2fsprogs depends "busybox"
 
 configure-e2fsprogs() {
@@ -41,10 +41,10 @@ hset screen url "http://ftp.gnu.org/gnu/screen/screen-4.0.3.tar.gz"
 hset screen depends "busybox"
 
 #######################################################################
-## i2c-tools
+## i2c-tools - http://www.lm-sensors.org/wiki/I2CTools
 #######################################################################
 PACKAGES+=" i2c"
-hset i2c url "http://dl.lm-sensors.org/i2c-tools/releases/i2c-tools-3.0.2.tar.bz2"
+hset i2c url "http://dl.lm-sensors.org/i2c-tools/releases/i2c-tools-3.0.3.tar.bz2"
 hset i2c depends "busybox"
 
 configure-i2c() {
@@ -61,7 +61,7 @@ deploy-i2c() {
 }
 
 #######################################################################
-## libusb
+## libusb- http://sourceforge.net/projects/libusb/files/libusb-1.0/
 #######################################################################
 PACKAGES+=" libusb"
 hset libusb url "http://downloads.sourceforge.net/project/libusb/libusb-1.0/libusb-1.0.8/libusb-1.0.8.tar.bz2"
@@ -70,6 +70,7 @@ PACKAGES+=" libusb-compat"
 hset libusb-compat url "http://downloads.sourceforge.net/project/libusb/libusb-compat-0.1/libusb-compat-0.1.3/libusb-compat-0.1.3.tar.bz2"
 hset libusb-compat depends "libusb"
 
+# http://www.linuxfromscratch.org/blfs/view/cvs/general/usbutils.html
 PACKAGES+=" usbutils"
 hset usbutils url "http://downloads.sourceforge.net/project/linux-usb/usbutils/usbutils-0.86.tar.gz"
 hset usbutils depends "libusb-compat busybox"
@@ -86,7 +87,7 @@ deploy-usbutils() {
 }
 
 #######################################################################
-## libftdi
+## libftdi - http://www.intra2net.com/en/developer/libftdi/
 #######################################################################
 PACKAGES+=" libftdi"
 hset libftdi url "http://www.intra2net.com/en/developer/libftdi/download/libftdi-0.18.tar.gz"

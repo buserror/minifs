@@ -1,16 +1,21 @@
 
+# http://samba.org/ftp/talloc/
 PACKAGES+=" libtalloc"
 hset libtalloc url "http://samba.org/ftp/talloc/talloc-2.0.1.tar.gz"
 
+# http://expat.sourceforge.net/
 PACKAGES+=" libexpat"
 hset libexpat url "http://downloads.sourceforge.net/project/expat/expat/2.0.1/expat-2.0.1.tar.gz"
 
+# http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html
 PACKAGES+=" libreadline"
 hset libreadline url "ftp://ftp.gnu.org/gnu/readline/readline-6.1.tar.gz"
 
+# http://www.gnu.org/software/ncurses/
 PACKAGES+=" libncurses"
 hset libncurses url "http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.7.tar.gz"
 
+# http://www.net-snmp.org/download.html
 PACKAGES+=" libnetsnmp"
 hset libnetsnmp url "http://downloads.sourceforge.net/project/net-snmp/net-snmp/5.5/net-snmp-5.5.tar.gz#netsnmp-5.5.tgz"
 
@@ -172,10 +177,10 @@ install-libnss() {
 }
 
 #######################################################################
-## curl
+## curl - http://curl.haxx.se/
 #######################################################################
 PACKAGES+=" libcurl"
-hset libcurl url "http://curl.haxx.se/download/curl-7.21.2.tar.bz2"
+hset libcurl url "http://curl.haxx.se/download/curl-7.21.3.tar.bz2"
 
 PACKAGES+=" curl"
 hset curl url "none"
@@ -203,6 +208,7 @@ deploy-curl() {
 	cp "$STAGING_USR"/bin/curl "$ROOTFS"/usr/bin/
 }
 
+# http://samba.anu.edu.au/rsync/
 PACKAGES+=" rsync"
 hset rsync url "http://samba.anu.edu.au/ftp/rsync/src/rsync-3.0.7.tar.gz"
 hset rsync depends "busybox"
@@ -211,6 +217,7 @@ deploy-rsync() {
 	deploy cp "$STAGING_USR"/bin/rsync "$ROOTFS"/bin/
 }
 
+# http://code.google.com/p/picocom/
 PACKAGES+=" picocom"
 hset picocom url "http://picocom.googlecode.com/files/picocom-1.6.tar.gz"
 hset picocom depends "busybox"

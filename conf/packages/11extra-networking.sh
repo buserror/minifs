@@ -10,11 +10,11 @@ hset bird depends "libreadline"
 # Secure Shell (bigger version than dropbear)
 #
 PACKAGES+=" openssh"
-hset openssh url "ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-5.5p1.tar.gz"
+hset openssh url "ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-5.6p1.tar.gz"
 hset openssh depends "openssl"
 
 #
-# tinc tunelling
+# tinc tunelling - http://www.tinc-vpn.org/
 #
 PACKAGES+=" tinc"
 hset tinc url "http://www.tinc-vpn.org/packages/tinc-1.0.13.tar.gz"
@@ -35,6 +35,9 @@ deploy-tinc() {
 	deploy deploy-tinc-local
 }
 
+#
+# IMAP/POP/*.*/SMTP library - http://sourceforge.net/projects/libetpan/
+#
 PACKAGES+=" libetpan"
 hset libetpan url "http://downloads.sourceforge.net/project/libetpan/libetpan/1.0/libetpan-1.0.tar.gz"
 hset libetpan depends "zlib"
