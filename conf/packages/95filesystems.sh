@@ -114,7 +114,7 @@ deploy-filesystem-ext() {
 	echo -n "     Building $out "
 	local basesize=$(du -s "$ROOTFS"|awk '{print $1;}')
 	#local size=${TARGET_FS_EXT_SIZE:-8192}
-	local size=$(((($basesize*4)/3)&~512))
+	local size=$(((($basesize*3)/2)&~512))
 	echo -n "$basesize/$size "
 	if genext2fs -d "$ROOTFS" \
 		-U -i $(($size / 10)) \
