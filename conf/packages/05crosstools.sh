@@ -78,7 +78,7 @@ configure-crosstools() {
 		cp config_crosstools.conf .config
 
 		"$STAGING_TOOLS"/bin/ct-ng show-tuple
-		"$STAGING_TOOLS"/bin/ct-ng build
+		"$STAGING_TOOLS"/bin/ct-ng build$CROSSTOOL_JOBS
 	)
 }
 
