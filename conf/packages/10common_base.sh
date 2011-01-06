@@ -23,7 +23,7 @@ hset lzo url "http://www.oberhumer.com/opensource/lzo/download/lzo-2.04.tar.gz"
 ## e2fsprog - http://e2fsprogs.sourceforge.net/
 #######################################################################
 PACKAGES+=" e2fsprogs"
-hset e2fsprogs url "http://heanet.dl.sourceforge.net/project/e2fsprogs/e2fsprogs/1.41.9/e2fsprogs-libs-1.41.14.tar.gz"
+hset e2fsprogs url "http://heanet.dl.sourceforge.net/project/e2fsprogs/e2fsprogs/1.41.14/e2fsprogs-libs-1.41.14.tar.gz"
 hset e2fsprogs depends "busybox"
 
 configure-e2fsprogs() {
