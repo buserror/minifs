@@ -13,6 +13,6 @@ board_set_versions() {
 }
 
 board_prepare() {
-	TARGET_PACKAGES+=" zlib lzo e2fsprogs mtd_utils"
+#	TARGET_PACKAGES+=" zlib lzo e2fsprogs"
 }
 
