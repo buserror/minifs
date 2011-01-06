@@ -45,8 +45,10 @@ glib_cv_uscore=no
 }
 
 PACKAGES+=" libcairo"
-hset libcairo url "http://www.cairographics.org/releases/cairo-1.8.10.tar.gz"
-hset libcairo depends "libfreetype libglib libpixman"
+#hset libcairo url "http://www.cairographics.org/releases/cairo-1.8.10.tar.gz"
+hset libcairo url "http://www.cairographics.org/releases/cairo-1.9.6.tar.gz"
+#hset libcairo url "http://www.cairographics.org/releases/cairo-1.10.2.tar.gz"
+hset libcairo depends "libfreetype libpng libglib libpixman"
 
 configure-libcairo() {
 	local extras=""
@@ -54,18 +56,16 @@ configure-libcairo() {
 		extras+=" --disable-some-floating-point "
 	fi
 	if [[ $TARGET_X11 ]]; then
-		configure-generic \
-		--enable-xlib=yes \
+		extras+=" --enable-xlib=yes \
 		--enable-xlib-xrender=yes \
-		--enable-directfb=no \
-		--with-x $extras
+		--with-x "
 	else
-		configure-generic \
-		--enable-xlib=no \
+		extras+=" --enable-xlib=no \
 		--enable-xlib-xrender=no \
-		--enable-directfb=yes \
-		--without-x $extras
+		--without-x "
 	fi
+	extras+=" --enable-directfb=no"
+	configure-generic $extras
 }
 
 PACKAGES+=" libpango"

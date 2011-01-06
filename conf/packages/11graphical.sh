@@ -71,7 +71,7 @@ deploy-libfontconfig() {
 }
 
 PACKAGES+=" libpixman"
-hset libpixman url "http://xorg.freedesktop.org/archive/individual/lib/pixman-0.17.6.tar.bz2"
+hset libpixman url "http://xorg.freedesktop.org/archive/individual/lib/pixman-0.21.2.tar.bz2"
 
 configure-libpixman() {
 	local extras=""
