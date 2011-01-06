@@ -1,5 +1,5 @@
 
-echo GCC PATH = $GCC
+#echo GCC PATH = $GCC
 if [ ! -f "$GCC" -o "$COMMAND_PACKAGE" == "crosstools" ]; then 
 	PACKAGES+=" crosstools"
 	NEED_CROSSTOOLS="crosstools"
@@ -24,12 +24,14 @@ configure-crosstools() {
 		chmod -R u+w "$TOOLCHAIN"
 
 		# Install missing patches
-		if [ -d "$PATCHES/patches/crosstools/patches" ]; then
-			here=$(pwd)
-			pushd $PATCHES/patches/crosstools/
-			tar cf - patches | (cd "$here"; tar xvf -) 
-			popd
-		fi
+		for dir in "$PATCHES"/patches/crosstools; do
+			if [ -d "$dir"/patches ]; then
+				here=$(pwd)
+				pushd "$dir"
+				tar cf - patches | (cd "$here"; tar xvf -) 
+				popd
+			fi
+		done
 
 		configure ./configure --prefix="$STAGING_TOOLS" &&
 			$MAKE &&
