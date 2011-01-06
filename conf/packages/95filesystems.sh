@@ -70,6 +70,9 @@ hset filesystem-initrd dir "linux-obj"
 hset filesystem-initrd phases "deploy"
 hset filesystem-initrd depends "filesystem-prepack"
 
+MINIFS_CROSS_STRIP="${CROSS}-strip"
+MINIFS_STRIP=sstrip
+
 deploy-filesystem-prepack() {
 	deploy echo Copying
 	echo -n "     Stripping binaries... "
@@ -84,7 +87,7 @@ deploy-filesystem-prepack() {
 	ln -s ../var $ROOTFS/usr/var
 	echo minifs-$MINIFS_BOARD >$ROOTFS/etc/hostname
 
-	"${CROSS}-strip" "$ROOTFS"/bin/* "$ROOTFS"/sbin/* "$ROOTFS"/usr/bin/* \
+	$MINIFS_STRIP "$ROOTFS"/bin/* "$ROOTFS"/sbin/* "$ROOTFS"/usr/bin/* \
 		2>/dev/null
 	for lib in "$ROOTFS"/lib "$ROOTFS"/usr/lib; do
 		if [ -d "$lib" ]; then
@@ -115,6 +118,7 @@ deploy-filesystem-ext() {
 	local basesize=$(du -s "$ROOTFS"|awk '{print $1;}')
 	#local size=${TARGET_FS_EXT_SIZE:-8192}
 	local size=$(((($basesize*3)/2)&~512))
+	if (($size < 4096)); then size=4096; fi
 	echo -n "$basesize/$size "
 	if genext2fs -d "$ROOTFS" \
 		-U -i $(($size / 10)) \
