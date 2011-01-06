@@ -8,6 +8,8 @@
 # 
 # (C) Michel Pollet <buserror@gmail.com>
 #
+#######################################################################
+#
 # this is the board we are making. Several boards can co-exist, the
 # toolchains are "compatible" and live in the toolchain/ subdirectory.
 # Several board of the same arch can also coexist, sharing the same
@@ -148,7 +150,6 @@ optional board_set_versions
 
 package_files=""
 for pd in "$PATCHES/packages" "$CONFIG/packages" $(minifs_path_split "packages"); do
-	echo $pd
 	if [ -d "$pd" ]; then
 		package_files+="$(echo $pd/*.sh) "
 	fi
@@ -238,7 +239,8 @@ for package in $TARGET_PACKAGES; do
 	typ=${fil/*.}
 	url=${fil/\#*}
 	loc=${base/*#/}
-	#	echo "base=$base typ=$typ loc=$loc"
+	vers=$(echo $base|sed -r 's|.*([-_](v?[0-9]+[a-z]?[\._]?)+)\..*|\1|')
+	#echo "base=$base typ=$typ loc=$loc vers=$vers"
 	 
 	# maybe the package has a magic downloader ?
 	optional download-$package
@@ -292,6 +294,7 @@ for package in $TARGET_PACKAGES; do
 		echo "####  Extracting $loc to $BUILD/$baseroot ($typ)"
 		mkdir -p "$BUILD/$baseroot"
 		echo "$fil" >"$BUILD/$baseroot/._url"
+		echo "$vers" >"$BUILD/$baseroot/._version"
 		case "$typ" in
 			bz2)	tar jx --exclude=.git -C "$BUILD/$baseroot" --strip 1 -f "$loc"	;;
 			gz|tgz)	tar zx --exclude=.git -C "$BUILD/$baseroot" --strip 1 -f "$loc"	;;
@@ -302,7 +305,12 @@ for package in $TARGET_PACKAGES; do
 				;;
 			*)	echo ### error file format '$typ' ($base) not supported" ; exit 1
 		esac
-		for pd in "$CONFIG/$baseroot" "$PATCHES/patches/$baseroot" $(minifs_path_split "patches/$baseroot"); do
+		for pd in \
+				"$CONFIG/$baseroot" "$CONFIG/$baseroot$vers"\
+				"$PATCHES/patches/$baseroot" "$PATCHES/patches/$baseroot$vers"\
+				$(minifs_path_split "patches/$baseroot") \
+				$(minifs_path_split "patches/$baseroot$vers"); do
+			#echo trying patches $pd
 			if [ -d "$pd" ]; then
 				echo "#### Patching $base"
 				( pushd "$BUILD/$baseroot"
