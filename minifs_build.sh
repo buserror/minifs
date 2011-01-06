@@ -63,6 +63,8 @@ GCC="${CROSS}-gcc"
 
 WGET=wget
 MAKE=make
+MAKE_ARGUMENTS="-j8"
+CROSSTOOL_JOBS=".4"
 
 mkdir -p "$STAGING_TOOLS"/bin
 mkdir -p download "$KERNEL" "$ROOTFS" "$STAGING_USR" "$TOOLCHAIN"
@@ -166,6 +168,14 @@ optional board_prepare
 # verify we have all the commands we need to build on the host
 check_host_commands
 
+# if a local config file is found, run it, it allows quick
+# testing of packages without changing the real board file etc
+for sh in .config .config-$(hostname -s) .config-$MINIFS_BOARD; do
+	if [ -f $sh ]; then
+		source $sh
+	fi
+done
+
 if [ "$TARGET_SHARED" -eq 0 ]; then
 	echo "### Static build!!"
 	LDFLAGS_BASE="-static $LDFLAGS_BASE"
@@ -228,7 +238,8 @@ for package in $TARGET_PACKAGES; do
 	typ=${fil/*.}
 	url=${fil/\#*}
 	loc=${base/*#/}
-	
+	#	echo "base=$base typ=$typ loc=$loc"
+	 
 	# maybe the package has a magic downloader ?
 	optional download-$package
 
@@ -306,6 +317,10 @@ for package in $TARGET_PACKAGES; do
 done
 popd
 
+if [ "$COMMAND" == "unpack" ]; then
+	exit
+fi
+
 #######################################################################
 ## Create base rootfs tree
 #######################################################################
@@ -344,7 +359,7 @@ configure-generic() {
 	set +x
 }
 compile-generic() {
-	compile $MAKE -j8 $MAKE_CLEAN "$@"
+	compile $MAKE $MAKE_ARGUMENTS $MAKE_CLEAN "$@"
 }
 
 #######################################################################
