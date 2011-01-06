@@ -23,6 +23,7 @@ board_prepare() {
 	TARGET_PACKAGES+=" strace gdbserver libvncserver picocom uboot"
 	TARGET_PACKAGES+=" bluez btscanner ppp cwiid libsdl"
 	TARGET_PACKAGES+=" sdlplasma sdlvoxel"
+	TARGET_PACKAGES+=" sdldoom"
 	if [ -d ~/Sources/Utils/fbvncslave ]; then
 		TARGET_PACKAGES+=" fbvncslave"
 	fi
