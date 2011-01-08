@@ -24,9 +24,7 @@ board_prepare() {
 	TARGET_PACKAGES+=" bluez btscanner ppp cwiid libsdl"
 	TARGET_PACKAGES+=" sdlplasma sdlvoxel"
 	TARGET_PACKAGES+=" sdldoom"
-	if [ -d ~/Sources/Utils/fbvncslave ]; then
-		TARGET_PACKAGES+=" fbvncslave"
-	fi
+	TARGET_PACKAGES+=" fbvncslave"
 }
 
 df3120-deploy-linux-bare() {
@@ -38,4 +36,5 @@ df3120-deploy-uboot() {
 	# make sure the u-boot is aligned on 512 blocks, for mtd_debug
 	deploy dd if=u-boot.bin of="$ROOTFS"/u-boot.bin bs=512 conv=sync
 }
+
 

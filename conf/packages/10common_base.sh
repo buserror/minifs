@@ -7,10 +7,8 @@ PACKAGES+=" zlib"
 hset zlib url "http://www.zlib.net/zlib-1.2.5.tar.gz"
 
 configure-zlib() {
-	export LDFLAGS=${LDFLAGS/-static/}
 	configure ./configure \
 		--prefix="/usr"
-	export LDFLAGS="$LDFLAGS_BASE"
 }
 
 #######################################################################
