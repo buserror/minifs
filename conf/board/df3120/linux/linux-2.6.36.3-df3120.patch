@@ -1,18 +1,20 @@
 diff --git a/arch/arm/configs/df3120_defconfig b/arch/arm/configs/df3120_defconfig
 new file mode 100644
-index 0000000..90c5d50
+index 0000000..31b319a
 --- /dev/null
 +++ b/arch/arm/configs/df3120_defconfig
-@@ -0,0 +1,1157 @@
+@@ -0,0 +1,1180 @@
 +#
 +# Automatically generated make config: don't edit
-+# Linux kernel version: 2.6.32.2
-+# Tue Jan 26 21:44:54 2010
++# Linux kernel version: 2.6.36
++# Tue Nov 30 13:01:30 2010
 +#
 +CONFIG_ARM=y
 +CONFIG_HAVE_PWM=y
 +CONFIG_SYS_SUPPORTS_APM_EMULATION=y
 +CONFIG_GENERIC_GPIO=y
++CONFIG_ARCH_USES_GETTIMEOFFSET=y
++CONFIG_HAVE_PROC_CPU=y
 +CONFIG_NO_IOPORT=y
 +CONFIG_GENERIC_HARDIRQS=y
 +CONFIG_STACKTRACE_SUPPORT=y
@@ -25,6 +27,7 @@ index 0000000..90c5d50
 +CONFIG_ARCH_HAS_CPUFREQ=y
 +CONFIG_GENERIC_HWEIGHT=y
 +CONFIG_GENERIC_CALIBRATE_DELAY=y
++CONFIG_NEED_DMA_MAP_STATE=y
 +CONFIG_GENERIC_HARDIRQS_NO__DO_IRQ=y
 +CONFIG_VECTORS_BASE=0xffff0000
 +CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
@@ -36,8 +39,15 @@ index 0000000..90c5d50
 +CONFIG_EXPERIMENTAL=y
 +CONFIG_BROKEN_ON_SMP=y
 +CONFIG_INIT_ENV_ARG_LIMIT=32
++CONFIG_CROSS_COMPILE=""
 +CONFIG_LOCALVERSION=""
 +# CONFIG_LOCALVERSION_AUTO is not set
++CONFIG_HAVE_KERNEL_GZIP=y
++CONFIG_HAVE_KERNEL_LZMA=y
++CONFIG_HAVE_KERNEL_LZO=y
++# CONFIG_KERNEL_GZIP is not set
++# CONFIG_KERNEL_LZMA is not set
++CONFIG_KERNEL_LZO=y
 +# CONFIG_SWAP is not set
 +CONFIG_SYSVIPC=y
 +CONFIG_SYSVIPC_SYSCTL=y
@@ -50,15 +60,11 @@ index 0000000..90c5d50
 +#
 +# RCU Subsystem
 +#
-+CONFIG_TREE_RCU=y
-+# CONFIG_TREE_PREEMPT_RCU is not set
-+# CONFIG_RCU_TRACE is not set
-+CONFIG_RCU_FANOUT=32
-+# CONFIG_RCU_FANOUT_EXACT is not set
++# CONFIG_TREE_RCU is not set
++CONFIG_TINY_RCU=y
 +# CONFIG_TREE_RCU_TRACE is not set
 +# CONFIG_IKCONFIG is not set
 +CONFIG_LOG_BUF_SHIFT=16
-+# CONFIG_GROUP_SCHED is not set
 +# CONFIG_CGROUPS is not set
 +# CONFIG_SYSFS_DEPRECATED_V2 is not set
 +# CONFIG_RELAY is not set
@@ -71,7 +77,6 @@ index 0000000..90c5d50
 +# CONFIG_UID16 is not set
 +# CONFIG_SYSCTL_SYSCALL is not set
 +CONFIG_KALLSYMS=y
-+CONFIG_KALLSYMS_ALL=y
 +# CONFIG_KALLSYMS_EXTRA_PASS is not set
 +CONFIG_HOTPLUG=y
 +CONFIG_PRINTK=y
@@ -85,10 +90,14 @@ index 0000000..90c5d50
 +CONFIG_EVENTFD=y
 +# CONFIG_SHMEM is not set
 +# CONFIG_AIO is not set
++CONFIG_HAVE_PERF_EVENTS=y
++CONFIG_PERF_USE_VMALLOC=y
 +
 +#
 +# Kernel Performance Events And Counters
 +#
++# CONFIG_PERF_EVENTS is not set
++# CONFIG_PERF_COUNTERS is not set
 +# CONFIG_VM_EVENT_COUNTERS is not set
 +CONFIG_COMPAT_BRK=y
 +# CONFIG_SLAB is not set
@@ -98,12 +107,12 @@ index 0000000..90c5d50
 +CONFIG_HAVE_OPROFILE=y
 +CONFIG_HAVE_KPROBES=y
 +CONFIG_HAVE_KRETPROBES=y
++CONFIG_HAVE_REGS_AND_STACK_ACCESS_API=y
 +CONFIG_HAVE_CLK=y
 +
 +#
 +# GCOV-based kernel profiling
 +#
-+# CONFIG_SLOW_WORK is not set
 +CONFIG_HAVE_GENERIC_DMA_COHERENT=y
 +CONFIG_RT_MUTEXES=y
 +CONFIG_BASE_SMALL=1
@@ -117,14 +126,39 @@ index 0000000..90c5d50
 +# IO Schedulers
 +#
 +CONFIG_IOSCHED_NOOP=y
-+# CONFIG_IOSCHED_AS is not set
 +# CONFIG_IOSCHED_DEADLINE is not set
 +# CONFIG_IOSCHED_CFQ is not set
-+# CONFIG_DEFAULT_AS is not set
-+# CONFIG_DEFAULT_DEADLINE is not set
-+# CONFIG_DEFAULT_CFQ is not set
 +CONFIG_DEFAULT_NOOP=y
 +CONFIG_DEFAULT_IOSCHED="noop"
++# CONFIG_INLINE_SPIN_TRYLOCK is not set
++# CONFIG_INLINE_SPIN_TRYLOCK_BH is not set
++# CONFIG_INLINE_SPIN_LOCK is not set
++# CONFIG_INLINE_SPIN_LOCK_BH is not set
++# CONFIG_INLINE_SPIN_LOCK_IRQ is not set
++# CONFIG_INLINE_SPIN_LOCK_IRQSAVE is not set
++CONFIG_INLINE_SPIN_UNLOCK=y
++# CONFIG_INLINE_SPIN_UNLOCK_BH is not set
++CONFIG_INLINE_SPIN_UNLOCK_IRQ=y
++# CONFIG_INLINE_SPIN_UNLOCK_IRQRESTORE is not set
++# CONFIG_INLINE_READ_TRYLOCK is not set
++# CONFIG_INLINE_READ_LOCK is not set
++# CONFIG_INLINE_READ_LOCK_BH is not set
++# CONFIG_INLINE_READ_LOCK_IRQ is not set
++# CONFIG_INLINE_READ_LOCK_IRQSAVE is not set
++CONFIG_INLINE_READ_UNLOCK=y
++# CONFIG_INLINE_READ_UNLOCK_BH is not set
++CONFIG_INLINE_READ_UNLOCK_IRQ=y
++# CONFIG_INLINE_READ_UNLOCK_IRQRESTORE is not set
++# CONFIG_INLINE_WRITE_TRYLOCK is not set
++# CONFIG_INLINE_WRITE_LOCK is not set
++# CONFIG_INLINE_WRITE_LOCK_BH is not set
++# CONFIG_INLINE_WRITE_LOCK_IRQ is not set
++# CONFIG_INLINE_WRITE_LOCK_IRQSAVE is not set
++CONFIG_INLINE_WRITE_UNLOCK=y
++# CONFIG_INLINE_WRITE_UNLOCK_BH is not set
++CONFIG_INLINE_WRITE_UNLOCK_IRQ=y
++# CONFIG_INLINE_WRITE_UNLOCK_IRQRESTORE is not set
++# CONFIG_MUTEX_SPIN_ON_OWNER is not set
 +# CONFIG_FREEZER is not set
 +
 +#
@@ -135,8 +169,11 @@ index 0000000..90c5d50
 +# CONFIG_ARCH_INTEGRATOR is not set
 +# CONFIG_ARCH_REALVIEW is not set
 +# CONFIG_ARCH_VERSATILE is not set
++# CONFIG_ARCH_VEXPRESS is not set
 +# CONFIG_ARCH_AT91 is not set
++# CONFIG_ARCH_BCMRING is not set
 +# CONFIG_ARCH_CLPS711X is not set
++# CONFIG_ARCH_CNS3XXX is not set
 +# CONFIG_ARCH_GEMINI is not set
 +# CONFIG_ARCH_EBSA110 is not set
 +# CONFIG_ARCH_EP93XX is not set
@@ -145,60 +182,73 @@ index 0000000..90c5d50
 +# CONFIG_ARCH_STMP3XXX is not set
 +# CONFIG_ARCH_NETX is not set
 +# CONFIG_ARCH_H720X is not set
-+# CONFIG_ARCH_NOMADIK is not set
 +# CONFIG_ARCH_IOP13XX is not set
 +# CONFIG_ARCH_IOP32X is not set
 +# CONFIG_ARCH_IOP33X is not set
 +# CONFIG_ARCH_IXP23XX is not set
 +# CONFIG_ARCH_IXP2000 is not set
 +# CONFIG_ARCH_IXP4XX is not set
-+# CONFIG_ARCH_L7200 is not set
++# CONFIG_ARCH_DOVE is not set
 +# CONFIG_ARCH_KIRKWOOD is not set
 +# CONFIG_ARCH_LOKI is not set
++# CONFIG_ARCH_LPC32XX is not set
 +# CONFIG_ARCH_MV78XX0 is not set
 +# CONFIG_ARCH_ORION5X is not set
 +# CONFIG_ARCH_MMP is not set
 +# CONFIG_ARCH_KS8695 is not set
 +# CONFIG_ARCH_NS9XXX is not set
 +# CONFIG_ARCH_W90X900 is not set
++# CONFIG_ARCH_NUC93X is not set
++# CONFIG_ARCH_TEGRA is not set
 +# CONFIG_ARCH_PNX4008 is not set
 +# CONFIG_ARCH_PXA is not set
 +# CONFIG_ARCH_MSM is not set
++# CONFIG_ARCH_SHMOBILE is not set
 +# CONFIG_ARCH_RPC is not set
 +# CONFIG_ARCH_SA1100 is not set
 +CONFIG_ARCH_S3C2410=y
 +# CONFIG_ARCH_S3C64XX is not set
-+# CONFIG_ARCH_S5PC1XX is not set
++# CONFIG_ARCH_S5P6440 is not set
++# CONFIG_ARCH_S5P6442 is not set
++# CONFIG_ARCH_S5PC100 is not set
++# CONFIG_ARCH_S5PV210 is not set
++# CONFIG_ARCH_S5PV310 is not set
 +# CONFIG_ARCH_SHARK is not set
 +# CONFIG_ARCH_LH7A40X is not set
 +# CONFIG_ARCH_U300 is not set
++# CONFIG_ARCH_U8500 is not set
++# CONFIG_ARCH_NOMADIK is not set
 +# CONFIG_ARCH_DAVINCI is not set
 +# CONFIG_ARCH_OMAP is not set
-+# CONFIG_ARCH_BCMRING is not set
-+CONFIG_PLAT_S3C24XX=y
-+CONFIG_S3C24XX_PWM=y
-+CONFIG_S3C24XX_GPIO_EXTRA=0
-+CONFIG_S3C2410_DMA=y
-+# CONFIG_S3C2410_DMA_DEBUG is not set
-+CONFIG_S3C24XX_ADC=y
-+CONFIG_PLAT_S3C=y
-+CONFIG_CPU_LLSERIAL_S3C2440_ONLY=y
-+CONFIG_CPU_LLSERIAL_S3C2440=y
++# CONFIG_PLAT_SPEAR is not set
++CONFIG_PLAT_SAMSUNG=y
 +
 +#
 +# Boot options
 +#
 +# CONFIG_S3C_BOOT_ERROR_RESET is not set
 +CONFIG_S3C_BOOT_UART_FORCE_FIFO=y
++CONFIG_S3C_LOWLEVEL_UART_PORT=2
++CONFIG_S3C_GPIO_CFG_S3C24XX=y
++CONFIG_SAMSUNG_GPIO_EXTRA=0
++CONFIG_S3C_GPIO_SPACE=0
++CONFIG_S3C_ADC=y
++CONFIG_S3C_DEV_HWMON=y
++CONFIG_S3C_DEV_USB_HOST=y
++CONFIG_S3C_DEV_WDT=y
++CONFIG_S3C_DEV_NAND=y
++CONFIG_S3C_DMA=y
 +
 +#
 +# Power management
 +#
-+CONFIG_S3C_LOWLEVEL_UART_PORT=2
-+CONFIG_S3C_GPIO_SPACE=0
-+CONFIG_S3C_DMA=y
-+CONFIG_S3C_DEV_USB_HOST=y
-+CONFIG_S3C_DEV_NAND=y
++CONFIG_PLAT_S3C24XX=y
++CONFIG_CPU_LLSERIAL_S3C2440_ONLY=y
++CONFIG_CPU_LLSERIAL_S3C2440=y
++CONFIG_S3C24XX_PWM=y
++CONFIG_S3C24XX_GPIO_EXTRA=0
++CONFIG_S3C2410_DMA=y
++# CONFIG_S3C2410_DMA_DEBUG is not set
 +
 +#
 +# S3C2400 Machines
@@ -231,20 +281,24 @@ index 0000000..90c5d50
 +CONFIG_MACH_DF3120=y
 +
 +#
-+# S3C2440 Machines
++# S3C2416 Machines
++#
++# CONFIG_MACH_SMDK2416 is not set
++
++#
++# S3C2440 and S3C2442 Machines
 +#
 +# CONFIG_MACH_ANUBIS is not set
++# CONFIG_MACH_NEO1973_GTA02 is not set
 +# CONFIG_MACH_OSIRIS is not set
 +# CONFIG_MACH_RX3715 is not set
 +# CONFIG_ARCH_S3C2440 is not set
 +# CONFIG_MACH_NEXCODER_2440 is not set
++# CONFIG_SMDK2440_CPU2440 is not set
++# CONFIG_SMDK2440_CPU2442 is not set
 +# CONFIG_MACH_AT2440EVB is not set
 +# CONFIG_MACH_MINI2440 is not set
-+
-+#
-+# S3C2442 Machines
-+#
-+# CONFIG_MACH_NEO1973_GTA02 is not set
++# CONFIG_MACH_RX1950 is not set
 +
 +#
 +# S3C2443 Machines
@@ -254,7 +308,6 @@ index 0000000..90c5d50
 +#
 +# Processor Type
 +#
-+CONFIG_CPU_32=y
 +CONFIG_CPU_ARM926T=y
 +CONFIG_CPU_32v5=y
 +CONFIG_CPU_ABRT_EV5TJ=y
@@ -298,23 +351,24 @@ index 0000000..90c5d50
 +# CONFIG_ARCH_SPARSEMEM_DEFAULT is not set
 +# CONFIG_ARCH_SELECT_MEMORY_MODEL is not set
 +# CONFIG_HIGHMEM is not set
++# CONFIG_SPARSE_IRQ is not set
 +CONFIG_SELECT_MEMORY_MODEL=y
 +CONFIG_FLATMEM_MANUAL=y
-+# CONFIG_DISCONTIGMEM_MANUAL is not set
-+# CONFIG_SPARSEMEM_MANUAL is not set
 +CONFIG_FLATMEM=y
 +CONFIG_FLAT_NODE_MEM_MAP=y
++CONFIG_HAVE_MEMBLOCK=y
 +CONFIG_PAGEFLAGS_EXTENDED=y
-+CONFIG_SPLIT_PTLOCK_CPUS=4096
++CONFIG_SPLIT_PTLOCK_CPUS=999999
 +# CONFIG_PHYS_ADDR_T_64BIT is not set
 +CONFIG_ZONE_DMA_FLAG=0
 +CONFIG_VIRT_TO_BUS=y
-+CONFIG_HAVE_MLOCK=y
-+CONFIG_HAVE_MLOCKED_PAGE_BIT=y
 +# CONFIG_KSM is not set
 +CONFIG_DEFAULT_MMAP_MIN_ADDR=1024
++CONFIG_FORCE_MAX_ZONEORDER=11
 +CONFIG_ALIGNMENT_TRAP=y
 +# CONFIG_UACCESS_WITH_MEMCPY is not set
++# CONFIG_CC_STACKPROTECTOR is not set
++# CONFIG_DEPRECATED_PARAM_STRUCT is not set
 +
 +#
 +# Boot options
@@ -324,6 +378,7 @@ index 0000000..90c5d50
 +CONFIG_CMDLINE=""
 +# CONFIG_XIP_KERNEL is not set
 +# CONFIG_KEXEC is not set
++# CONFIG_AUTO_ZRELADDR is not set
 +
 +#
 +# CPU Power Management
@@ -392,12 +447,14 @@ index 0000000..90c5d50
 +# CONFIG_TCP_MD5SIG is not set
 +# CONFIG_IPV6 is not set
 +# CONFIG_NETWORK_SECMARK is not set
++# CONFIG_NETWORK_PHY_TIMESTAMPING is not set
 +# CONFIG_NETFILTER is not set
 +# CONFIG_IP_DCCP is not set
 +# CONFIG_IP_SCTP is not set
 +# CONFIG_RDS is not set
 +# CONFIG_TIPC is not set
 +# CONFIG_ATM is not set
++# CONFIG_L2TP is not set
 +# CONFIG_BRIDGE is not set
 +# CONFIG_NET_DSA is not set
 +# CONFIG_VLAN_8021Q is not set
@@ -437,6 +494,7 @@ index 0000000..90c5d50
 +CONFIG_BT_HCIUART=y
 +CONFIG_BT_HCIUART_H4=y
 +CONFIG_BT_HCIUART_BCSP=y
++# CONFIG_BT_HCIUART_ATH3K is not set
 +CONFIG_BT_HCIUART_LL=y
 +# CONFIG_BT_HCIVHCI is not set
 +# CONFIG_BT_MRVL is not set
@@ -445,6 +503,7 @@ index 0000000..90c5d50
 +# CONFIG_WIMAX is not set
 +# CONFIG_RFKILL is not set
 +# CONFIG_NET_9P is not set
++# CONFIG_CAIF is not set
 +
 +#
 +# Device Drivers
@@ -454,19 +513,23 @@ index 0000000..90c5d50
 +# Generic Driver Options
 +#
 +CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
++CONFIG_DEVTMPFS=y
++CONFIG_DEVTMPFS_MOUNT=y
 +CONFIG_STANDALONE=y
 +# CONFIG_PREVENT_FIRMWARE_BUILD is not set
 +CONFIG_FW_LOADER=y
 +CONFIG_FIRMWARE_IN_KERNEL=y
 +CONFIG_EXTRA_FIRMWARE=""
-+# CONFIG_DEBUG_DRIVER is not set
-+# CONFIG_DEBUG_DEVRES is not set
 +# CONFIG_SYS_HYPERVISOR is not set
 +# CONFIG_CONNECTOR is not set
 +CONFIG_MTD=y
 +# CONFIG_MTD_DEBUG is not set
 +# CONFIG_MTD_CONCAT is not set
-+# CONFIG_MTD_PARTITIONS is not set
++CONFIG_MTD_PARTITIONS=y
++# CONFIG_MTD_REDBOOT_PARTS is not set
++# CONFIG_MTD_CMDLINE_PARTS is not set
++# CONFIG_MTD_AFS_PARTS is not set
++# CONFIG_MTD_AR7_PARTS is not set
 +
 +#
 +# User Modules And Translation Layers
@@ -480,6 +543,7 @@ index 0000000..90c5d50
 +# CONFIG_INFTL is not set
 +# CONFIG_RFD_FTL is not set
 +# CONFIG_SSFDC is not set
++# CONFIG_SM_FTL is not set
 +# CONFIG_MTD_OOPS is not set
 +
 +#
@@ -521,15 +585,21 @@ index 0000000..90c5d50
 +# CONFIG_MTD_DOC2000 is not set
 +# CONFIG_MTD_DOC2001 is not set
 +# CONFIG_MTD_DOC2001PLUS is not set
++CONFIG_MTD_NAND_ECC=y
++# CONFIG_MTD_NAND_ECC_SMC is not set
 +CONFIG_MTD_NAND=y
 +# CONFIG_MTD_NAND_VERIFY_WRITE is not set
-+# CONFIG_MTD_NAND_ECC_SMC is not set
++# CONFIG_MTD_SM_COMMON is not set
 +# CONFIG_MTD_NAND_MUSEUM_IDS is not set
 +# CONFIG_MTD_NAND_GPIO is not set
 +CONFIG_MTD_NAND_IDS=y
-+# CONFIG_MTD_NAND_S3C2410 is not set
++CONFIG_MTD_NAND_S3C2410=y
++# CONFIG_MTD_NAND_S3C2410_DEBUG is not set
++# CONFIG_MTD_NAND_S3C2410_HWECC is not set
++# CONFIG_MTD_NAND_S3C2410_CLKSTOP is not set
 +# CONFIG_MTD_NAND_DISKONCHIP is not set
-+# CONFIG_MTD_NAND_PLATFORM is not set
++# CONFIG_MTD_NAND_NANDSIM is not set
++CONFIG_MTD_NAND_PLATFORM=y
 +# CONFIG_MTD_ONENAND is not set
 +
 +#
@@ -545,25 +615,23 @@ index 0000000..90c5d50
 +CONFIG_BLK_DEV=y
 +# CONFIG_BLK_DEV_COW_COMMON is not set
 +# CONFIG_BLK_DEV_LOOP is not set
++
++#
++# DRBD disabled because PROC_FS, INET or CONNECTOR not selected
++#
 +# CONFIG_BLK_DEV_NBD is not set
 +# CONFIG_BLK_DEV_RAM is not set
 +# CONFIG_CDROM_PKTCDVD is not set
 +# CONFIG_ATA_OVER_ETH is not set
 +# CONFIG_MG_DISK is not set
-+CONFIG_MISC_DEVICES=y
-+# CONFIG_ENCLOSURE_SERVICES is not set
-+# CONFIG_C2PORT is not set
-+
-+#
-+# EEPROM support
-+#
-+# CONFIG_EEPROM_93CX6 is not set
++# CONFIG_MISC_DEVICES is not set
 +CONFIG_HAVE_IDE=y
 +# CONFIG_IDE is not set
 +
 +#
 +# SCSI device support
 +#
++CONFIG_SCSI_MOD=y
 +# CONFIG_RAID_ATTRS is not set
 +CONFIG_SCSI=y
 +CONFIG_SCSI_DMA=y
@@ -606,6 +674,7 @@ index 0000000..90c5d50
 +# CONFIG_EQUALIZER is not set
 +# CONFIG_TUN is not set
 +# CONFIG_VETH is not set
++# CONFIG_PHYLIB is not set
 +# CONFIG_NET_ETHERNET is not set
 +# CONFIG_NETDEV_1000 is not set
 +# CONFIG_NETDEV_10000 is not set
@@ -615,6 +684,10 @@ index 0000000..90c5d50
 +# Enable WiMAX (Networking options) to see the WiMAX drivers
 +#
 +# CONFIG_WAN is not set
++
++#
++# CAIF transport drivers
++#
 +# CONFIG_PPP is not set
 +# CONFIG_SLIP is not set
 +# CONFIG_NETCONSOLE is not set
@@ -629,6 +702,7 @@ index 0000000..90c5d50
 +CONFIG_INPUT=y
 +CONFIG_INPUT_FF_MEMLESS=y
 +CONFIG_INPUT_POLLDEV=y
++# CONFIG_INPUT_SPARSEKMAP is not set
 +
 +#
 +# Userland interfaces
@@ -667,6 +741,7 @@ index 0000000..90c5d50
 +# CONFIG_VT_HW_CONSOLE_BINDING is not set
 +# CONFIG_DEVKMEM is not set
 +# CONFIG_SERIAL_NONSTANDARD is not set
++# CONFIG_N_GSM is not set
 +
 +#
 +# Serial drivers
@@ -678,11 +753,13 @@ index 0000000..90c5d50
 +#
 +CONFIG_SERIAL_SAMSUNG=y
 +CONFIG_SERIAL_SAMSUNG_UARTS=3
-+# CONFIG_SERIAL_SAMSUNG_DEBUG is not set
 +CONFIG_SERIAL_SAMSUNG_CONSOLE=y
 +CONFIG_SERIAL_S3C2412=y
 +CONFIG_SERIAL_CORE=y
 +CONFIG_SERIAL_CORE_CONSOLE=y
++# CONFIG_SERIAL_TIMBERDALE is not set
++# CONFIG_SERIAL_ALTERA_JTAGUART is not set
++# CONFIG_SERIAL_ALTERA_UART is not set
 +CONFIG_UNIX98_PTYS=y
 +# CONFIG_DEVPTS_MULTIPLE_INSTANCES is not set
 +# CONFIG_LEGACY_PTYS is not set
@@ -691,7 +768,9 @@ index 0000000..90c5d50
 +# CONFIG_R3964 is not set
 +# CONFIG_RAW_DRIVER is not set
 +# CONFIG_TCG_TPM is not set
++# CONFIG_RAMOOPS is not set
 +# CONFIG_I2C is not set
++CONFIG_HAVE_S3C2410_I2C=y
 +# CONFIG_SPI is not set
 +
 +#
@@ -700,12 +779,12 @@ index 0000000..90c5d50
 +# CONFIG_PPS is not set
 +CONFIG_ARCH_REQUIRE_GPIOLIB=y
 +CONFIG_GPIOLIB=y
-+# CONFIG_DEBUG_GPIO is not set
 +# CONFIG_GPIO_SYSFS is not set
 +
 +#
 +# Memory mapped GPIO expanders:
 +#
++# CONFIG_GPIO_IT8761E is not set
 +
 +#
 +# I2C GPIO expanders:
@@ -722,9 +801,32 @@ index 0000000..90c5d50
 +#
 +# AC97 GPIO expanders:
 +#
++
++#
++# MODULbus GPIO expanders:
++#
 +# CONFIG_W1 is not set
 +# CONFIG_POWER_SUPPLY is not set
-+# CONFIG_HWMON is not set
++CONFIG_HWMON=y
++# CONFIG_HWMON_VID is not set
++# CONFIG_HWMON_DEBUG_CHIP is not set
++
++#
++# Native drivers
++#
++# CONFIG_SENSORS_F71805F is not set
++# CONFIG_SENSORS_F71882FG is not set
++# CONFIG_SENSORS_IT87 is not set
++# CONFIG_SENSORS_PC87360 is not set
++# CONFIG_SENSORS_PC87427 is not set
++# CONFIG_SENSORS_SHT15 is not set
++CONFIG_SENSORS_S3C=y
++CONFIG_SENSORS_S3C_RAW=y
++# CONFIG_SENSORS_SMSC47M1 is not set
++# CONFIG_SENSORS_SMSC47B397 is not set
++# CONFIG_SENSORS_VT1211 is not set
++# CONFIG_SENSORS_W83627HF is not set
++# CONFIG_SENSORS_W83627EHF is not set
 +# CONFIG_THERMAL is not set
 +# CONFIG_WATCHDOG is not set
 +CONFIG_SSB_POSSIBLE=y
@@ -733,25 +835,14 @@ index 0000000..90c5d50
 +# Sonics Silicon Backplane
 +#
 +# CONFIG_SSB is not set
-+
-+#
-+# Multifunction device drivers
-+#
-+# CONFIG_MFD_CORE is not set
-+# CONFIG_MFD_SM501 is not set
-+# CONFIG_MFD_ASIC3 is not set
-+# CONFIG_HTC_EGPIO is not set
-+# CONFIG_HTC_PASIC3 is not set
-+# CONFIG_MFD_TMIO is not set
-+# CONFIG_MFD_T7L66XB is not set
-+# CONFIG_MFD_TC6387XB is not set
-+# CONFIG_MFD_TC6393XB is not set
++# CONFIG_MFD_SUPPORT is not set
 +# CONFIG_REGULATOR is not set
 +# CONFIG_MEDIA_SUPPORT is not set
 +
 +#
 +# Graphics support
 +#
++# CONFIG_DRM is not set
 +# CONFIG_VGASTATE is not set
 +CONFIG_VIDEO_OUTPUT_CONTROL=y
 +CONFIG_FB=y
@@ -785,7 +876,6 @@ index 0000000..90c5d50
 +# CONFIG_FB_BROADSHEET is not set
 +CONFIG_BACKLIGHT_LCD_SUPPORT=y
 +CONFIG_LCD_CLASS_DEVICE=y
-+# CONFIG_LCD_ILI9320 is not set
 +CONFIG_LCD_PLATFORM=y
 +CONFIG_BACKLIGHT_CLASS_DEVICE=y
 +# CONFIG_BACKLIGHT_GENERIC is not set
@@ -799,7 +889,6 @@ index 0000000..90c5d50
 +#
 +# Console display driver support
 +#
-+# CONFIG_VGA_CONSOLE is not set
 +CONFIG_DUMMY_CONSOLE=y
 +CONFIG_FRAMEBUFFER_CONSOLE=y
 +CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY=y
@@ -829,54 +918,38 @@ index 0000000..90c5d50
 +# CONFIG_USB_OTG_WHITELIST is not set
 +# CONFIG_USB_OTG_BLACKLIST_HUB is not set
 +# CONFIG_USB_MUSB_HDRC is not set
-+# CONFIG_USB_GADGET_MUSB_HDRC is not set
 +
 +#
 +# NOTE: USB_STORAGE depends on SCSI but BLK_DEV_SD may
 +#
 +CONFIG_USB_GADGET=y
-+# CONFIG_USB_GADGET_DEBUG is not set
 +# CONFIG_USB_GADGET_DEBUG_FILES is not set
 +CONFIG_USB_GADGET_VBUS_DRAW=300
 +CONFIG_USB_GADGET_SELECTED=y
-+# CONFIG_USB_GADGET_AT91 is not set
-+# CONFIG_USB_GADGET_ATMEL_USBA is not set
-+# CONFIG_USB_GADGET_FSL_USB2 is not set
-+# CONFIG_USB_GADGET_LH7A40X is not set
-+# CONFIG_USB_GADGET_OMAP is not set
-+# CONFIG_USB_GADGET_PXA25X is not set
 +# CONFIG_USB_GADGET_R8A66597 is not set
-+# CONFIG_USB_GADGET_PXA27X is not set
-+# CONFIG_USB_GADGET_S3C_HSOTG is not set
-+# CONFIG_USB_GADGET_IMX is not set
 +CONFIG_USB_GADGET_S3C2410=y
 +CONFIG_USB_S3C2410=y
 +# CONFIG_USB_S3C2410_DEBUG is not set
 +# CONFIG_USB_GADGET_M66592 is not set
-+# CONFIG_USB_GADGET_AMD5536UDC is not set
-+# CONFIG_USB_GADGET_FSL_QE is not set
-+# CONFIG_USB_GADGET_CI13XXX is not set
-+# CONFIG_USB_GADGET_NET2280 is not set
-+# CONFIG_USB_GADGET_GOKU is not set
-+# CONFIG_USB_GADGET_LANGWELL is not set
-+# CONFIG_USB_GADGET_DUMMY_HCD is not set
 +# CONFIG_USB_GADGET_DUALSPEED is not set
 +# CONFIG_USB_ZERO is not set
-+# CONFIG_USB_AUDIO is not set
-+CONFIG_USB_ETH=y
-+CONFIG_USB_ETH_RNDIS=y
-+# CONFIG_USB_ETH_EEM is not set
++# CONFIG_USB_ETH is not set
 +# CONFIG_USB_GADGETFS is not set
++# CONFIG_USB_FUNCTIONFS is not set
 +# CONFIG_USB_FILE_STORAGE is not set
++# CONFIG_USB_MASS_STORAGE is not set
 +# CONFIG_USB_G_SERIAL is not set
-+# CONFIG_USB_MIDI_GADGET is not set
 +# CONFIG_USB_G_PRINTER is not set
-+# CONFIG_USB_CDC_COMPOSITE is not set
++CONFIG_USB_CDC_COMPOSITE=y
++# CONFIG_USB_G_MULTI is not set
++# CONFIG_USB_G_HID is not set
++# CONFIG_USB_G_DBGP is not set
 +
 +#
 +# OTG and related infrastructure
 +#
 +# CONFIG_USB_GPIO_VBUS is not set
++# CONFIG_USB_ULPI is not set
 +# CONFIG_NOP_USB_XCEIV is not set
 +CONFIG_MMC=y
 +# CONFIG_MMC_DEBUG is not set
@@ -894,8 +967,6 @@ index 0000000..90c5d50
 +# MMC/SD/SDIO Host Controller Drivers
 +#
 +# CONFIG_MMC_SDHCI is not set
-+# CONFIG_MMC_AT91 is not set
-+# CONFIG_MMC_ATMELMCI is not set
 +CONFIG_MMC_S3C=y
 +# CONFIG_MMC_S3C_HW_SDIO_IRQ is not set
 +CONFIG_MMC_S3C_PIO=y
@@ -935,7 +1006,9 @@ index 0000000..90c5d50
 +# CONFIG_RTC_DRV_M48T86 is not set
 +# CONFIG_RTC_DRV_M48T35 is not set
 +# CONFIG_RTC_DRV_M48T59 is not set
++# CONFIG_RTC_DRV_MSM6242 is not set
 +# CONFIG_RTC_DRV_BQ4802 is not set
++# CONFIG_RTC_DRV_RP5C01 is not set
 +# CONFIG_RTC_DRV_V3020 is not set
 +
 +#
@@ -943,16 +1016,14 @@ index 0000000..90c5d50
 +#
 +CONFIG_RTC_DRV_S3C=y
 +CONFIG_DMADEVICES=y
++# CONFIG_DMADEVICES_DEBUG is not set
 +
 +#
 +# DMA Devices
 +#
++# CONFIG_TIMB_DMA is not set
 +# CONFIG_AUXDISPLAY is not set
 +# CONFIG_UIO is not set
-+
-+#
-+# TI VLYNQ
-+#
 +# CONFIG_STAGING is not set
 +
 +#
@@ -976,7 +1047,6 @@ index 0000000..90c5d50
 +CONFIG_FILE_LOCKING=y
 +CONFIG_FSNOTIFY=y
 +CONFIG_DNOTIFY=y
-+CONFIG_INOTIFY=y
 +CONFIG_INOTIFY_USER=y
 +# CONFIG_QUOTA is not set
 +# CONFIG_AUTOFS_FS is not set
@@ -1018,21 +1088,10 @@ index 0000000..90c5d50
 +# CONFIG_BEFS_FS is not set
 +# CONFIG_BFS_FS is not set
 +# CONFIG_EFS_FS is not set
-+CONFIG_JFFS2_FS=y
-+CONFIG_JFFS2_FS_DEBUG=0
-+CONFIG_JFFS2_FS_WRITEBUFFER=y
-+# CONFIG_JFFS2_FS_WBUF_VERIFY is not set
-+# CONFIG_JFFS2_SUMMARY is not set
-+# CONFIG_JFFS2_FS_XATTR is not set
-+# CONFIG_JFFS2_COMPRESSION_OPTIONS is not set
-+CONFIG_JFFS2_ZLIB=y
-+# CONFIG_JFFS2_LZO is not set
-+CONFIG_JFFS2_RTIME=y
-+# CONFIG_JFFS2_RUBIN is not set
++# CONFIG_JFFS2_FS is not set
++CONFIG_LOGFS=y
 +# CONFIG_CRAMFS is not set
-+CONFIG_SQUASHFS=y
-+# CONFIG_SQUASHFS_EMBEDDED is not set
-+CONFIG_SQUASHFS_FRAGMENT_CACHE_SIZE=3
++# CONFIG_SQUASHFS is not set
 +# CONFIG_VXFS_FS is not set
 +# CONFIG_MINIX_FS is not set
 +# CONFIG_OMFS_FS is not set
@@ -1079,59 +1138,20 @@ index 0000000..90c5d50
 +# CONFIG_UNUSED_SYMBOLS is not set
 +# CONFIG_DEBUG_FS is not set
 +# CONFIG_HEADERS_CHECK is not set
-+CONFIG_DEBUG_KERNEL=y
-+# CONFIG_DEBUG_SHIRQ is not set
-+CONFIG_DETECT_SOFTLOCKUP=y
-+# CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC is not set
-+CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC_VALUE=0
-+CONFIG_DETECT_HUNG_TASK=y
-+# CONFIG_BOOTPARAM_HUNG_TASK_PANIC is not set
-+CONFIG_BOOTPARAM_HUNG_TASK_PANIC_VALUE=0
-+# CONFIG_SCHED_DEBUG is not set
-+# CONFIG_SCHEDSTATS is not set
-+# CONFIG_TIMER_STATS is not set
-+# CONFIG_DEBUG_OBJECTS is not set
-+# CONFIG_DEBUG_KMEMLEAK is not set
-+# CONFIG_DEBUG_RT_MUTEXES is not set
-+# CONFIG_RT_MUTEX_TESTER is not set
-+# CONFIG_DEBUG_SPINLOCK is not set
-+# CONFIG_DEBUG_MUTEXES is not set
-+# CONFIG_DEBUG_LOCK_ALLOC is not set
-+# CONFIG_PROVE_LOCKING is not set
-+# CONFIG_LOCK_STAT is not set
-+# CONFIG_DEBUG_SPINLOCK_SLEEP is not set
-+# CONFIG_DEBUG_LOCKING_API_SELFTESTS is not set
-+# CONFIG_DEBUG_KOBJECT is not set
-+# CONFIG_DEBUG_BUGVERBOSE is not set
-+CONFIG_DEBUG_INFO=y
-+# CONFIG_DEBUG_VM is not set
-+# CONFIG_DEBUG_WRITECOUNT is not set
++# CONFIG_DEBUG_KERNEL is not set
++# CONFIG_HARDLOCKUP_DETECTOR is not set
++CONFIG_DEBUG_BUGVERBOSE=y
 +# CONFIG_DEBUG_MEMORY_INIT is not set
-+# CONFIG_DEBUG_LIST is not set
-+# CONFIG_DEBUG_SG is not set
-+# CONFIG_DEBUG_NOTIFIERS is not set
-+# CONFIG_DEBUG_CREDENTIALS is not set
-+# CONFIG_BOOT_PRINTK_DELAY is not set
-+# CONFIG_RCU_TORTURE_TEST is not set
-+# CONFIG_RCU_CPU_STALL_DETECTOR is not set
-+# CONFIG_BACKTRACE_SELF_TEST is not set
-+# CONFIG_DEBUG_BLOCK_EXT_DEVT is not set
-+# CONFIG_DEBUG_FORCE_WEAK_PER_CPU is not set
-+# CONFIG_FAULT_INJECTION is not set
-+# CONFIG_LATENCYTOP is not set
-+# CONFIG_PAGE_POISONING is not set
++# CONFIG_SYSCTL_SYSCALL_CHECK is not set
 +CONFIG_HAVE_FUNCTION_TRACER=y
 +CONFIG_TRACING_SUPPORT=y
 +# CONFIG_FTRACE is not set
++# CONFIG_ATOMIC64_SELFTEST is not set
 +# CONFIG_SAMPLES is not set
 +CONFIG_HAVE_ARCH_KGDB=y
-+# CONFIG_KGDB is not set
 +CONFIG_ARM_UNWIND=y
 +# CONFIG_DEBUG_USER is not set
-+CONFIG_DEBUG_ERRORS=y
-+# CONFIG_DEBUG_STACK_USAGE is not set
-+CONFIG_DEBUG_LL=y
-+# CONFIG_DEBUG_ICEDCC is not set
++# CONFIG_OC_ETM is not set
 +CONFIG_DEBUG_S3C_UART=1
 +
 +#
@@ -1140,7 +1160,8 @@ index 0000000..90c5d50
 +# CONFIG_KEYS is not set
 +# CONFIG_SECURITY is not set
 +# CONFIG_SECURITYFS is not set
-+# CONFIG_SECURITY_FILE_CAPABILITIES is not set
++CONFIG_DEFAULT_SECURITY_DAC=y
++CONFIG_DEFAULT_SECURITY=""
 +# CONFIG_CRYPTO is not set
 +# CONFIG_BINARY_PRINTF is not set
 +
@@ -1158,14 +1179,16 @@ index 0000000..90c5d50
 +# CONFIG_LIBCRC32C is not set
 +CONFIG_ZLIB_INFLATE=y
 +CONFIG_ZLIB_DEFLATE=y
++CONFIG_BTREE=y
 +CONFIG_HAS_IOMEM=y
 +CONFIG_HAS_DMA=y
 +CONFIG_NLATTR=y
++CONFIG_GENERIC_ATOMIC64=y
 diff --git a/arch/arm/mach-s3c2412/Kconfig b/arch/arm/mach-s3c2412/Kconfig
-index c2bdc46..8763d8b 100644
+index cef6a65..8ef2c43 100644
 --- a/arch/arm/mach-s3c2412/Kconfig
 +++ b/arch/arm/mach-s3c2412/Kconfig
-@@ -90,6 +90,13 @@ config MACH_VSTMS
+@@ -89,4 +89,13 @@ config MACH_VSTMS
  	help
  	  Say Y here if you are using an VSTMS board
  
@@ -1174,11 +1197,11 @@ index c2bdc46..8763d8b 100644
 +	select CPU_S3C2412
 +	select S3C_DEV_USB_HOST
 +	select S3C_DEV_NAND
++	select S3C_DEV_HWMON
 +	help
 +	  Say Y here if you are using a Parrot DF3120 photo frame
- 
++
  endmenu
- 
 diff --git a/arch/arm/mach-s3c2412/Makefile b/arch/arm/mach-s3c2412/Makefile
 index 530ec46..4a25707 100644
 --- a/arch/arm/mach-s3c2412/Makefile
@@ -1190,13 +1213,15 @@ index 530ec46..4a25707 100644
 +obj-$(CONFIG_MACH_DF3120)	+= mach-df3120.o
 diff --git a/arch/arm/mach-s3c2412/mach-df3120.c b/arch/arm/mach-s3c2412/mach-df3120.c
 new file mode 100644
-index 0000000..61a16d2
+index 0000000..e81c29f
 --- /dev/null
 +++ b/arch/arm/mach-s3c2412/mach-df3120.c
-@@ -0,0 +1,409 @@
+@@ -0,0 +1,440 @@
 +/* linux/arch/arm/mach-s3c2412/mach-vstms.c
 + *
 + * (C) 2009 Jeroen Domburg <jeroen@spritesmods.com>
++ * (C) 2009 Michel Pollet <buserror@gmail.com>
++ * (C) 2010 Claude Schwarz <claude.schwarz@gmail.com>
 + *
 + * Derived from mach-vstms.c - (C) 2006 Thomas Gleixner <tglx@linutronix.de>
 + * Derived from mach-smdk2413.c - (C) 2006 Simtec Electronics
@@ -1223,6 +1248,7 @@ index 0000000..61a16d2
 +#include <linux/gpio_keys.h>
 +#include <linux/mmc/host.h>
 +#include <linux/input.h>
++#include <linux/delay.h>
 +
 +#include <asm/mach/arch.h>
 +#include <asm/mach/map.h>
@@ -1247,6 +1273,7 @@ index 0000000..61a16d2
 +
 +#include <plat/s3c2410.h>
 +#include <plat/s3c2412.h>
++#include <plat/hwmon.h>
 +#include <plat/clock.h>
 +#include <plat/devs.h>
 +#include <plat/cpu.h>
@@ -1255,14 +1282,14 @@ index 0000000..61a16d2
 +#include <linux/pwm_backlight.h>
 +
 +
-+static struct map_desc df3120_iodesc[] __initdata = {
++static struct map_desc __initdata df3120_iodesc[] = {
 +};
 +
 +#define UCON (S3C2410_UCON_DEFAULT | S3C2412_UCON_PCLK2)
 +#define ULCON (S3C2410_LCON_CS8 | S3C2410_LCON_PNONE | S3C2410_LCON_STOPB)
 +#define UFCON (S3C2410_UFCON_RXTRIG8 | S3C2410_UFCON_FIFOMODE)
 +
-+static struct s3c2410_uartcfg df3120_uartcfgs[]  = {
++static struct s3c2410_uartcfg df3120_uartcfgs[] __initdata = {
 +	[0] = {
 +		.hwport	     = 0,
 +		.flags	     = 0,
@@ -1329,7 +1356,7 @@ index 0000000..61a16d2
 +};
 +
 +
-+static struct mtd_partition df3120_nand_part[] = {
++static struct mtd_partition __initdata df3120_nand_part[] = {
 +	[0] = {
 +		.name	= "u-boot",
 +		.size	= SZ_256K,
@@ -1352,7 +1379,7 @@ index 0000000..61a16d2
 +	},
 +};
 +
-+static struct s3c2410_nand_set df3120_nand_sets[] = {
++static struct s3c2410_nand_set __initdata df3120_nand_sets[] = {
 +	[0] = {
 +		.name		= "NAND",
 +		.nr_chips	= 1,
@@ -1415,7 +1442,7 @@ index 0000000..61a16d2
 +#define LCD_HTOT (LCD_HSYNC + LCD_LEFT_MARGIN + LCD_XRES + LCD_RIGHT_MARGIN)
 +#define LCD_VTOT (LCD_VSYNC + LCD_LOWER_MARGIN + LCD_YRES + LCD_UPPER_MARGIN)
 +
-+static struct s3c2410fb_display df3120_display[] = {
++static struct s3c2410fb_display __initdata df3120_display[] = {
 +	[0] = {
 +		.width		= LCD_XRES,
 +		.height		= LCD_YRES,
@@ -1439,62 +1466,70 @@ index 0000000..61a16d2
 +                                   S3C2410_LCDCON5_INVVCLK |
 +				   S3C2410_LCDCON5_INVVLINE |
 +				   S3C2410_LCDCON5_INVVFRAME),
-+
-+//				   S3C2410_LCDCON5_INVVDEN)
-+//				   S3C2410_LCDCON5_PWREN),
 +	},
 +};
 +
 +#define S3C2410_GPCCON_MASK(x)	(3 << ((x) * 2))
 +#define S3C2410_GPDCON_MASK(x)	(3 << ((x) * 2))
 +
-+static struct s3c2410fb_mach_info df3120_fb_info = {
++static struct s3c2410fb_mach_info __initdata df3120_fb_info = {
 +	.displays	 = df3120_display,
 +	.num_displays	 = ARRAY_SIZE(df3120_display),
 +	.default_display = 0,
-+
-+
-+	/* Enable VD[2..7], VD[10..15], VD[18..23] and VCLK, syncs, VDEN
-+	 * and disable the pull down resistors on pins we are using for LCD
-+	 * data. */
-+#if 0
-+	.gpcup		= (0xf << 1) | (0x3f << 10),
-+
-+	.gpccon		= (S3C2410_GPC1_VCLK   | S3C2410_GPC2_VLINE |
-+			   S3C2410_GPC3_VFRAME | S3C2410_GPC4_VM |
-+			   S3C2410_GPC10_VD2   | S3C2410_GPC11_VD3 |
-+			   S3C2410_GPC12_VD4   | S3C2410_GPC13_VD5 |
-+			   S3C2410_GPC14_VD6   | S3C2410_GPC15_VD7),
-+
-+	.gpccon_mask	= (S3C2410_GPCCON_MASK(1)  | S3C2410_GPCCON_MASK(2)  |
-+			   S3C2410_GPCCON_MASK(3)  | S3C2410_GPCCON_MASK(4)  |
-+			   S3C2410_GPCCON_MASK(10) | S3C2410_GPCCON_MASK(11) |
-+			   S3C2410_GPCCON_MASK(12) | S3C2410_GPCCON_MASK(13) |
-+			   S3C2410_GPCCON_MASK(14) | S3C2410_GPCCON_MASK(15)),
-+
-+	.gpdup		= (0x3f << 2) | (0x3f << 10),
-+
-+	.gpdcon		= (S3C2410_GPD2_VD10  | S3C2410_GPD3_VD11 |
-+			   S3C2410_GPD4_VD12  | S3C2410_GPD5_VD13 |
-+			   S3C2410_GPD6_VD14  | S3C2410_GPD7_VD15 |
-+			   S3C2410_GPD10_VD18 | S3C2410_GPD11_VD19 |
-+			   S3C2410_GPD12_VD20 | S3C2410_GPD13_VD21 |
-+			   S3C2410_GPD14_VD22 | S3C2410_GPD15_VD23),
-+
-+	.gpdcon_mask	= (S3C2410_GPDCON_MASK(2)  | S3C2410_GPDCON_MASK(3) |
-+			   S3C2410_GPDCON_MASK(4)  | S3C2410_GPDCON_MASK(5) |
-+			   S3C2410_GPDCON_MASK(6)  | S3C2410_GPDCON_MASK(7) |
-+			   S3C2410_GPDCON_MASK(10) | S3C2410_GPDCON_MASK(11)|
-+			   S3C2410_GPDCON_MASK(12) | S3C2410_GPDCON_MASK(13)|
-+			   S3C2410_GPDCON_MASK(14) | S3C2410_GPDCON_MASK(15)),
-+#endif
 +};
++
++
++static void df3120_bt_init(void)
++{
++	printk(KERN_INFO "Set BCM2045 GPIOs \n");
++
++        /* BT nReset active*/
++        s3c2410_gpio_cfgpin(S3C2410_GPF(5), S3C2410_GPIO_OUTPUT);
++        s3c2410_gpio_setpin(S3C2410_GPF(5), 0);
++
++        mdelay(50);
++
++        /*Keep nRTS high until BT chip is initalized , nCTS input*/
++        s3c2410_gpio_cfgpin(S3C2410_GPH(1), S3C2410_GPIO_OUTPUT);
++        s3c2410_gpio_cfgpin(S3C2410_GPH(0), S3C2410_GPIO_INPUT);
++        s3c2410_gpio_setpin(S3C2410_GPH(1), 1);
++
++        mdelay(50);
++
++        /* BT nReset inactive*/
++        s3c2410_gpio_setpin(S3C2410_GPF(5), 1);
++
++        mdelay (50);
++
++        /* BT BT_Wake active*/
++        s3c2410_gpio_cfgpin(S3C2410_GPF(1), S3C2410_GPIO_OUTPUT);
++        s3c2410_gpio_setpin(S3C2410_GPF(1), 1);
++
++        /* BT HOST_Wake as input*/
++        s3c2410_gpio_cfgpin(S3C2410_GPF(0), S3C2410_GPIO_INPUT);
++
++        mdelay (500);
++	
++	/* UART flow controll , hardwired */
++    /*    s3c2410_gpio_setpin(S3C2410_GPH(1), 0); */
++
++	/* Uart flow controll , through S3C's AFC */
++       
++	void __iomem *regs = S3C_VA_UARTx(0);
++        int reg = __raw_readl(regs + S3C2410_UMCON);
++        __raw_writel(reg | S3C2410_UMCOM_AFC | S3C2412_UMCON_AFC_8, regs + S3C2410_UMCON);
++
++        s3c2410_gpio_cfgpin(S3C2410_GPH(1), S3C2410_GPH1_nRTS0);
++        s3c2410_gpio_cfgpin(S3C2410_GPH(0), S3C2410_GPH0_nCTS0);
++}
++
++	
 +
 +static int df3120_bl_init(struct device *dev)
 +{
 +	int ret=0;
 +
-+	printk("Bl pwm init!\n");
++	s3c2410_gpio_cfgpin(S3C2410_GPB(2), S3C2410_GPB2_TOUT2);
 +	ret = gpio_request(S3C2410_GPB(2), "lcd backlight enable");
 +	if (!ret)
 +		ret = gpio_direction_output(S3C2410_GPB(2), 0);
@@ -1512,13 +1547,18 @@ index 0000000..61a16d2
 +	s3c2410_gpio_setpin(S3C2410_GPG(14), 1);
 +	s3c2410_gpio_setpin(S3C2410_GPG(15), 1);
 +
-+
 +	return ret;
 +}
 +
-+static int df3120_bl_notify(int brightness)
++static int df3120_bl_notify(struct device * dev, int brightness)
 +{
-+	gpio_set_value(S3C2410_GPB(2), 770-brightness);
++	if (brightness == 0) {
++		s3c2410_gpio_cfgpin(S3C2410_GPB(2), S3C2410_GPIO_OUTPUT);
++		s3c2410_gpio_setpin(S3C2410_GPB(2), 0);
++	} else {
++		s3c2410_gpio_cfgpin(S3C2410_GPB(2), S3C2410_GPB2_TOUT2);
++		gpio_set_value(S3C2410_GPB(2), 770-brightness);
++	}
 +	return brightness;
 +}
 +
@@ -1545,12 +1585,36 @@ index 0000000..61a16d2
 +	},
 +};
 +
++static struct s3c_hwmon_pdata df3120_hwmon_pdata = {
++	.in[0] = &(struct s3c_hwmon_chcfg) {
++		.name		= "df3120:light",
++		.mult		= 3300,
++		.div		= 1024,
++	},
++	.in[1] = &(struct s3c_hwmon_chcfg) {
++		.name		= "df3120:adc1",
++		.mult		= 3300,
++		.div		= 1024,
++	},
++	.in[2] = &(struct s3c_hwmon_chcfg) {
++		.name		= "df3120:adc2",
++		.mult		= 3300,
++		.div		= 1024,
++	},
++	.in[3] = &(struct s3c_hwmon_chcfg) {
++		.name		= "df3120:adc3",
++		.mult		= 3300,
++		.div		= 1024,
++	},
++};
 +
 +static struct platform_device *df3120_devices[] __initdata = {
-+	&s3c_device_usb,
++	&s3c_device_ohci,
 +	&s3c_device_wdt,
 +	&s3c_device_i2c0,
 +	&s3c_device_iis,
++	&s3c_device_adc,
++	&s3c_device_hwmon,
 +	&s3c_device_rtc,
 +	&s3c_device_lcd,
 +	&s3c_device_nand,
@@ -1562,18 +1626,6 @@ index 0000000..61a16d2
 +	&df3120_button_device,
 +};
 +
-+static void __init df3120_fixup(struct machine_desc *desc,
-+				  struct tag *tags, char **cmdline,
-+				  struct meminfo *mi)
-+{
-+	if (tags != phys_to_virt(S3C2410_SDRAM_PA + 0x100)) {
-+		mi->nr_banks=1;
-+		mi->bank[0].start = 0x30000000;
-+		mi->bank[0].size = SZ_8M;
-+		mi->bank[0].node = 0;
-+	}
-+}
-+
 +static void __init df3120_map_io(void)
 +{
 +	s3c_device_nand.dev.platform_data = &df3120_nand_info;
@@ -1582,22 +1634,24 @@ index 0000000..61a16d2
 +	s3c24xx_init_io(df3120_iodesc, ARRAY_SIZE(df3120_iodesc));
 +	s3c24xx_init_clocks(26000000);
 +	s3c24xx_init_uarts(df3120_uartcfgs, ARRAY_SIZE(df3120_uartcfgs));
++
++	df3120_bt_init();
 +}
 +
 +static void __init df3120_init(void)
 +{
 +	s3c_i2c0_set_platdata(NULL);
++    s3c_hwmon_set_platdata(&df3120_hwmon_pdata);
 +	s3c24xx_fb_set_platdata(&df3120_fb_info);
 +	s3c24xx_udc_set_platdata(&df3120_udc_cfg);
 +	platform_add_devices(df3120_devices, ARRAY_SIZE(df3120_devices));
 +}
 +
 +MACHINE_START(DF3120, "DF3120")
++	/* Maintainer: Michel Pollet <buserror@gmail.com> */
 +	.phys_io	= S3C2410_PA_UART,
 +	.io_pg_offst	= (((u32)S3C24XX_VA_UART) >> 18) & 0xfffc,
 +	.boot_params	= S3C2410_SDRAM_PA + 0x100,
-+
-+	.fixup		= df3120_fixup,
 +	.init_irq	= s3c24xx_init_irq,
 +	.init_machine	= df3120_init,
 +	.map_io		= df3120_map_io,
@@ -1623,13 +1677,13 @@ index bef39f7..5e55db7 100644
  };
  
  /* uart registration process */
-diff --git a/arch/arm/plat-s3c/Kconfig b/arch/arm/plat-s3c/Kconfig
-index 8931c5f..358f995 100644
---- a/arch/arm/plat-s3c/Kconfig
-+++ b/arch/arm/plat-s3c/Kconfig
-@@ -115,6 +115,15 @@ config S3C_LOWLEVEL_UART_PORT
- 	  this configuration should be between zero and two. The port
- 	  must have been initialised by the boot-loader before use.
+diff --git a/arch/arm/plat-samsung/Kconfig b/arch/arm/plat-samsung/Kconfig
+index 7c0bde7..0ce12c3 100644
+--- a/arch/arm/plat-samsung/Kconfig
++++ b/arch/arm/plat-samsung/Kconfig
+@@ -69,6 +69,15 @@ config SAMSUNG_IRQ_UART
+        help
+          Internal configuration to build the IRQ UART demux code.
  
 +config S3C_STD_UART_NAMES
 +	bool "Name S3C UART device files as ttySACx"
@@ -1640,32 +1694,41 @@ index 8931c5f..358f995 100644
 +	  s3c2410_serialX, and it confuses a lot of distros; it is also
 +	  inconsistent with the console= kernel parameter.
 +
- # options for gpiolib support
+ # options for gpio configuration support
  
- config S3C_GPIO_SPACE
-diff --git a/arch/arm/tools/mach-types b/arch/arm/tools/mach-types
-index 07b976d..b32d4b1 100644
---- a/arch/arm/tools/mach-types
-+++ b/arch/arm/tools/mach-types
-@@ -2536,3 +2536,4 @@ c3ax03			MACH_C3AX03		C3AX03			2549
- mxt_td60		MACH_MXT_TD60		MXT_TD60		2550
- esyx			MACH_ESYX		ESYX			2551
- bulldog			MACH_BULLDOG		BULLDOG			2553
-+df3120			MACH_DF3120		DF3120			2589
-diff --git a/drivers/serial/s3c2412.c b/drivers/serial/s3c2412.c
-index 6e057d8..1b188e8 100644
---- a/drivers/serial/s3c2412.c
-+++ b/drivers/serial/s3c2412.c
-@@ -102,6 +102,7 @@ static struct s3c24xx_uart_info s3c2412_uart_inf = {
- 	.name		= "Samsung S3C2412 UART",
- 	.type		= PORT_S3C2412,
- 	.fifosize	= 64,
-+	.has_divslot	= 1,
- 	.rx_fifomask	= S3C2440_UFSTAT_RXMASK,
- 	.rx_fifoshift	= S3C2440_UFSTAT_RXSHIFT,
- 	.rx_fifofull	= S3C2440_UFSTAT_RXFULL,
+ config SAMSUNG_GPIOLIB_4BIT
+diff --git a/drivers/hwmon/s3c-hwmon.c b/drivers/hwmon/s3c-hwmon.c
+index 3f3f9a4..f463521 100644
+--- a/drivers/hwmon/s3c-hwmon.c
++++ b/drivers/hwmon/s3c-hwmon.c
+@@ -27,6 +27,7 @@
+ #include <linux/init.h>
+ #include <linux/err.h>
+ #include <linux/clk.h>
++#include <linux/semaphore.h>
+ #include <linux/interrupt.h>
+ #include <linux/platform_device.h>
+ 
+@@ -234,7 +235,7 @@ static int s3c_hwmon_create_attr(struct device *dev,
+ 	attr->index = channel;
+ 	attr->dev_attr.attr.name  = attrs->in_name;
+ 	attr->dev_attr.attr.mode  = S_IRUGO;
+-	attr->dev_attr.attr.owner = THIS_MODULE;
++	/*attr->dev_attr.attr.owner = THIS_MODULE;*/
+ 	attr->dev_attr.show = s3c_hwmon_ch_show;
+ 
+ 	ret =  device_create_file(dev, &attr->dev_attr);
+@@ -252,7 +253,7 @@ static int s3c_hwmon_create_attr(struct device *dev,
+ 		attr->index = channel;
+ 		attr->dev_attr.attr.name  = attrs->label_name;
+ 		attr->dev_attr.attr.mode  = S_IRUGO;
+-		attr->dev_attr.attr.owner = THIS_MODULE;
++	/*	attr->dev_attr.attr.owner = THIS_MODULE; */
+ 		attr->dev_attr.show = s3c_hwmon_label_show;
+ 
+ 		ret = device_create_file(dev, &attr->dev_attr);
 diff --git a/drivers/serial/samsung.c b/drivers/serial/samsung.c
-index 1523e8d..e2bc7d3 100644
+index b1156ba..833f15b 100644
 --- a/drivers/serial/samsung.c
 +++ b/drivers/serial/samsung.c
 @@ -55,7 +55,14 @@
@@ -1683,7 +1746,7 @@ index 1523e8d..e2bc7d3 100644
  #define S3C24XX_SERIAL_MAJOR	204
  #define S3C24XX_SERIAL_MINOR	64
  
-@@ -878,7 +885,7 @@ static struct uart_ops s3c24xx_serial_ops = {
+@@ -883,7 +890,7 @@ static struct uart_ops s3c24xx_serial_ops = {
  
  static struct uart_driver s3c24xx_uart_drv = {
  	.owner		= THIS_MODULE,
@@ -1692,3 +1755,37 @@ index 1523e8d..e2bc7d3 100644
  	.nr		= CONFIG_SERIAL_SAMSUNG_UARTS,
  	.cons		= S3C24XX_SERIAL_CONSOLE,
  	.driver_name	= S3C24XX_SERIAL_NAME,
+diff --git a/drivers/usb/gadget/s3c2410_udc.c b/drivers/usb/gadget/s3c2410_udc.c
+index ea2b3c7..fed323c 100644
+--- a/drivers/usb/gadget/s3c2410_udc.c
++++ b/drivers/usb/gadget/s3c2410_udc.c
+@@ -902,7 +902,7 @@ static irqreturn_t s3c2410_udc_irq(int dummy, void *_dev)
+ 	int pwr_reg;
+ 	int ep0csr;
+ 	int i;
+-	u32 idx;
++	u32 idx, idx2;
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&dev->lock, flags);
+@@ -1017,6 +1017,20 @@ static irqreturn_t s3c2410_udc_irq(int dummy, void *_dev)
+ 		}
+ 	}
+ 
++	/* what else causes this interrupt? a receive! who is it? */
++	if (!usb_status && !usbd_status && !pwr_reg && !ep0csr) {
++		for (i = 1; i < S3C2410_ENDPOINTS; i++) {
++			idx2 = udc_read(S3C2410_UDC_INDEX_REG);
++			udc_write(i, S3C2410_UDC_INDEX_REG);
++
++			if (udc_read(S3C2410_UDC_OUT_CSR1_REG) & 0x1)
++				s3c2410_udc_handle_ep(&dev->ep[i]);
++
++			/* restore index */
++			udc_write(idx2, S3C2410_UDC_INDEX_REG);
++		}
++	}
++
+ 	dprintk(DEBUG_VERBOSE, "irq: %d s3c2410_udc_done.\n", IRQ_USBD);
+ 
+ 	/* Restore old index */
