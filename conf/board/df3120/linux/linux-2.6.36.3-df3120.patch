@@ -1213,10 +1213,10 @@ index 530ec46..4a25707 100644
 +obj-$(CONFIG_MACH_DF3120)	+= mach-df3120.o
 diff --git a/arch/arm/mach-s3c2412/mach-df3120.c b/arch/arm/mach-s3c2412/mach-df3120.c
 new file mode 100644
-index 0000000..e81c29f
+index 0000000..2d28696
 --- /dev/null
 +++ b/arch/arm/mach-s3c2412/mach-df3120.c
-@@ -0,0 +1,440 @@
+@@ -0,0 +1,439 @@
 +/* linux/arch/arm/mach-s3c2412/mach-vstms.c
 + *
 + * (C) 2009 Jeroen Domburg <jeroen@spritesmods.com>
@@ -1634,8 +1634,6 @@ index 0000000..e81c29f
 +	s3c24xx_init_io(df3120_iodesc, ARRAY_SIZE(df3120_iodesc));
 +	s3c24xx_init_clocks(26000000);
 +	s3c24xx_init_uarts(df3120_uartcfgs, ARRAY_SIZE(df3120_uartcfgs));
-+
-+	df3120_bt_init();
 +}
 +
 +static void __init df3120_init(void)
@@ -1645,6 +1643,7 @@ index 0000000..e81c29f
 +	s3c24xx_fb_set_platdata(&df3120_fb_info);
 +	s3c24xx_udc_set_platdata(&df3120_udc_cfg);
 +	platform_add_devices(df3120_devices, ARRAY_SIZE(df3120_devices));
++	df3120_bt_init();
 +}
 +
 +MACHINE_START(DF3120, "DF3120")

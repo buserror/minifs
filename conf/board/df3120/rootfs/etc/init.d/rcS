@@ -24,7 +24,7 @@ echo "* Starting telnetd..."
 telnetd -l /bin/sh
 
 echo "* Starting Bluetooth"
-hciattach -s 115200 /dev/ttySAC0 bcm2035 115200 noflow 00:00:00:00:00 >/dev/null 2>&1
+hciattach -s 115200 /dev/ttySAC0 bcm2035 921600 flow 00:00:00:00:00 >/dev/null 2>&1
 hciconfig hci0 up
 
 echo "* Starting DUN connection"
