@@ -23,6 +23,7 @@ board_prepare() {
 	TARGET_PACKAGES+=" strace gdbserver libvncserver picocom uboot"
 	TARGET_PACKAGES+=" bluez btscanner ppp cwiid libsdl"
 	TARGET_PACKAGES+=" sdlplasma sdlvoxel"
+	TARGET_PACKAGES+=" kobodeluxe"
 	TARGET_PACKAGES+=" sdldoom"
 	TARGET_PACKAGES+=" fbvncslave"
 }
