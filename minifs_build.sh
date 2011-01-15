@@ -441,7 +441,7 @@ done
 ## grouped later in the following pass
 #######################################################################
 
-export DEFAULT_PHASES="configure compile install deploy"
+export DEFAULT_PHASES="setup configure compile install deploy"
 
 for pack in $PROCESS_PACKAGES; do 	
 	dir=$(hget $pack dir)
