@@ -95,7 +95,7 @@ typedef struct so_dir_t {
 	int flags;	// directory kind
 	so_filelist_t * loaded;
 	so_filelist_t * purged;
-	so_filelist_t * symlink;	
+	so_filelist_t * symlink;
 } so_dir_t;
 
 typedef struct so_str_t {
@@ -113,6 +113,7 @@ typedef struct so_file_t {
 	so_str_t *so_name;
 	so_str_t *so_needed;
 	so_filelist_t * used;
+	char * symlink_value;
 } so_file_t;
 
 so_str_t * so_new(so_str_t * link, uint32_t kind, char * string)
@@ -159,6 +160,12 @@ so_file_t * so_dir_search(so_dir_t * dir, char * filename)
 					s = s->next;
 				}
 			}
+		}
+		// look it up in the symlinks too, in case we used a 'simple' name
+		for (int fi = 0; dir->symlink && fi < dir->symlink->count; fi++) {
+			so_file_t * f = dir->symlink->file[fi];
+			if (f->hash == hash && !strcmp(f->name, filename))
+				return so_dir_search(dir, f->symlink_value);
 		}
 		dir = dir->next;
 	}
@@ -346,6 +353,13 @@ so_dir_t * elf_scandir(so_dir_t * base, const char * dirname, int flags)
 				ff->name = strdup(e->d_name);
 				ff->hash = crc16_string(ff->name);
 				res->symlink = so_filelist_add(res->symlink, ff);
+				sprintf(path, "%s/%s", dirname, e->d_name);
+				char out[256];
+				ssize_t l = readlink(path, out, sizeof(out)-1);
+				if (l > 0) {
+					out[l] = 0;
+					ff->symlink_value = strdup(out);
+				}
 			}	break;
 		}
 	}
@@ -593,6 +607,7 @@ int main(int argc, char * argv[])
 	}
 	char * keepers = getenv("ROOTFS_KEEPERS");
 	if (keepers) {
+		printf("Trying to protect %s\n", keepers);
 		char * p;
 		while ((p = strsep(&keepers, ":")) != NULL) {
 			if (!*p)
