@@ -37,5 +37,3 @@ df3120-deploy-uboot() {
 	# make sure the u-boot is aligned on 512 blocks, for mtd_debug
 	deploy dd if=u-boot.bin of="$ROOTFS"/u-boot.bin bs=512 conv=sync
 }
-
-

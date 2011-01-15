@@ -1,0 +1,34 @@
+#
+# Simple wminput configuration for kobodl.
+# Use the wiimote and/or classic controller as a gamepad.
+#
+# Copyright (C) 2008 The GameCube Linux Team
+# Copyright (C) 2008 Albert Herranz
+#
+
+#!wminput_sdl_joystick_wrapper
+# SDL_LINUX_JOYSTICK::axis=2
+# SDL_LINUX_JOYSTICK::hats=4
+# SDL_LINUX_JOYSTICK::balls=0
+
+Classic.LStick.X = ABS_X
+Classic.LStick.Y = -ABS_Y
+Classic.Dpad.X = ABS_HAT1X
+Classic.Dpad.Y = -ABS_HAT1Y
+
+Wiimote.Dpad.X = -ABS_HAT0Y
+Wiimote.Dpad.Y = -ABS_HAT0X
+
+Classic.A = BTN_A
+Classic.B = BTN_B
+Classic.X = BTN_X
+Classic.Y = BTN_Y
+Classic.ZR = BTN_Z
+Classic.L = BTN_TL
+Classic.R = BTN_TR
+Classic.Home = BTN_START
+
+Wiimote.2 = BTN_A
+Wiimote.1 = BTN_B
+Wiimote.Home = BTN_START
+

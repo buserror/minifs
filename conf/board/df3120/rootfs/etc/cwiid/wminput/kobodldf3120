@@ -1,0 +1,5 @@
+#kobodldf3120
+include buttons2
+
+Plugin.acc.X	= REL_X
+Plugin.acc.Y	= REL_Y
