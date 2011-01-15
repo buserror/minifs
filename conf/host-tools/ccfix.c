@@ -24,6 +24,11 @@ int main(int argc, char * argv[])
 			fprintf(f, "%s FIXING %s %s\n", argv[0], getenv("MINIFS_PACKAGE"), argv[i]);
 			sprintf(temp, "-L%s%s", getenv("STAGING"), argv[i]+2);
 			argv[i] = strdup(temp);
+		} else if (!strncmp(argv[i], "-I/usr/include", 14)) {
+			if (!f) f = fopen("/tmp/ccfix.log", "a");
+			fprintf(f, "%s FIXING %s %s\n", argv[0], getenv("MINIFS_PACKAGE"), argv[i]);
+			sprintf(temp, "-I%s%s", getenv("STAGING"), argv[i]+2);
+			argv[i] = strdup(temp);
 		}
 	if (f) {
 		for (i = 0; i < argc; i++) fprintf(f, "%s ", argv[i]); fprintf(f,"\n");
