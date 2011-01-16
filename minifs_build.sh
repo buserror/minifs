@@ -348,7 +348,7 @@ configure-generic-local() {
 			./autogen.sh \
 				--prefix="$PACKAGE_PREFIX"
 		elif [ -f configure.ac ]; then
-			autoreconf;libtoolize;automake --add-missing
+			autoreconf --force #;libtoolize;automake --add-missing
 		fi
 	fi
 	if [ -f configure ]; then

@@ -63,7 +63,7 @@ configure-kobodeluxe-local() {
 	set -x
 	export SDL_CONFIG="$STAGING_TOOLS"/bin/sdl-config
 	export LDFLAGS="$LDFLAGS_RLINK"
-	libtoolize && aclocal && autoheader && automake --force-missing --foreign -a -c && autoconf
+	libtoolize && $ACLOCAL && autoheader && automake --force-missing --foreign -a -c && autoconf
 	configure-generic-local \
 		--disable-opengl
 	export LDFLAGS="$LDFLAGS_BASE"

@@ -5,7 +5,8 @@ PACKAGES+=" libvncserver"
 hset libvncserver url "http://downloads.sourceforge.net/project/libvncserver/libvncserver/0.9.7/LibVNCServer-0.9.7.tar.gz"
 hset libvncserver depends "zlib libjpeg"
 
-configure-libvncserver() {
+configure-libvncserver-local() {
+	set -x
 	sdl=$(echo $TARGET_PACKAGES|awk '/libsdl/{print "found"}')
 	# that bit needs SDL somehow. we don't want it if SDL not built
 	if [ "$sdl" != "found" ]; then
@@ -18,12 +19,15 @@ configure-libvncserver() {
 			Makefile.am
 	sed -i -e "s|[ \t]\(AC_CONFIG_FILES(\[x11vnc/Makefile\)|true #\1|g" \
 			configure.ac
-	rm -f configure # make sure it's redone by autogen.sh
-	(
-		aclocal ; autoheader ; automake --add-missing ; autoconf
-	) >._conf.log 2>&1
-	configure-generic \
+	rm -f configure # make sure it's redone
+	autoreconf --force
+	configure-generic-local \
 		--without-x11vnc
+	set +x
+}
+
+configure-libvncserver() {
+	configure configure-libvncserver-local
 }
 
 install-libvncserver() {
