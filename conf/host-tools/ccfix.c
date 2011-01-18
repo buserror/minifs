@@ -10,7 +10,7 @@
 
 int main(int argc, char * argv[])
 {
-	static char temp[1024ll ];
+	static char temp[1024];
 	int i;
 	FILE * f = NULL;
 	for (i = 2; i < argc; i++)
