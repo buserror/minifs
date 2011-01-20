@@ -113,6 +113,9 @@ configure-xkbcomp() {
 	configure-generic
 	export LDFLAGS="$LDFLAGS_BASE"	
 }
+deploy-xkbcomp() {
+	deploy cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
+}
 
 PACKAGES+=" libmesadrm libmesa"
 hset libmesadrm url "git!git://anongit.freedesktop.org/git/mesa/drm#libmesadrm-git.tar.bz2"
@@ -181,8 +184,7 @@ configure-xorgserver() {
 }
 
 deploy-xorgserver-local() {
-	cp 	"$STAGING_USR"/bin/X \
-		"$STAGING_USR"/bin/xkbcomp \
+	cp 	$(get_installed_binaries) \
 		"$ROOTFS"/usr/bin/
 	rsync -av \
 		"$STAGING_USR"/share/X11 \
