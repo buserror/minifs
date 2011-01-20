@@ -485,6 +485,7 @@ so_dir_t * load_root_directory(so_dir_t * dir, const char * name)
 			dir = elf_scandir(dir, path, 0);
 		}
 	}
+	
 	return dir;
 }
 
@@ -569,6 +570,7 @@ int main(int argc, char * argv[])
 	my_getenv("ROOTFS");
 	my_getenv("ROOTFS_PLUGINS");
 	my_getenv("ROOTFS_KEEPERS");
+	my_getenv("ROOTFS_EXTRAS");
 	my_getenv("CROSS_LINKER_DUMP");
 	my_getenv("CROSS_LINKER_DEPS");
 	if (invoke)
@@ -597,6 +599,20 @@ int main(int argc, char * argv[])
 	char * env_root = getenv("ROOTFS");
 	if (env_root)
 		dir = load_root_directory(dir, env_root);
+
+	char * extras = getenv("ROOTFS_EXTRAS");
+	if (extras) {
+		char * p;
+		while ((p = strsep(&extras, ":")) != NULL) {
+			if (!*p)
+				continue;
+			char path[4096];
+			sprintf(path, "%s/%s", env_root, p);
+			printf("load_root_directory extra '%s'\n", p);
+			dir = load_root_directory(dir, path);			
+		}
+	}
+
 	char * plugs = getenv("ROOTFS_PLUGINS");
 	if (plugs) {
 		char * p;
