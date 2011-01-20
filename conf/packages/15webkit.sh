@@ -27,7 +27,7 @@ hset libxslt url "ftp://ftp.gnome.org/pub/GNOME/sources/libxslt/1.1/libxslt-$V.t
 hset libxslt depends "libxml2"
 
 configure-libxslt() {
-	configure-generic --without-crypto 
+	configure-generic --without-crypto --without-python
 }
 
 # for gst-plugins-base etc
