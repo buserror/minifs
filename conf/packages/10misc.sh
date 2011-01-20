@@ -15,6 +15,23 @@ hset libreadline url "ftp://ftp.gnu.org/gnu/readline/readline-6.1.tar.gz"
 PACKAGES+=" libncurses"
 hset libncurses url "http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.7.tar.gz"
 
+deploy-libncurses() {
+	mkdir -p "$ROOTFS"/usr/share/
+	deploy cp -ra "$STAGING_USR"/share/terminfo "$ROOTFS"/usr/share/
+}
+# http://www.monkey.org/~provos/libevent/
+PACKAGES+=" libevent"
+hset libevent url "http://www.monkey.org/~provos/libevent-2.0.10-stable.tar.gz"
+
+# http://tmux.sourceforge.net/
+PACKAGES+=" tmux"
+hset tmux url "http://downloads.sourceforge.net/project/tmux/tmux/tmux-1.4/tmux-1.4.tar.gz"
+hset tmux depends " libevent libncurses"
+
+deploy-tmux() {
+	deploy cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
+}
+
 # http://www.net-snmp.org/download.html
 PACKAGES+=" libnetsnmp"
 hset libnetsnmp url "http://downloads.sourceforge.net/project/net-snmp/net-snmp/5.5/net-snmp-5.5.tar.gz#netsnmp-5.5.tgz"
