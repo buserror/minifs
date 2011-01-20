@@ -4,7 +4,7 @@ vga=0x37a # 1280x800x32
 vga=0x318 # 1024x768x24
 
 # needs tap0 up
-kvm -m 256 \
+kvm -m 512 \
         -usb -usbdevice mouse -usbdevice keyboard \
         -kernel vmlinuz-bare.bin \
         -vga std -serial stdio \
