@@ -4,8 +4,13 @@ PACKAGES+=" libsdl"
 hset libsdl url "http://www.libsdl.org/release/SDL-1.2.14.tar.gz"
 
 configure-libsdl() {
+	local xorg=$(echo $TARGET_PACKAGES|awk '/xorg/{print "found"}')
+	local extras=""
+	if [ "$xorg" != "found" ]; then
+		extras+="--without-x"
+	fi
 	configure-generic \
-		--without-x \
+		$extras \
 		--enable-arts=no \
 		--enable-esd=no \
 		--enable-pulseaudio=no \
