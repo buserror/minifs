@@ -17,13 +17,15 @@ deploy-sharedlibs() {
 	(
 	echo Creating "$ROOTFS/lib/"
 	rsync -av \
-		--exclude=\*.a --exclude=\*.la \
+		--chmod=u=rwX \
+		--exclude=\*.a --exclude=\*.la --exclude=\*.lai \
 		--exclude pkgconfig \
 		"$STAGING/lib/" \
 		"$ROOTFS/lib/"
 	echo Creating "$ROOTFS/usr/lib/" 
 	rsync -av \
-		--exclude=\*.a --exclude=\*.la \
+		--chmod=u=rwX \
+		--exclude=\*.a --exclude=\*.la --exclude=\*.lai \
 		--exclude=\*.sh \
 		--exclude pkgconfig \
 		--exclude ct-ng\* \
