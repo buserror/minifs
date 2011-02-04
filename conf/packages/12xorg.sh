@@ -194,7 +194,7 @@ deploy-xorgserver-local() {
 	mkdir -p "$ROOTFS"/usr/var/log
 }
 deploy-xorgserver() {
-	ROOTFS_PLUGINS+="$STAGING_USR/lib/xorg:"
+	ROOTFS_PLUGINS+="$ROOTFS/usr/lib/xorg:"
 	deploy deploy-xorgserver-local
 }
 

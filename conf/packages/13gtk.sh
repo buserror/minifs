@@ -14,7 +14,7 @@ configure-libdirectfb() {
 }
 
 deploy-libdirectfb() {
-	ROOTFS_PLUGINS+="$STAGING_USR/lib/directfb-1.4-0-pure:"
+	ROOTFS_PLUGINS+="$ROOTFS/usr/lib/directfb-1.4-0-pure:"
 	deploy cp "$STAGING_USR"/bin/dfb* "$ROOTFS/usr/bin"
 }
 
@@ -86,7 +86,7 @@ configure-libpango() {
 }
 
 deploy-libpango-local() {
-	ROOTFS_PLUGINS+="$STAGING_USR/lib/pango:"
+	ROOTFS_PLUGINS+="$ROOTFS/usr/lib/pango:"
 	mkdir -p "$ROOTFS"/etc/	# in case it was there already
 	cp 	"$STAGING_USR"/bin/pango-querymodules \
 		"$ROOTFS"/bin/
@@ -142,7 +142,7 @@ deploy-libgtk-local() {
 }
 
 deploy-libgtk() {
-	ROOTFS_PLUGINS+="$STAGING_USR/lib/gtk-2.0:"
+	ROOTFS_PLUGINS+="$ROOTFS/usr/lib/gtk-2.0:"
 	deploy  deploy-libgtk-local
 }
 

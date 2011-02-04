@@ -65,6 +65,10 @@ hset gst-plugins-base url "http://gstreamer.freedesktop.org/src/gst-plugins-base
 hset gst-plugins-base depends "liboil libalsa libogg libvorbis gstreamer"
 hset gstreamer depends "gst-plugins-base"
 
+setup-gstreamer() {
+	ROOTFS_PLUGINS+="$ROOTFS/usr/lib/gstreamer-0.10:"
+}
+
 configure-gstreamer() {
 	export LDFLAGS="$LDFLAGS_RLINK"
 	configure-generic

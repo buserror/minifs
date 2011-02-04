@@ -88,6 +88,10 @@ configure-libpixman() {
 PACKAGES+=" libts"
 hset libts url "http://download2.berlios.de/tslib/tslib-1.0.tar.bz2"
 
+setup-libts() {
+	ROOTFS_PLUGINS+="$ROOTFS/usr/lib/ts:"
+}
+
 configure-libts-local() {
 	export CFLAGS="$TARGET_CFLAGS -U_FORTIFY_SOURCE" # due to open() problem
 	configure-generic-local \
@@ -104,10 +108,6 @@ configure-libts-local() {
 configure-libts() {
 	configure configure-libts-local
 }
-deploy-libts() {
-	ROOTFS_PLUGINS+="$STAGING_USR/lib/ts:"
-	deploy-generic
-}
 #
 PACKAGES+=" libim-loaders"
 hset libim-loaders url "http://ignum.dl.sourceforge.net/project/enlightenment/imlib2-src/1.4.3/imlib2_loaders-1.4.3.tar.bz2"
@@ -119,8 +119,8 @@ hset libim depends "libpng libjpeg"
 configure-libim() {
 	configure-generic --without-x
 }
-deploy-libim() {
-	ROOTFS_PLUGINS+="$STAGING_USR/lib/imlib2:"
+setup-libim() {
+	ROOTFS_PLUGINS+="$ROOTFS/usr/lib/imlib2:"
 }
 
 PACKAGES+=" fbgrab"
