@@ -77,6 +77,8 @@ deploy-filesystem-prepack() {
 	deploy echo Copying
 	echo -n "     Stripping binaries... "
 	(
+	mkdir -p "$ROOTFS"/proc/ "$ROOTFS"/dev/ "$ROOTFS"/sys/ \
+		"$ROOTFS"/tmp/ "$ROOTFS"/var/run "$ROOTFS"/var/log
 	rsync -av \
 		"$STAGING/etc/" \
 		"$STAGING_USR/etc/" \
@@ -121,7 +123,7 @@ deploy-filesystem-ext() {
 	if (($size < 4096)); then size=4096; fi
 	echo -n "$basesize/$size "
 	if genext2fs -d "$ROOTFS" \
-		-U -i $(($size / 10)) \
+		-m 0 -U -i $(($size / 10)) \
 		-D "$STAGING_TOOLS"/special_file_table.txt \
 		-b $size \
 		"$out" \
