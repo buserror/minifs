@@ -375,7 +375,7 @@ compile-generic() {
 #######################################################################
 install-generic-local() {
 	local destdir=$(hget $PACKAGE destdir)
-	local makei="installwatch -o ._dist_$PACKAGE.log $MAKE install"
+	local makei="installwatch -d /tmp/installwatch.debug -o ._dist_$PACKAGE.log $MAKE install"
 	set -x
 	case "$destdir" in
 		none) $makei "$@" ;;
