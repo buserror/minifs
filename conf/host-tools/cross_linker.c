@@ -617,8 +617,10 @@ int main(int argc, char * argv[])
 	if (plugs) {
 		char * p;
 		while ((p = strsep(&plugs, ":")) != NULL) {
-			if (*p)
+			if (*p) {
+				printf("loading plugins '%s'\n", p);
 				dir = elf_scandir(dir, p, DIR_PLUGINS|DIR_RECURSIVE);
+			}
 		}
 	}
 	char * keepers = getenv("ROOTFS_KEEPERS");
