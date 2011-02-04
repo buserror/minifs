@@ -30,9 +30,16 @@ board_prepare() {
 
 	TARGET_PACKAGES+=" xorgserver nvidia"	
 	TARGET_PACKAGES+=" libwebkit"
-	TARGET_PACKAGES+=" flashplugin"
+	TARGET_PACKAGES+=" flashplugin alsautils"
 	
 	TARGET_PACKAGES+=" fbgrab"	
 	
 	TARGET_PACKAGES+=" libetpan"	
+
+	TARGET_PACKAGES+=" syslinux"	
+}
+
+atom-deploy-libgtk() {
+	deploy-libgtk
+	cp "$CONFIG"/gdk-pixbuf.loaders "$ROOTFS"/etc/gtk-2.0/
 }
