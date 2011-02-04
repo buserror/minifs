@@ -1,13 +1,14 @@
 #!/bin/hush
 
 echo "* Mounting filesystems..."
-mount / / -o remount,noatime >/dev/null 2>&1
 mount -t proc /proc /proc
 mount -t devtmpfs devtmpfs /dev
 mount -t sysfs none /sys
 mkdir /dev/pts /dev/shm
 mount -t devpts devpts /dev/pts
 mount -t tmpfs none /dev/shm
+# MOUNT FS -- do not delete this line
+mount / / -o remount,noatime >/dev/null 2>&1
 
 echo "* Starting system loggers..."
 syslogd -C16
@@ -24,9 +25,14 @@ hostname $(cat /etc/hostname) && hostname
 echo "* Configuring loopback interface..."
 ifconfig lo 127.0.0.1 up
 
-echo "* Configuring network with DHCP..."
-ifconfig eth0 up
-udhcpc -b
+up=$(ifconfig eth0|grep addr:)
+if [ "$up" != "" ]; then
+	echo "* eth0:$up"
+else
+	echo "* Configuring network with DHCP..."
+	ifconfig eth0 up
+	udhcpc -b
+fi
 
 # LAUNCH APPS -- do not delete this line
 if [ -f /etc/dropbear/dropbear_dss_host_key ]; then
