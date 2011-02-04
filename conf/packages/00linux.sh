@@ -103,6 +103,7 @@ install-linux-bare() {
 	log_install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE="${CROSS}-" \
 		INSTALL_PATH="$KERNEL" INSTALL_MOD_PATH="$KERNEL" \
+		INSTALLKERNEL="no-default-install" \
 			install
 }
 deploy-linux-bare() {
@@ -141,6 +142,7 @@ deploy-linux-initrd() {
 	log_install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE="${CROSS}-" \
 		INSTALL_PATH="$KERNEL" INSTALL_MOD_PATH="$KERNEL" \
+		INSTALLKERNEL="no-default-install" \
 			install
 	if [ -f "$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/bzImage ]; then
 		deploy cp "$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/bzImage \
