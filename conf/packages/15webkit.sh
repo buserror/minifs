@@ -34,8 +34,12 @@ configure-libxslt() {
 PACKAGES+=" liboil"
 hset liboil url "http://liboil.freedesktop.org/download/liboil-0.3.17.tar.gz"
 
+PACKAGES+=" alsadrivers"
+hset alsadrivers url "ftp://ftp.alsa-project.org/pub/driver/alsa-driver-1.0.24.tar.bz2"
+
 PACKAGES+=" libalsa"
-hset libalsa url "ftp://ftp.alsa-project.org/pub/lib/alsa-lib-1.0.22.tar.bz2"
+hset libalsa url "ftp://ftp.alsa-project.org/pub/lib/alsa-lib-1.0.24.1.tar.bz2"
+#hset libalsa depends "alsadrivers"
 
 configure-libalsa() {
 	configure-generic --disable-python
@@ -43,6 +47,18 @@ configure-libalsa() {
 
 deploy-libalsa() {
 	deploy rsync -a "$STAGING_USR"/share/alsa "$ROOTFS"/usr/share/
+}
+
+PACKAGES+=" alsautils"
+hset alsautils url "ftp://ftp.alsa-project.org/pub/utils/alsa-utils-1.0.24.2.tar.bz2"
+hset alsautils depends "libalsa libncurses"
+
+configure-alsautils() {
+	configure-generic --disable-xmlto --with-curses=ncurses
+}
+
+deploy-alsautils() {
+	deploy cp $(get_installed_binaries) "$ROOTFS"/bin/
 }
 
 PACKAGES+=" libogg"
@@ -57,7 +73,8 @@ configure-libvorbis() {
 	export LDFLAGS="$LDFLAGS_BASE"
 }
 
-CONFIG_GSTREAMER_VERSION=0.10.26
+# http://gstreamer.freedesktop.org/
+CONFIG_GSTREAMER_VERSION=0.10.32
 
 PACKAGES+=" gstreamer gst-plugins-base"
 hset gstreamer url "http://gstreamer.freedesktop.org/src/gstreamer/gstreamer-$CONFIG_GSTREAMER_VERSION.tar.bz2"
@@ -150,7 +167,9 @@ deploy-libwebkit() {
 
 PACKAGES+=" flashplugin"
 #hset url flashplugin "http://fpdownload.macromedia.com/get/flashplayer/current/install_flash_player_10_linux.tar.gz#flashplugin-10.tarb"
-hset flashplugin url "http://download.macromedia.com/pub/labs/flashplayer10/flashplayer10_1_p3_linux_022310.tar.gz#flashplugin-10.1.tarb"
+#hset flashplugin url "http://download.macromedia.com/pub/labs/flashplayer10/flashplayer10_1_p3_linux_022310.tar.gz#flashplugin-10.1.tarb"
+hset flashplugin url "http://download.macromedia.com/pub/labs/flashplayer10/flashplayer10_2_r2_32bit_linux_012611.tar.gz#flashplugin-10.2rc2.tarb"
+
 hset flashplugin phases "deploy"
 hset flashplugin depends "gnutls libcurl libnss libwebkit"
 
