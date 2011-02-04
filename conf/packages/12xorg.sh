@@ -65,7 +65,7 @@ hset xtrans url $(xorg_module_geturl "lib" "xtrans")
 for p in  libXdmcp libX11 libfontenc libXfont libxkbfile \
 		libXrender libXft libXext libXfixes libXcursor libXdamage \
 		libXrandr libXcomposite libXinerama \
-		libXxf86vm libICE libSM libXt libXmu libXi libXv \
+		libXxf86vm libICE libSM libXt libXmu libXi libXv libXvMC \
 		libpciaccess libXtst \
 		 ; do
 	XORG_LIBS+=" xorg$p"
@@ -173,9 +173,7 @@ configure-xorgserver-local() {
 		--disable-dbus \
 		--enable-xorg --disable-xnest \
 		--with-sha1=libsha1 \
-		--disable-local-transport \
 		--enable-xfbdev \
-   		--disable-xorgcfg \
 		--with-mesa-source="$BUILD/libmesa"
 	export LDFLAGS="$LDFLAGS_BASE"
 }
@@ -186,6 +184,7 @@ configure-xorgserver() {
 deploy-xorgserver-local() {
 	cp 	$(get_installed_binaries) \
 		"$ROOTFS"/usr/bin/
+	ln -fs Xorg "$ROOTFS"/usr/bin/X 
 	rsync -av \
 		"$STAGING_USR"/share/X11 \
 		"$STAGING_USR"/share/fonts \
@@ -217,6 +216,9 @@ export X11_LIBS="$STAGING_USR/lib"
 
 
 
+configure-xorglibXvMC() {
+	configure-generic --enable-malloc0returnsnull
+}
 configure-xorglibXv() {
 	configure-generic --enable-malloc0returnsnull
 }
