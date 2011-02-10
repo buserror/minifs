@@ -49,12 +49,23 @@ configure-sdlquake() {
 PACKAGES+=" sdlplasma"
 hset sdlplasma url "http://www.libsdl.org/projects/plasma/src/plasma-1.0.tar.gz"
 
+configure-sdlplasma() {
+	export LDFLAGS="$LDFLAGS_RLINK -lm"
+	configure-generic
+	export LDFLAGS="$LDFLAGS_BASE"
+}
 deploy-sdlplasma() {
         deploy cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
 }
 
 PACKAGES+=" sdlvoxel"
 hset sdlvoxel url "http://www.libsdl.org/projects/newvox/src/newvox-1.0.tar.gz"
+
+configure-sdlvoxel() {
+	export LDFLAGS="$LDFLAGS_RLINK -lm"
+	configure-generic
+	export LDFLAGS="$LDFLAGS_BASE"
+}
 
 deploy-sdlvoxel() {
         deploy cp $(get_installed_binaries) "$ROOTFS"/usr/bin/

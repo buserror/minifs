@@ -98,23 +98,6 @@ install-crosstools() {
 	log_install echo Done
 }
 
-PACKAGES+=" systemlibs"
-hset systemlibs url "none"
-hset systemlibs dir "."
-hset systemlibs depends "crosstools"
-
-configure-systemlibs() {
-	configure echo Done
-}
-compile-systemlibs() {
-	compile echo Done
-}
-install-systemlibs() {
-	log_install rsync -a \
-		"$CROSS_BASE/$TARGET_FULL_ARCH"/sys-root/lib \
-		"$STAGING"/
-}
-
 
 PACKAGES+=" gdbserver"
 hset gdbserver url "none"

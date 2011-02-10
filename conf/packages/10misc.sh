@@ -87,6 +87,10 @@ PACKAGES+=" libgettext"
 hset libgettext url "http://ftp.gnu.org/pub/gnu/gettext/gettext-0.18.1.1.tar.gz"
 
 configure-libgettext() {
+#	sed -i \
+#		-e "s|include <sys/utime.h>|include <linux/utime.h>|g" \
+#			./gettext-tools/gnulib-lib/copy-file.c
+	
 	configure-generic \
 		--without-lispdir \
                  --disable-csharp \
@@ -96,6 +100,7 @@ configure-libgettext() {
                  --disable-openmp \
                  --with-included-glib \
                  --without-emacs
+	CFLAGS="$TARGET_CFLAGS"
 }
 
 

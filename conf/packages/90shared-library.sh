@@ -7,22 +7,23 @@ fi
 hset sharedlibs url "none"
 hset sharedlibs dir "."
 hset sharedlibs phases "deploy"
-hset sharedlibs depends "systemlibs"
 
-deploy-sharedlibs() {
-	deploy echo Copying
-	rm -f $LOGFILE
+deploy-sharedlibs-local() {
 	mkdir -p "$ROOTFS/lib/" "$ROOTFS/usr/lib/"
-	echo "    Nearly there, Installing Staging binaries"
-	(
 	echo Creating "$ROOTFS/lib/"
 	rsync -av \
 		--chmod=u=rwX \
 		--exclude=\*.a --exclude=\*.la --exclude=\*.lai \
 		--exclude pkgconfig \
-		"$STAGING/lib/" \
+		"$CROSS_BASE/$TARGET_FULL_ARCH"/sysroot/lib/ \
 		"$ROOTFS/lib/"
 	echo Creating "$ROOTFS/usr/lib/" 
+	rsync -av \
+		--chmod=u=rwX \
+		--exclude=\*.a --exclude=\*.la --exclude=\*.lai \
+		--exclude pkgconfig \
+		"$CROSS_BASE/$TARGET_FULL_ARCH"/sysroot/usr/lib/ \
+		"$ROOTFS/usr/lib/"
 	rsync -av \
 		--chmod=u=rwX \
 		--exclude=\*.a --exclude=\*.la --exclude=\*.lai \
@@ -33,10 +34,12 @@ deploy-sharedlibs() {
 		"$ROOTFS/usr/lib/" 
 
 	optional $MINIFS_BOARD-sharedlibs-cleanup
-	) >>"$LOGFILE" 2>&1
-	# removes non-accessed libraries. We want the errors here
-	(
 	# export CROSS_LINKER_INVOKE="/tmp/cross_linker_run.sh"
 	cross_linker --purge
-	) >>"$LOGFILE"
+}
+
+deploy-sharedlibs() {
+	echo "    Nearly there, Installing shared libraries"
+	touch "._install_$PACKAGE"
+	deploy deploy-sharedlibs-local
 }
