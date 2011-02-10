@@ -26,8 +26,7 @@ configure-libvncserver-local() {
 		sed -i -e "s|[ \t]\(AC_CONFIG_FILES(\[x11vnc/Makefile\)|true #\1|g" \
 				configure.ac
 	fi
-	rm -f configure # make sure it's redone
-	autoreconf --force
+	libtoolize && $ACLOCAL && autoheader && automake --force-missing --foreign -a -c && autoconf
 	configure-generic-local $extras
 	set +x
 }
