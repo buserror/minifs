@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Xvnc :1 -ac -geometry 320x240 -depth 16 -AlwaysShared -SecurityTypes None
+# Xvnc :99 -ac -geometry 320x240 -depth 16 -AlwaysShared -SecurityTypes None
 
 TARGET_ARCH=arm
 TARGET_FULL_ARCH=$TARGET_ARCH-v4t-linux-uclibcgnueabi
