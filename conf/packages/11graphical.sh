@@ -63,7 +63,7 @@ deploy-libfontconfig-local() {
 		"$ROOTFS"/usr/bin/
 	rsync -av \
 		"$STAGING_USR"/etc/fonts \
-		"$ROOTFS"/usr/etc/ \
+		"$ROOTFS"/etc/ \
 			&>> "$LOGFILE" 
 }
 deploy-libfontconfig() {
