@@ -8,27 +8,29 @@ hset sharedlibs url "none"
 hset sharedlibs dir "."
 hset sharedlibs phases "deploy"
 
+sharedlibs-rsync() {
+	rsync -av \
+		--chmod=u=rwX \
+		--exclude=\*.o \
+		--exclude=\*.a --exclude=\*.la --exclude=\*.lai \
+		--exclude pkgconfig \
+		$*
+}
+
 deploy-sharedlibs-local() {
+	set -x
 	mkdir -p "$ROOTFS/lib/" "$ROOTFS/usr/lib/"
-	echo Creating "$ROOTFS/lib/"
-	rsync -av \
-		--chmod=u=rwX \
-		--exclude=\*.a --exclude=\*.la --exclude=\*.lai \
-		--exclude pkgconfig \
-		"$CROSS_BASE/$TARGET_FULL_ARCH"/sysroot/lib/ \
-		"$ROOTFS/lib/"
-	echo Creating "$ROOTFS/usr/lib/" 
-	rsync -av \
-		--chmod=u=rwX \
-		--exclude=\*.a --exclude=\*.la --exclude=\*.lai \
-		--exclude pkgconfig \
-		"$CROSS_BASE/$TARGET_FULL_ARCH"/sysroot/usr/lib/ \
-		"$ROOTFS/usr/lib/"
-	rsync -av \
-		--chmod=u=rwX \
-		--exclude=\*.a --exclude=\*.la --exclude=\*.lai \
+	local exclude="  "
+	for sysroot in sysroot sys-root; do
+		sharedlibs-rsync \
+			"$CROSS_BASE/$TARGET_FULL_ARCH"/$sysroot/lib/ \
+			"$ROOTFS/lib/"
+		sharedlibs-rsync \
+			"$CROSS_BASE/$TARGET_FULL_ARCH"/$sysroot/usr/lib/ \
+			"$ROOTFS/usr/lib/"
+	done
+	sharedlibs-rsync \
 		--exclude=\*.sh \
-		--exclude pkgconfig \
 		--exclude ct-ng\* \
 		"$STAGING_USR/lib/" \
 		"$ROOTFS/usr/lib/" 
@@ -36,6 +38,7 @@ deploy-sharedlibs-local() {
 	optional $MINIFS_BOARD-sharedlibs-cleanup
 	# export CROSS_LINKER_INVOKE="/tmp/cross_linker_run.sh"
 	cross_linker --purge
+	set +x
 }
 
 deploy-sharedlibs() {
