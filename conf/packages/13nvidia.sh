@@ -1,5 +1,5 @@
 
-NVIDIA_VERSION=260.19.21
+NVIDIA_VERSION=260.19.44
 NVIDIA_NAME=NVIDIA-Linux-x86-${NVIDIA_VERSION}
 PACKAGES+=" nvidia"
 hset nvidia url "http://us.download.nvidia.com/XFree86/Linux-x86/$NVIDIA_VERSION/$NVIDIA_NAME.run"
