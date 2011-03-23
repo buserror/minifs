@@ -632,7 +632,8 @@ int main(int argc, char * argv[])
 				continue;
 			so_file_t * found = so_dir_search(dir, p);
 			if (found) {
-				printf("Protecting %s from purge\n", found->name);
+				printf("Protecting %s/%s from purge\n", p, found->name);
+				sp_file_dump(found);
 				found->flags |= FILE_LOCK;
 			}
 		}
