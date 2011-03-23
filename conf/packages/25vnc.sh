@@ -55,8 +55,6 @@ deploy-libvncserver() {
 PACKAGES+=" x11vnc"
 hset x11vnc url "http://downloads.sourceforge.net/project/libvncserver/x11vnc/0.9.12/x11vnc-0.9.12.tar.gz"
 hset x11vnc depends "libvncserver"
-#hset x11vnc dir "libvncserver"
-#hset x11vnc phases "deploy"
 
 configure-x11vnc() {
 	export LDFLAGS="$LDFLAGS_RLINK -lxcb"
