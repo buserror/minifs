@@ -20,7 +20,8 @@ deploy-libdirectfb() {
 
 # More recent version of glib fails to conf because of lack of glib-compile-schemas
 PACKAGES+=" libglib"
-hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.24/glib-2.24.1.tar.bz2"
+#hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.24/glib-2.24.1.tar.bz2"
+hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.28/glib-2.28.3.tar.bz2"
 hset libglib prefix "$STAGING_USR"
 # this is needed for uclibc not NOT otherwise!
 # hset depends libglib "libiconv"
@@ -39,15 +40,39 @@ glib_cv_uscore=no
 	export CFLAGS
 	export LDFLAGS="$LDFLAGS_RLINK -Wl,-rpath -Wl,$BUILD/libglib/gthread/.libs -Wl,-rpath -Wl,$BUILD/libglib/gmodule/.libs"
 	configure-generic \
-		--cache=fake_glib_cache.conf 
+		--cache=fake_glib_cache.conf \
+		--with-pcre=internal
 	export LDFLAGS="$LDFLAGS_BASE"
 	export CFLAGS=$save
 }
 
+PACKAGES+=" libglibnet"
+hset libglibnet url "http://ftp.gnome.org/pub/gnome/sources/glib-networking/2.28/glib-networking-2.28.4.tar.bz2"
+hset libglibnet destdir "none"
+
+configure-libglibnet() {
+	configure-generic \
+		--without-gnome \
+		--disable-glibtest \
+		--with-libgcrypt-prefix="$STAGING_USR" \
+		--with-ca-certificates=/etc/ca-certificates.crt
+}
+
+PACKAGES+=" libsoup"
+hset libsoup url "http://ftp.gnome.org/pub/gnome/sources/libsoup/2.33/libsoup-2.33.6.tar.bz2"
+hset libsoup depends "libglibnet"
+
+configure-libsoup() {
+	configure-generic \
+		--without-gnome \
+		--disable-glibtest
+}
+
+# http://www.cairographics.org/
 PACKAGES+=" libcairo"
 #hset libcairo url "http://www.cairographics.org/releases/cairo-1.8.10.tar.gz"
-hset libcairo url "http://www.cairographics.org/releases/cairo-1.9.6.tar.gz"
-#hset libcairo url "http://www.cairographics.org/releases/cairo-1.10.2.tar.gz"
+#hset libcairo url "http://www.cairographics.org/releases/cairo-1.9.6.tar.gz"
+hset libcairo url "http://www.cairographics.org/releases/cairo-1.10.2.tar.gz"
 hset libcairo depends "libfreetype libpng libglib libpixman"
 
 configure-libcairo() {
@@ -92,24 +117,36 @@ deploy-libpango-local() {
 		"$ROOTFS"/bin/
 	cp -r "$STAGING_USR"/etc/pango/* \
 		"$ROOTFS"/etc/pango/
-	true
 }
+
 deploy-libpango() {
 	deploy deploy-libpango-local
 }
 
 PACKAGES+=" libatk"
-hset libatk url "http://ftp.gnome.org/pub/gnome/sources/atk/1.32/atk-1.32.0.tar.bz2"
+hset libatk url "http://ftp.gnome.org/pub/gnome/sources/atk/1.33/atk-1.33.6.tar.bz2"
+
+PACKAGES+=" libgdkpixbuf"
+hset libgdkpixbuf url "http://ftp.gnome.org/pub/gnome/sources/gdk-pixbuf/2.23/gdk-pixbuf-2.23.1.tar.bz2"
+
+configure-libgdkpixbuf() {
+	printf "gio_can_sniff=yes" >fake_gtk_cache.conf
+	configure-generic \
+		--cache=fake_gtk_cache.conf \
+		--disable-glibtest \
+		--without-libtiff	
+}
 
 PACKAGES+=" libgtk"
-hset libgtk url "http://ftp.gnome.org/pub/gnome/sources/gtk+/2.18/gtk+-2.18.7.tar.gz#libgtk-2.18.tar.gz"
-hset libgtk depends "libpango libatk libgtkhicolor"
+#hset libgtk url "http://ftp.gnome.org/pub/gnome/sources/gtk+/2.18/gtk+-2.18.7.tar.gz#libgtk-2.18.tar.gz"
+hset libgtk url "http://ftp.gnome.org/pub/gnome/sources/gtk+/2.24/gtk+-2.24.3.tar.gz#libgtk-2.24.tar.gz"
+hset libgtk depends "libpango libatk libgtkhicolor libgdkpixbuf"
 
 configure-libgtk() {
 	if [ ! -d "$CROSS_BASE/$TARGET_FULL_ARCH/lib" ];then 
 		# stupid gtk needs that, somehow
 		pushd "$CROSS_BASE/$TARGET_FULL_ARCH"
-		ln -s sys-root/lib lib
+		ln -s sysroot/lib lib
 		popd
 	fi
 
@@ -126,12 +163,9 @@ configure-libgtk() {
 		--disable-glibtest \
 		--disable-cups \
 		--disable-papi \
-		--without-libtiff \
 		$extras	
 	export LDFLAGS="$LDFLAGS_BASE"
 }
-PACKAGES+=" libgtkhicolor"
-hset libgtkhicolor url "http://icon-theme.freedesktop.org/releases/hicolor-icon-theme-0.12.tar.gz"
 
 deploy-libgtk-local() {
 	cp -r "$STAGING_USR"/etc/gtk-2.0 "$ROOTFS"/etc
@@ -146,11 +180,14 @@ deploy-libgtk() {
 	deploy  deploy-libgtk-local
 }
 
+PACKAGES+=" libgtkhicolor"
+hset libgtkhicolor url "http://icon-theme.freedesktop.org/releases/hicolor-icon-theme-0.12.tar.gz"
+
 PACKAGES+=" libcroco"
 hset libcroco url "ftp://ftp.gnome.org/pub/GNOME/sources/libcroco/0.6/libcroco-0.6.2.tar.bz2"
 
 PACKAGES+=" librsvg"
-hset librsvg url "http://ftp.gnome.org/pub/gnome/sources/librsvg/2.26/librsvg-2.26.0.tar.bz2"
+hset librsvg url "http://ftp.gnome.org/pub/gnome/sources/librsvg/2.32/librsvg-2.32.1.tar.bz2"
 hset librsvg depends "libcroco libxml2 libgtk"
 
 configure-librsvg() {
@@ -169,8 +206,4 @@ configure-librsvg() {
 		--disable-gtk-theme \
 		$extras 
 	export LDFLAGS="$LDFLAGS_BASE"
-}
-
-deploy-librsvg() {
-	deploy cp "$STAGING_USR"/bin/rsvg-view "$ROOTFS/usr/bin/"
 }
