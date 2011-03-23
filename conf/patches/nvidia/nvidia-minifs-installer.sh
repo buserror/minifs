@@ -83,7 +83,12 @@ function env(what, extra) {
 			next;
 		
 		default:
-			printf(\"cp -fa %s %s%s\\n\", fil, env(dest, path), match(\$(NF), /^[A-Z]/) ? \"\" : \$(NF));
+			dir = sprintf(\"%s%s\", env(dest, path), match(\$(NF), /^[A-Z]/) ? \"\" : \$(NF));
+			if (!(dir in dirmade)) {
+				printf(\"mkdir -p %s\n\", dir);
+				dirmade[dir] = 1
+			}
+			printf(\"cp -fa %s %s\\n\", fil, dir);
 			next;
 	}
 	print \"  # ERROR, WHATS THAT? \", dest, fil, NF

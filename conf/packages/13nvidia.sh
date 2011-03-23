@@ -7,6 +7,11 @@ hset nvidia depends "xorgserver linux-modules"
 
 setup-nvidia() {
 	ROOTFS_KEEPERS+="libvdpau.so:"
+	ROOTFS_KEEPERS+="libvcuvid.so:"
+	ROOTFS_KEEPERS+="libnvidia-glcore.so.$NVIDIA_VERSION:"
+	ROOTFS_KEEPERS+="libnvidia-compiler.so.$NVIDIA_VERSION:"
+	ROOTFS_KEEPERS+="libnvidia-cfg.so.$NVIDIA_VERSION:"
+	ROOTFS_KEEPERS+="libnvidia-tls.so.$NVIDIA_VERSION:"
 }
 uncompress-nvidia() {
 	echo nvidia: $*
