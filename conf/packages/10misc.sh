@@ -112,8 +112,9 @@ PACKAGES+=" libgpg-error"
 hset libgpg-error url "ftp://ftp.gnupg.org/gcrypt/libgpg-error/libgpg-error-1.7.tar.bz2"
 hset libgpg-error depends "libiconv libgettext"
 
+# http://www.gnupg.org/download/index.html#libgcrypt
 PACKAGES+=" libgcrypt"
-hset libgcrypt url "ftp://ftp.gnupg.org/gcrypt/libgcrypt/libgcrypt-1.4.5.tar.bz2"
+hset libgcrypt url "ftp://ftp.gnupg.org/gcrypt/libgcrypt/libgcrypt-1.4.6.tar.bz2"
 hset libgcrypt depends "libgpg-error"
 
 configure-libgcrypt() {
@@ -122,8 +123,9 @@ configure-libgcrypt() {
 	export LDFLAGS="$LDFLAGS_BASE"
 }
 
+# http://ftp.gnu.org/gnu/gnutls/
 PACKAGES+=" gnutls"
-hset gnutls url "http://ftp.gnu.org/pub/gnu/gnutls/gnutls-2.8.6.tar.bz2"
+hset gnutls url "http://ftp.gnu.org/pub/gnu/gnutls/gnutls-2.10.4.tar.bz2"
 hset gnutls depends "libgcrypt"
 
 configure-gnutls() {
@@ -202,7 +204,7 @@ install-libnss() {
 ## curl - http://curl.haxx.se/
 #######################################################################
 PACKAGES+=" libcurl"
-hset libcurl url "http://curl.haxx.se/download/curl-7.21.3.tar.bz2"
+hset libcurl url "http://curl.haxx.se/download/curl-7.21.4.tar.bz2"
 
 PACKAGES+=" curl"
 hset curl url "none"

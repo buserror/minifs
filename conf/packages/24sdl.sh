@@ -4,9 +4,8 @@ PACKAGES+=" libsdl"
 hset libsdl url "http://www.libsdl.org/release/SDL-1.2.14.tar.gz"
 
 configure-libsdl() {
-	local xorg=$(echo $TARGET_PACKAGES|awk '/xorg/{print "found"}')
 	local extras=""
-	if [ "$xorg" != "found" ]; then
+	if ! env_contains TARGET_PACKAGES xorgserver ; then
 		extras+="--without-x"
 	fi
 	configure-generic \

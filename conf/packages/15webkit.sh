@@ -3,17 +3,6 @@ PACKAGES+=" libenchant"
 V="1.5.0"
 hset libenchant version $V
 hset libenchant url "http://www.abisource.com/downloads/enchant/1.5.0/enchant-$V.tar.gz"
-#hset depends libwebkit "libgperf libgtk"
-
-PACKAGES+=" libsoup"
-hset libsoup url "git!git://git.gnome.org/libsoup#libsoup-git.tar.bz2"
-
-configure-libsoup() {
-	configure-generic \
-		--without-gnome \
-		--disable-glibtest \
-		--disable-ssl
-}
 
 PACKAGES+=" sqlite3"
 V="3.6.22"
@@ -46,6 +35,7 @@ configure-libalsa() {
 }
 
 deploy-libalsa() {
+	mkdir -p "$ROOTFS"/var/lib/alsa
 	deploy rsync -a "$STAGING_USR"/share/alsa "$ROOTFS"/usr/share/
 }
 
@@ -101,8 +91,10 @@ configure-gst-plugins-base() {
 	export LDFLAGS="$LDFLAGS_BASE"
 }
 
+# http://site.icu-project.org/
 PACKAGES+=" libicu"
 hset libicu url "http://download.icu-project.org/files/icu4c/4.2.1/icu4c-4_2_1-src.tgz"
+#hset libicu url "http://download.icu-project.org/files/icu4c/4.4.2/icu4c-4_4_2-src.tgz"
 hset libicu dir "libicu/source"
 
 # libicu needs a host version of itself
@@ -140,14 +132,16 @@ install-libicu() {
 
 
 PACKAGES+=" libwebkit"
-hset libwebkit url "git!git://git.webkit.org/WebKit.git#libwebkit-git.tar.bz2"
+#hset libwebkit url "git!git://git.webkit.org/WebKit.git#libwebkit-git.tar.bz2"
+hset libwebkit url "git!git://gitorious.org/webkit/webkit.git#libwebkit-git.tar.bz2"
 hset libwebkit depends "libicu libenchant libsoup sqlite3 libxslt libgtk gstreamer"
 
 # needs on the host
 # gtk-docize 
 # gperf
 configure-libwebkit() {
-	local extras="--enable-debug"
+#	local extras="--enable-debug"
+	local extras=""
 	save=$CFLAGS
 	if [[ ! $TARGET_X11 ]]; then
 		# ENABLE_NETSCAPE_PLUGIN_API
@@ -169,6 +163,8 @@ PACKAGES+=" flashplugin"
 #hset url flashplugin "http://fpdownload.macromedia.com/get/flashplayer/current/install_flash_player_10_linux.tar.gz#flashplugin-10.tarb"
 #hset flashplugin url "http://download.macromedia.com/pub/labs/flashplayer10/flashplayer10_1_p3_linux_022310.tar.gz#flashplugin-10.1.tarb"
 hset flashplugin url "http://download.macromedia.com/pub/labs/flashplayer10/flashplayer10_2_r2_32bit_linux_012611.tar.gz#flashplugin-10.2rc2.tarb"
+# get the stable release
+hset flashplugin url "http://fpdownload.macromedia.com/get/flashplayer/current/install_flash_player_10_linux.tar.gz#flashplugin-10.2.tarb"
 
 hset flashplugin phases "deploy"
 hset flashplugin depends "gnutls libcurl libnss libwebkit"
