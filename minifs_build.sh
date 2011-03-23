@@ -16,6 +16,9 @@
 # toolchain
 #
 #######################################################################
+
+set +o posix #needed for dashes in function names
+
 MINIFS_BOARD=${MINIFS_BOARD:-"atom"}
 # MINIFS_PATH contains collumn separated directories with extra
 # package directories
@@ -185,7 +188,7 @@ export LDFLAGS_RLINK="$LDFLAGS_BASE -Wl,-rpath -Wl,/usr/lib -Wl,-rpath-link -Wl,
 export LDFLAGS=$LDFLAGS_BASE
 
 if [ "$COMMAND" == "depends" ]; then
-	dump-depends
+	dump_depends
 	exit
 fi
 
@@ -456,7 +459,7 @@ for pack in $PROCESS_PACKAGES; do
 				ph=$COMMAND_TARGET
 				case "$ph" in
 					shell|rebuild|clean)
-						optional-one-of \
+						optional_one_of \
 							$MINIFS_BOARD-$ph-$pack \
 							$ph-$pack \
 							$ph-generic || break
@@ -466,7 +469,7 @@ for pack in $PROCESS_PACKAGES; do
 			
 			for ph in $phases; do
 				if [[ $ph == "deploy" ]]; then continue ;fi
-				optional-one-of \
+				optional_one_of \
 					$MINIFS_BOARD-$ph-$pack \
 					$ph-$pack \
 					$ph-generic || break
@@ -491,7 +494,7 @@ for pack in $PROCESS_PACKAGES; do
 			
 			for ph in $phases; do
 				if [[ $ph != "deploy" ]]; then continue ;fi
-				optional-one-of \
+				optional_one_of \
 					$MINIFS_BOARD-$ph-$pack \
 					$ph-$pack \
 					$ph-generic || break

@@ -34,7 +34,7 @@ function optional() {
 	done
 }
 
-function optional-one-of () {
+function optional_one_of () {
 	for f in $*; do
 		if declare -F $f >/dev/null; then
 			# echo optional-one-of running $f
@@ -177,7 +177,7 @@ function deploy_staging_path() {
 	(cd "$STAGING_USR/$1"; tar cf - .)|(mkdir -p "$ROOTFS/$1"; cd "$ROOTFS/$1"; tar xf -)
 }
 
-function dump-depends() {
+function dump_depends() {
 	(
 	echo 'digraph G { rankdir=LR; node [shape=rect]; '
 	local all="$PACKAGES crosstools"
