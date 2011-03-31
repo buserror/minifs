@@ -48,7 +48,11 @@ glib_cv_uscore=no
 
 PACKAGES+=" libglibnet"
 hset libglibnet url "http://ftp.gnome.org/pub/gnome/sources/glib-networking/2.28/glib-networking-2.28.4.tar.bz2"
-hset libglibnet destdir "none"
+hset libglibnet destdir "gnutls"
+
+setup-libglibnet() {
+	ROOTFS_KEEPERS+="libgnutls.so:"
+}
 
 configure-libglibnet() {
 	configure-generic \
