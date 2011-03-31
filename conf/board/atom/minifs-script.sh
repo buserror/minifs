@@ -7,7 +7,7 @@ TARGET_KERNEL_ARCH=x86
 TARGET_CFLAGS="-O2 -march=core2 -mtune=generic -mssse3 -mfpmath=sse -fomit-frame-pointer -pipe"
 
 board_set_versions() {
-	hset linux version "2.6.38"
+	hset linux version "2.6.38.2"
 	TARGET_FS_SQUASH=0
 	TARGET_FS_EXT_SIZE=262144
 	TARGET_SHARED=1 
@@ -28,7 +28,7 @@ board_prepare() {
 	# all of gtk JUST to get rsvg :/
 	TARGET_PACKAGES+=" librsvg"
 
-	TARGET_PACKAGES+=" xorgserver nvidia"	
+	TARGET_PACKAGES+=" xorgserver nvidia xorgvideo-vmware"	
 	TARGET_PACKAGES+=" libwebkit"
 	TARGET_PACKAGES+=" flashplugin alsautils"
 	
