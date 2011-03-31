@@ -232,9 +232,7 @@ for package in $TARGET_PACKAGES; do
 	targets=$(hget $package targets)
 	BUILD_PACKAGES+=" ${targets:-$package}"
 	
-	if [ "$fil" = "none" ]; then 
-		continue
-	fi
+	if [ "$fil" = "none" ]; then  continue ; fi
 	
 	proto=${fil/!*}
 	fil=${fil/*!}
@@ -328,9 +326,7 @@ for package in $TARGET_PACKAGES; do
 done
 popd
 
-if [ "$COMMAND" == "unpack" ]; then
-	exit
-fi
+if [ "$COMMAND" == "unpack" ]; then exit ; fi
 
 #######################################################################
 ## Create base rootfs tree
@@ -365,10 +361,12 @@ configure-generic-local() {
 	fi
 	set +x ;return $ret
 }
+
 configure-generic() {
 	configure configure-generic-local "$@"
 	set +x
 }
+
 compile-generic() {
 	compile $MAKE $MAKE_ARGUMENTS $MAKE_CLEAN "$@"
 }
@@ -392,6 +390,7 @@ install-generic-local() {
 	done
 	set +x
 }
+
 install-generic() {
 	log_install install-generic-local "$@"
 }
@@ -432,10 +431,6 @@ for pack in $PACKAGES; do
 	if [ $dobuild -eq 0 ]; then continue; fi
 	PROCESS_PACKAGES+=" $pack"
 done
-
-#echo TARGET_PACKAGES $TARGET_PACKAGES
-#echo BUILD_PACKAGES $BUILD_PACKAGES
-#echo "Will build :" $PROCESS_PACKAGES
 
 #######################################################################
 ## Build each packages
