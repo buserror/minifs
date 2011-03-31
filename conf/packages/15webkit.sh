@@ -159,15 +159,25 @@ deploy-libwebkit() {
 	deploy cp Programs/GtkLauncher "$ROOTFS"/usr/bin/
 }
 
+PACKAGES+=" msfonts"
+hset msfonts url "http://oomz.net/git/msttcorefonts.tar.bz2"
+hset msfonts phases "deploy"
+
+deploy-msfonts() {
+	deploy echo Deploying
+	mkdir -p "$ROOTFS"/usr/share/fonts/ 
+	rsync -av truetype "$ROOTFS"/usr/share/fonts/ >install.log 2>&1
+}
+
 PACKAGES+=" flashplugin"
 #hset url flashplugin "http://fpdownload.macromedia.com/get/flashplayer/current/install_flash_player_10_linux.tar.gz#flashplugin-10.tarb"
 #hset flashplugin url "http://download.macromedia.com/pub/labs/flashplayer10/flashplayer10_1_p3_linux_022310.tar.gz#flashplugin-10.1.tarb"
-hset flashplugin url "http://download.macromedia.com/pub/labs/flashplayer10/flashplayer10_2_r2_32bit_linux_012611.tar.gz#flashplugin-10.2rc2.tarb"
+#hset flashplugin url "http://download.macromedia.com/pub/labs/flashplayer10/flashplayer10_2_r2_32bit_linux_012611.tar.gz#flashplugin-10.2rc2.tarb"
 # get the stable release
 hset flashplugin url "http://fpdownload.macromedia.com/get/flashplayer/current/install_flash_player_10_linux.tar.gz#flashplugin-10.2.tarb"
 
 hset flashplugin phases "deploy"
-hset flashplugin depends "gnutls libcurl libnss libwebkit"
+hset flashplugin depends "gnutls libcurl libnss msfonts libwebkit"
 
 deploy-flashplugin() {
 	deploy echo Deploying flashplugin
