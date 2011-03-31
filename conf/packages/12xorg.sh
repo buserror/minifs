@@ -1,8 +1,11 @@
 
 
-XORG_VERSION=XORG-7_5
-
 # http://cgit.freedesktop.org/xorg/util/modular/plain/module-list.txt?h=XORG-7_5
+#XORG_VERSION=XORG-7_5
+
+# http://cgit.freedesktop.org/xorg/util/modular/plain/module-list.txt?h=X11R7.6
+XORG_VERSION=X11R7.6
+
 
 XORG_MODULES=""
 
@@ -84,7 +87,8 @@ configure-xorglibXt() {
 }
 
 configure-xorglibXfont() {
-	configure-generic --with-fop=elinks
+	configure-generic \
+		--with-fop=no
 }
 
 configure-xorglibSM() {
@@ -110,6 +114,7 @@ hset xkbcomp depends "xkeyboardconfig xorglibxkbfile"
 
 configure-xkbcomp() {
 	export LDFLAGS="$LDFLAGS_RLINK -lxcb"
+	rm -f configure
 	configure-generic
 	export LDFLAGS="$LDFLAGS_BASE"	
 }
@@ -117,12 +122,10 @@ deploy-xkbcomp() {
 	deploy cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
 }
 
-PACKAGES+=" libmesadrm libmesa"
-hset libmesadrm url "git!git://anongit.freedesktop.org/git/mesa/drm#libmesadrm-git.tar.bz2"
-#hset libmesa url "git!git://anongit.freedesktop.org/git/mesa/mesa#libmesa-git.tar.bz2"
-hset libmesa url "ftp://ftp.freedesktop.org/pub/mesa/7.7.1/MesaLib-7.7.1.tar.bz2"
-
-hset libmesa depends "libtalloc libmesadrm xorglibX11"
+# http://cgit.freedesktop.org/mesa/drm
+PACKAGES+=" libmesadrm"
+#hset libmesadrm url "git!git://anongit.freedesktop.org/git/mesa/drm#libmesadrm-git.tar.bz2"
+hset libmesadrm url "http://cgit.freedesktop.org/mesa/drm/snapshot/drm-2.4.24.tar.gz"
 
 configure-libmesadrm() {
 	configure-generic \
@@ -130,20 +133,25 @@ configure-libmesadrm() {
 		--with-kernel-source ../linux/
 }
 
-configure-libmesa() {
-	(
+# http://cgit.freedesktop.org/mesa/mesa/
+PACKAGES+=" libmesa"
+#hset libmesa url "ftp://ftp.freedesktop.org/pub/mesa/7.7.1/MesaLib-7.7.1.tar.bz2"
+hset libmesa url "http://cgit.freedesktop.org/mesa/mesa/snapshot/mesa-7.9.2.tar.gz"
+
+hset libmesa depends "libtalloc libmesadrm xorglibX11"
+
+configure-libmesa-local() {
 	export X11_LIBS="" # needs that otherwise the config/compile fails
-#	export LDFLAGS="$LDFLAGS_RLINK"
-	configure-generic \
+	configure-generic-local \
 		--with-dri-drivers="swrast" \
 		--disable-gallium \
 		--without-demos
-#	export LDFLAGS="$LDFLAGS_BASE"
-	# fixes cross compilation
-#	sed -i -e 's:(CFLAGS):\(APP_CFLAGS\):g' \
-#		src/glsl/apps/Makefile
-	) || return 1
 }
+
+configure-libmesa() {
+	configure configure-libmesa-local
+}
+
 compile-libmesa() {
 #	export LDFLAGS="$LDFLAGS_RLINK"
 	compile-generic APP_CC=$GCC # APP_CFLAGS=
@@ -199,7 +207,7 @@ deploy-xorgserver() {
 
 for p in \
 	input-evdev input-keyboard input-mouse \
-	video-fbdev \
+	video-fbdev video-vmware \
 		 ; do
 	PACKAGES+=" xorg$p"
 	fname=${p//-/}
