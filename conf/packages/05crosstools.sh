@@ -109,7 +109,22 @@ deploy-gdbserver() {
 	local src="$CROSS_BASE/$TARGET_FULL_ARCH"/debug-root/usr/bin/gdbserver
 	if [ -f "$src" ]; then
 		mkdir -p "$ROOTFS"/usr/bin
-		cp "$src" "$ROOTFS"/usr/bin/gdbserver
+		cp "$src" "$ROOTFS"/usr/bin/
+	fi
+}
+
+PACKAGES+=" catchsegv"
+hset catchsegv url "none"
+hset catchsegv dir "."
+hset catchsegv phases "deploy"
+hset catchsegv depends "busybox"
+
+deploy-catchsegv() {
+	local src="$CROSS_BASE/$TARGET_FULL_ARCH"/sysroot/usr/bin/catchsegv
+	if [ -f "$src" ]; then
+		ROOTFS_KEEPERS+="libSegFault.so:"
+		mkdir -p "$ROOTFS"/usr/bin
+		cp "$src" "$ROOTFS"/usr/bin/
 	fi
 }
 
