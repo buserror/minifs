@@ -10,14 +10,18 @@ hset mDSNResponder depends "busybox"
 configure-mDSNResponder() {
 	configure echo Done
 }
+
 compile-mDSNResponder() {
-	compile $MAKE os=linux CC="$GCC" SAResponder \
+	compile $MAKE -C mDNSPosix \
+		os=linux CC="$GCC" SAResponder \
 		CFLAGS_CROSS="-Os $TARGET_CFLAGS -I$STAGING/include" \
 		LINKOPTS="$LDFLAGS"
 }
+
 install-mDSNResponder() {
-	log_install echo Done
+	log_install cp mDNSPosix/build/prod/mDNSResponderPosix "$STAGING_USR"/bin/
 }
+
 deploy-mDSNResponder() {
-	deploy cp build/prod/mDNSResponderPosix  "$ROOTFS/bin/"
+	deploy cp "$STAGING_USR"/bin/mDNSResponderPosix "$ROOTFS"/usr/bin/
 }
