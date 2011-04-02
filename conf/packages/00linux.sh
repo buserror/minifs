@@ -1,4 +1,4 @@
-#######################################################################
+	#######################################################################
 ## contains the 4 main phases of compiling the kernel
 #######################################################################
 
@@ -136,6 +136,7 @@ compile-linux-initrd() { true; }
 install-linux-initrd() { true; }
 
 deploy-linux-initrd() {
+	rm -f "$BUILD/linux-obj"/usr/initramfs_data.*
 	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE="${CROSS}-" \
 			$TARGET_KERNEL_NAME -j4
