@@ -134,3 +134,24 @@ hset fbgrab destdir "$STAGING_USR"
 deploy-fbgrab() {
 	deploy cp "$STAGING_USR"/bin/fbgrab "$ROOTFS"/bin/
 }
+
+# http://www.bootsplash.org/
+PACKAGES+=" bootsplash"
+hset bootsplash url ftp://ftp.bootsplash.org/pub/bootsplash/rpm-sources/bootsplash/bootsplash-3.1.tar.bz2
+hset bootsplash dir "bootsplash/Utilities"
+
+compile-bootsplash() {
+	compile $MAKE CC=$GCC \
+		PREFIX="$STAGING_USR" \
+		LIBDIR="$STAGING_USR"/lib \
+		CFLAGS="$CFLAGS" \
+		splash
+}
+
+install-bootsplash() {
+	log_install cp splash "$STAGING_USR"/bin/
+}
+
+deploy-bootsplash() {
+	deploy cp "$STAGING_USR"/bin/splash "$ROOTFS"/usr/bin
+}
