@@ -41,3 +41,12 @@ deploy-tinc() {
 PACKAGES+=" libetpan"
 hset libetpan url "http://downloads.sourceforge.net/project/libetpan/libetpan/1.0/libetpan-1.0.tar.gz"
 hset libetpan depends "zlib"
+
+# http://www.sourcefiles.org/System/Daemons/DNS/
+PACKAGES+=" mdnsd"
+hset mdnsd url "http://www.sourcefiles.org/System/Daemons/DNS/mdnsd-0.7G.tar.gz"
+hset mdnsd destdir "$STAGING_USR"
+
+deploy-mdnsd() {
+	deploy cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
+}
