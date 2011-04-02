@@ -1,0 +1,5 @@
+
+Since the patches on www.bootsplash.org are not maintained any more, 
+i have adapted the original patches to recent kernels:
+http://www.uli-eckhardt.de/bootsplash/index.en.shtml
+

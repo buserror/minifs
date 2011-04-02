@@ -1,0 +1,89 @@
+diff -ruw mdnsd/1035.c mdnsd.new//1035.c
+--- mdnsd/1035.c	2003-02-18 06:54:33.000000000 +0000
++++ mdnsd.new//1035.c	2011-04-01 12:06:35.000000000 +0100
+@@ -241,7 +241,7 @@
+     if(packet == 0 || m == 0) return;
+ 
+     // keep all our mem in one (aligned) block for easy freeing
+-    #define my(x,y) while(m->_len&7) m->_len++; (void*)x = (void*)(m->_packet + m->_len); m->_len += y;
++    #define my(x,y) while(m->_len&7) m->_len++; x = (void*)(m->_packet + m->_len); m->_len += y;
+ 
+     // header stuff bit crap
+     m->_buf = buf = packet;
+diff -ruw mdnsd/1035.h mdnsd.new//1035.h
+--- mdnsd/1035.h	2003-02-18 06:54:33.000000000 +0000
++++ mdnsd.new//1035.h	2011-04-01 12:09:33.000000000 +0100
+@@ -1,6 +1,10 @@
+ #ifndef _1035_h
+ #define _1035_h
+ 
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
+ // be familiar with rfc1035 if you want to know what all the variable names mean, but this hides most of the dirty work
+ // all of this code depends on the buffer space a packet is in being 4096 and zero'd before the packet is copied in
+ // also conveniently decodes srv rr's, type 33, see rfc2782
+diff -ruw mdnsd/Makefile mdnsd.new//Makefile
+--- mdnsd/Makefile	2003-02-18 07:00:04.000000000 +0000
++++ mdnsd.new//Makefile	2011-04-01 12:08:31.000000000 +0100
+@@ -1,10 +1,11 @@
+ all: mquery mhttp
+ 
+-mhttp: mhttp.c
+-	gcc -g -o mhttp mhttp.c mdnsd.c 1035.c sdtxt.c xht.c
++mhttp: mhttp.c mdnsd.c 1035.c sdtxt.c xht.c
+ 
+-mquery: mquery.c
+-	gcc -g -o mquery mquery.c mdnsd.c 1035.c
++mquery: mquery.c mdnsd.c 1035.c
+ 
+ clean:
+ 	rm -f mquery mhttp
++
++install:
++	cp mquery mhttp $(DESTDIR)/bin/
+diff -ruw mdnsd/sdtxt.c mdnsd.new//sdtxt.c
+--- mdnsd/sdtxt.c	2003-02-18 06:55:19.000000000 +0000
++++ mdnsd.new//sdtxt.c	2011-04-01 12:10:48.000000000 +0100
+@@ -1,5 +1,6 @@
+ #include "sdtxt.h"
+ 
++#include <stdlib.h>
+ #include <string.h>
+ 
+ // the universe is bound in equal parts by arrogance and altruism, any attempt to alter this would be suicide
+diff -ruw mdnsd/xht.c mdnsd.new//xht.c
+--- mdnsd/xht.c	2003-02-18 06:57:07.000000000 +0000
++++ mdnsd.new//xht.c	2011-04-01 12:11:59.000000000 +0100
+@@ -1,5 +1,8 @@
+ #include "xht.h"
+ 
++#include <stdlib.h>
++#include <string.h>
++
+ typedef struct xhn_struct
+ {
+     char flag;
+@@ -83,8 +86,8 @@
+     /* when flag is set, we manage their mem and free em first */
+     if(n->flag)
+     {
+-        free(n->key);
+-        free(n->val);
++        free((void*)n->key);
++        free((void*)n->val);
+     }
+ 
+     n->flag = flag;
+@@ -140,8 +143,8 @@
+             f = n->next;
+             if(n->flag)
+             {
+-                free(n->key);
+-                free(n->val);
++                free((void*)n->key);
++                free((void*)n->val);
+             }
+             free(n);
+             n = f;
