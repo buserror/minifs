@@ -1,6 +1,6 @@
 
 PACKAGES+=" wireless-tools"
-hset wireless-tools url "http://www.hpl.hp.com/personal/Jean_Tourrilhes/Linux/wireless_tools.29.tar.gz"
+hset wireless-tools url "http://www.hpl.hp.com/personal/Jean_Tourrilhes/Linux/wireless_tools.30.pre9.tar.gz"
 
 compile-wireless-tools() {
 	compile $MAKE \
@@ -45,8 +45,9 @@ install-libnl-tiny() {
 	log_install install-libnl-tiny-local
 }
 
+# http://hostap.epitest.fi/wpa_supplicant/
 PACKAGES+=" wpa-supplicant"
-hset wpa-supplicant url "http://hostap.epitest.fi/releases/wpa_supplicant-0.7.1.tar.gz"
+hset wpa-supplicant url "http://hostap.epitest.fi/releases/wpa_supplicant-0.7.3.tar.gz"
 hset wpa-supplicant dir "wpa-supplicant/wpa_supplicant"
 hset wpa-supplicant depends "libreadline libncurses libnl-tiny"
 
@@ -66,7 +67,7 @@ configure-wpa-supplicant() {
 
 compile-wpa-supplicant() {
 	compile $MAKE -j4 V=1 CC=$GCC \
-		EXTRA_CFLAGS="$CPPFLAGS $TARGET_CFLAGS -D_GNU_SOURCE" \
+		EXTRA_CFLAGS="$CPPFLAGS $TARGET_CFLAGS -D_GNU_SOURCE -DCONFIG_LIBNL20" \
 		LIBS_c="-lreadline -lncurses"
 }
 
@@ -77,9 +78,13 @@ install-wpa-supplicant() {
 		BINDIR=/usr/bin
 }
 
+# file donwloaded for RALink cards: 
+# RT2860_Firmware_V26.zip
+# RT2870_Firmware_V22.zip
 deploy-wpa-supplicant() {
 	# let the install tool fixes the paths for us
 	deploy cp "$STAGING_USR"/bin/wpa* "$ROOTFS"/usr/bin/
+	mkdir -p "$ROOTFS"/lib/firmware/
 	cp "$PATCHES"/wpa-supplicant/firmware/* "$ROOTFS"/lib/firmware/
 	touch "$ROOTFS"/etc/wpa.conf
 }
