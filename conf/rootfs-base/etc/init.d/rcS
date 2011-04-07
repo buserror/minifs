@@ -31,7 +31,7 @@ if [ "$up" != "" ]; then
 else
 	echo "* Configuring network with DHCP..."
 	ifconfig eth0 up
-	udhcpc -b
+	udhcpc -b -T 1
 fi
 
 # LAUNCH APPS -- do not delete this line
