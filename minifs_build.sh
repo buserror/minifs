@@ -41,7 +41,9 @@ export MINIFS_BASE="$BASE"
 NEEDED_HOST_COMMANDS="make tar rsync installwatch wget git"
 
 export BUILD="$BASE/build-${MINIFS_BOARD}"
-PATCHES="$BASE/conf"
+CONF_BASE="$BASE/conf"
+PATCHES="$CONF_BASE"/patches
+
 export STAGING="$BUILD/staging"
 export STAGING_USR="$STAGING/usr"
 export ROOTFS="$BUILD/rootfs"
@@ -49,9 +51,9 @@ export ROOTFS_PLUGINS=""
 export ROOTFS_KEEPERS="libnss_dns.so.2:libnss_dns-2.10.2.so:"
 export STAGING_TOOLS="$BUILD"/staging-tools
 KERNEL="$BUILD/kernel"
-CONFIG="$PATCHES/board/$MINIFS_BOARD"
+CONFIG="$CONF_BASE/board/$MINIFS_BOARD"
  
-source "$PATCHES"/minifs-script-utils.sh
+source "$CONF_BASE"/minifs-script-utils.sh
 source "$CONFIG"/minifs-script.sh
 
 # remove any package, and it's installed dirs
@@ -89,7 +91,7 @@ TARGET_SHARED=0
 
 # compile the "tools" for the host
 ( 	set -x
-	make -C "$PATCHES"/host-tools DESTDIR="$STAGING_TOOLS" &&
+	make -C "$CONF_BASE"/host-tools DESTDIR="$STAGING_TOOLS" &&
 	cd "$STAGING_TOOLS"/bin &&
 	ln -f -s $(which libtool) "$TARGET_FULL_ARCH"-libtool
 ) >"$BUILD"/._tools.log 2>&1 || \
@@ -152,7 +154,7 @@ optional board_set_versions
 #######################################################################
 
 package_files=""
-for pd in "$PATCHES/packages" "$CONFIG/packages" $(minifs_path_split "packages"); do
+for pd in "$CONF_BASE/packages" "$CONFIG/packages" $(minifs_path_split "packages"); do
 	if [ -d "$pd" ]; then
 		package_files+="$(echo $pd/*.sh) "
 	fi
@@ -308,7 +310,7 @@ for package in $TARGET_PACKAGES; do
 		esac
 		for pd in \
 				"$CONFIG/$baseroot" "$CONFIG/$baseroot$vers"\
-				"$PATCHES/patches/$baseroot" "$PATCHES/patches/$baseroot$vers"\
+				"$PATCHES/$baseroot" "$PATCHES/$baseroot$vers"\
 				$(minifs_path_split "patches/$baseroot") \
 				$(minifs_path_split "patches/$baseroot$vers"); do
 			#echo trying patches $pd
@@ -317,7 +319,7 @@ for package in $TARGET_PACKAGES; do
 				( pushd "$BUILD/$baseroot"
 					for pf in "$pd/"/*.patch; do
 						echo "     Applying $pf"
-						cat $pf | patch -t -p1
+						cat $pf | patch --merge -t -p1
 					done
 				popd ) >"$BUILD/$baseroot/._patch_$baseroot.log"
 			fi
@@ -331,7 +333,7 @@ if [ "$COMMAND" == "unpack" ]; then exit ; fi
 #######################################################################
 ## Create base rootfs tree
 #######################################################################
-for pd in "$PATCHES/rootfs-base" "$CONFIG/rootfs" $(minifs_path_split "rootfs"); do
+for pd in "$CONF_BASE/rootfs-base" "$CONFIG/rootfs" $(minifs_path_split "rootfs"); do
 	if [ -d "$pd" ]; then
 		rsync -a "$pd/" "$ROOTFS/"
 	fi

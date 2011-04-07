@@ -24,7 +24,7 @@ configure-crosstools() {
 		chmod -R u+w "$TOOLCHAIN"
 
 		# Install missing patches
-		for dir in "$PATCHES"/patches/crosstools; do
+		for dir in "$PATCHES"/crosstools; do
 			if [ -d "$dir"/patches ]; then
 				here=$(pwd)
 				pushd "$dir"

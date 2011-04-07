@@ -14,7 +14,7 @@ xorg_module_geturl() {
 	local module=$2
 
 	if [ "$XORG_MODULES" == "" ]; then
-		XORG_MODULES=$(cat "$PATCHES/packages/module-list-$XORG_VERSION.txt"|tr "\n" " ")
+		XORG_MODULES=$(cat "$CONF_BASE/packages/module-list-$XORG_VERSION.txt"|tr "\n" " ")
 	fi
 	mod=$(echo $XORG_MODULES|awk "{c=split(\$0,a); for(i=0;i<c;i++) if(match(a[i],/^$module-/)) print a[i] ;}")
 	url="http://xorg.freedesktop.org/archive/individual/$path/$mod.tar.bz2#xorg-$mod.tar.bz2"

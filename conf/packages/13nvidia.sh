@@ -19,6 +19,11 @@ uncompress-nvidia() {
 }
 
 configure-nvidia() {
+	# if modules were reinstalled, we need to rebuild too
+	if [ -e ._conf_nvidia -a \
+		../linux/._install_linux-modules -nt ._conf_nvidia ]; then 
+		rm -f ._conf_nvidia
+	fi
 	configure echo Configure nvidia
 }
 
@@ -44,7 +49,7 @@ install-nvidia-local() {
 	pushd $NVIDIA_NAME/
 	mkdir -p "$BUILD"/kernel/lib/modules/$(hget linux version)/kernel/drivers/video/
 	cp kernel/nvidia.ko "$BUILD"/kernel/lib/modules/$(hget linux version)/kernel/drivers/video/
-	sh "$PATCHES/patches/nvidia/nvidia-minifs-installer.sh" >../._nvidia_install.sh
+	sh "$PATCHES/nvidia/nvidia-minifs-installer.sh" >../._nvidia_install.sh
 	DESTDIR="$STAGING_USR" installwatch -o ../._dist_$PACKAGE.log bash ../._nvidia_install.sh
 	ln -sf libGL.so.1 "$STAGING_USR"/lib/libGL.so.1.2
 	popd

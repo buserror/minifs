@@ -50,6 +50,7 @@ configure-libfontconfig-local() {
 		fc-arch/Makefile
 	export LDFLAGS="$LDFLAGS_BASE"
 }
+
 configure-libfontconfig() {
 	configure configure-libfontconfig-local
 }
@@ -59,6 +60,7 @@ compile-libfontconfig() {
 	compile-generic V=1
 	export LDFLAGS="$LDFLAGS_BASE"
 }
+
 deploy-libfontconfig-local() {
 	cp "$STAGING_USR"/bin/fc-* \
 		"$ROOTFS"/usr/bin/
@@ -67,6 +69,7 @@ deploy-libfontconfig-local() {
 		"$ROOTFS"/etc/ \
 			&>> "$LOGFILE" 
 }
+
 deploy-libfontconfig() {
 	deploy deploy-libfontconfig-local
 }
@@ -108,9 +111,11 @@ configure-libts-local() {
 	export CFLAGS="$TARGET_CFLAGS"
 	sed -i -e 's:^#define malloc rpl_malloc:// #define malloc rpl_malloc:g' config.h
 }
+
 configure-libts() {
 	configure configure-libts-local
 }
+
 #
 PACKAGES+=" libim-loaders"
 hset libim-loaders url "http://ignum.dl.sourceforge.net/project/enlightenment/imlib2-src/1.4.3/imlib2_loaders-1.4.3.tar.bz2"
@@ -122,6 +127,7 @@ hset libim depends "libpng libjpeg"
 configure-libim() {
 	configure-generic --without-x
 }
+
 setup-libim() {
 	ROOTFS_PLUGINS+="$ROOTFS/usr/lib/imlib2:"
 }

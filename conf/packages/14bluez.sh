@@ -16,7 +16,7 @@ hset bluez url "http://www.kernel.org/pub/linux/bluetooth/bluez-4.81.tar.gz"
 hset bluez depends "dbus libiconv libgettext libglib"
 
 configure-bluez() {
-	 configure-generic \
+	configure-generic \
 		--disable-alsa \
 		--disable-audio \
 		--disable-bccmd \
@@ -26,7 +26,7 @@ configure-bluez() {
 		--disable-dfutool \
 		--enable-dund   \
 		--disable-fortify \
-            	--disable-gstreamer \
+		--disable-gstreamer \
 		--disable-hid2hci \
 		--enable-hidd \
 		--enable-input \
