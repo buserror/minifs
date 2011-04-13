@@ -4,7 +4,7 @@ TARGET_ARCH=arm
 TARGET_FULL_ARCH=$TARGET_ARCH-cortexa8-linux-gnueabi
 TARGET_KERNEL_NAME=uImage
 TARGET_KERNEL_ARCH=arm
-TARGET_CFLAGS="-O2 -mcpu=cortex-a8 -mfpu=neon -ftree-vectorize -mfloat-abi=soft -fsingle-precision-constant -pipe"
+TARGET_CFLAGS="-O2 -mcpu=cortex-a8 -mfpu=neon -fPIC -ftree-vectorize -mfloat-abi=soft -fsingle-precision-constant -pipe"
 
 board_set_versions() {
 	hset linux version "2.6.35.6"
