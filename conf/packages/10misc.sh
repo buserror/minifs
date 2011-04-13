@@ -138,10 +138,10 @@ configure-gnutls() {
 }
 
 #######################################################################
-## OpenSSL
+## OpenSSL - http://www.openssl.org/
 #######################################################################
 PACKAGES+=" openssl"
-hset openssl url "http://www.openssl.org/source/openssl-0.9.8o.tar.gz"
+hset openssl url "http://www.openssl.org/source/openssl-0.9.8r.tar.gz"
 
 configure-openssl() {
 	configure ./config --prefix=/usr --install_prefix="$STAGING" no-asm shared
