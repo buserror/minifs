@@ -228,7 +228,7 @@ deploy-curl() {
 
 # http://samba.anu.edu.au/rsync/
 PACKAGES+=" rsync"
-hset rsync url "http://samba.anu.edu.au/ftp/rsync/src/rsync-3.0.7.tar.gz"
+hset rsync url "http://samba.anu.edu.au/ftp/rsync/src/rsync-3.0.8.tar.gz"
 hset rsync depends "busybox"
 
 deploy-rsync() {
