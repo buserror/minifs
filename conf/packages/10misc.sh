@@ -155,18 +155,11 @@ compile-openssl() {
 #######################################################################
 ## Netscape security API
 #######################################################################
-PACKAGES+=" libnspr"
-hset libnspr url "https://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v4.8.4/src/nspr-4.8.4.tar.gz"
-hset libnspr dir "libnspr/mozilla/nsprpub"
-hset libnspr phases "none"
 
 PACKAGES+=" libnss"
-hset libnss url "https://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_3_12_3_RTM/src/nss-3.12.3.tar.bz2"
-hset libnss depends "libnspr"
+hset libnss url "https://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_3_12_9_RTM/src/nss-3.12.9-with-nspr-4.8.7.tar.gz"
 
 configure-libnss() {
-	rm -f mozilla/nsprpub
-	ln -s ../../libnspr/mozilla/nsprpub mozilla/nsprpub
 	configure echo Done
 }
 compile-libnss() {
@@ -186,13 +179,14 @@ compile-libnss() {
 install-libnss-local() {
 	path=$(echo mozilla/dist/Linux*$TARGET_KERNEL_ARCH*)
 	echo mozicrap = $path
-	pushd "$path"/lib
-	for lib in libssl3.so libnss3.so libnssutil3.so libplc4.so libplds4.so libnspr4.so libsmime3.so; do
+	(
+	cd "$path"/lib
+	for lib in *.so; do
 		fn=$(readlink -f $lib)
-		echo lib $fn
+		echo lib open "$STAGING_USR"/lib/$(basename $fn)
 		cp "$fn" "$STAGING_USR"/lib/
 	done
-	popd
+	) >._dist_$PACKAGE.log
 	echo Done
 }
 
