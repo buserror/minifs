@@ -35,7 +35,7 @@ else
 	brctl addif br0 eth0
 	ifconfig eth0 up
 	ifconfig br0 up
-	udhcpc -b -T 1 -i br0
+	udhcpc -b -T 1 -i br0 &
 fi
 
 # LAUNCH APPS -- do not delete this line

@@ -33,6 +33,7 @@ case "$1" in
 			echo Adding DNS $i
 			echo nameserver $i >> $RESOLV_CONF
 		done
+		[ -f /etc/network-up.sh ] && sh /etc/network-up.sh
 		;;
 esac
 
