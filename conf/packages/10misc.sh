@@ -32,6 +32,30 @@ deploy-tmux() {
 	deploy cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
 }
 
+PACKAGES+=" libpopt"
+hset libpopt url "http://ftp.debian.org/debian/pool/main/p/popt/popt_1.16.orig.tar.gz"
+
+#  http://ftp.debian.org/debian/pool/main/p/pump/
+PACKAGES+=" pump"
+hset pump url "http://ftp.debian.org/debian/pool/main/p/pump/pump_0.8.24.orig.tar.gz"
+hset pump depends "libpopt"
+
+patch-pump() {
+	cat debian/patches/*.patch | patch --merge -p1
+}
+compile-pump() {
+	compile-generic \
+		DEB_CFLAGS="$CFLAGS -DUDEB=1" \
+		LDFLAGS="$LDFLAGS_RLINK" \
+		pump
+}
+install-pump() {
+	log_install cp pump "$STAGING_USR"/sbin/
+}
+deploy-pump() {
+	deploy cp "$STAGING_USR"/sbin/pump "$ROOTFS"/sbin/
+}
+
 # http://www.net-snmp.org/download.html
 PACKAGES+=" libnetsnmp"
 hset libnetsnmp url "http://downloads.sourceforge.net/project/net-snmp/net-snmp/5.5/net-snmp-5.5.tar.gz#netsnmp-5.5.tgz"

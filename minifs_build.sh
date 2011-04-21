@@ -308,22 +308,28 @@ for package in $TARGET_PACKAGES; do
 				;;
 			*)	echo ### error file format '$typ' ($base) not supported" ; exit 1
 		esac
-		for pd in \
+		( for pd in \
 				"$CONFIG/$baseroot" "$CONFIG/$baseroot$vers"\
 				"$PATCHES/$baseroot" "$PATCHES/$baseroot$vers"\
 				$(minifs_path_split "patches/$baseroot") \
 				$(minifs_path_split "patches/$baseroot$vers"); do
-			#echo trying patches $pd
+			echo trying patches $pd
 			if [ -d "$pd" ]; then
 				echo "#### Patching $base"
-				( pushd "$BUILD/$baseroot"
+				pushd "$BUILD/$baseroot"
 					for pf in "$pd/"/*.patch; do
 						echo "     Applying $pf"
 						cat $pf | patch --merge -t -p1
 					done
-				popd ) >"$BUILD/$baseroot/._patch_$baseroot.log"
+				popd
 			fi
-		done
+		done 
+		pushd "$BUILD/$baseroot"
+		echo Trying optional_one_of $MINIFS_BOARD-patch-$baseroot patch-$baseroot 
+		optional_one_of \
+			$MINIFS_BOARD-patch-$baseroot \
+			patch-$baseroot || break
+		) >"$BUILD/$baseroot/._patch_$baseroot.log" 2>&1
 	fi
 done
 popd
