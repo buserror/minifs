@@ -76,6 +76,7 @@ CROSSTOOL_JOBS=".4"
 mkdir -p "$STAGING_TOOLS"/bin
 mkdir -p download "$KERNEL" "$ROOTFS" "$STAGING_USR" "$TOOLCHAIN"
 mkdir -p "$STAGING_USR"/share/aclocal
+mkdir -p /tmp/installwatch
 
 # Always regenerate the rootfs
 rm -rf "$ROOTFS"/*
@@ -91,9 +92,7 @@ TARGET_SHARED=0
 
 # compile the "tools" for the host
 ( 	set -x
-	make -C "$CONF_BASE"/host-tools DESTDIR="$STAGING_TOOLS" &&
-	cd "$STAGING_TOOLS"/bin &&
-	ln -f -s $(which libtool) "$TARGET_FULL_ARCH"-libtool
+	make -C "$CONF_BASE"/host-tools DESTDIR="$STAGING_TOOLS" 
 ) >"$BUILD"/._tools.log 2>&1 || \
 	( echo '## Unable to build tools :'; cat  "$BUILD"/._tools.log; exit 1 ) || exit 1
 rm -f /tmp/pkg-config.log
@@ -101,7 +100,7 @@ if [ "$COMMAND" == "tools" ]; then exit ;fi
 
 hset busybox version "1.18.4"
 hset linux version "2.6.32.2"
-hset crosstools version "1.10.0"
+hset crosstools version "1.11.3"
 
 # PATH needs sbin (for depmod), the host tools, and the cross toolchain
 export BASE_PATH="$PATH"
@@ -384,7 +383,7 @@ compile-generic() {
 #######################################################################
 install-generic-local() {
 	local destdir=$(hget $PACKAGE destdir)
-	local makei="installwatch -d /tmp/installwatch.debug -o ._dist_$PACKAGE.log $MAKE install"
+	local makei="installwatch -r /tmp/installwatch -d /tmp/installwatch/debug -o ._dist_$PACKAGE.log $MAKE install"
 	set -x
 	case "$destdir" in
 		none) $makei "$@" ;;
