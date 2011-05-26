@@ -28,7 +28,7 @@ PACKAGES+=" libogg"
 hset libogg url "http://downloads.xiph.org/releases/ogg/libogg-1.1.4.tar.gz"
 
 PACKAGES+=" libvorbis"
-hset libvorbis url "http://downloads.xiph.org/releases/vorbis/libvorbis-1.2.3.tar.gz"
+hset libvorbis url "http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.2.tar.gz"
 
 configure-libvorbis() {
 	export LDFLAGS="$LDFLAGS_RLINK"
