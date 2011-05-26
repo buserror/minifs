@@ -88,6 +88,9 @@ deploy-filesystem-prepack() {
 	ln -s ../etc $ROOTFS/usr/etc
 	ln -s ../var $ROOTFS/usr/var
 	echo minifs-$MINIFS_BOARD >$ROOTFS/etc/hostname
+	echo "minifs-$MINIFS_BOARD-" | \
+		awk '{ print $0 strftime("%Y%m%d%H%M"); }' \
+			>$ROOTFS/etc/minifs.tag
 
 	$MINIFS_STRIP "$ROOTFS"/bin/* "$ROOTFS"/sbin/* "$ROOTFS"/usr/bin/* \
 		2>/dev/null
