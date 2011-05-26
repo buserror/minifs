@@ -136,14 +136,21 @@ PACKAGES+=" libgpg-error"
 hset libgpg-error url "ftp://ftp.gnupg.org/gcrypt/libgpg-error/libgpg-error-1.7.tar.bz2"
 hset libgpg-error depends "libiconv libgettext"
 
+install-libgpg-error() {
+	install-generic
+	sed -i -e "s|^prefix=/usr|prefix=$STAGING_USR|g" \
+		"$STAGING_USR"/bin/gpg-error-config
+}
+
 # http://www.gnupg.org/download/index.html#libgcrypt
 PACKAGES+=" libgcrypt"
 hset libgcrypt url "ftp://ftp.gnupg.org/gcrypt/libgcrypt/libgcrypt-1.4.6.tar.bz2"
 hset libgcrypt depends "libgpg-error"
 
 configure-libgcrypt() {
-	export LDFLAGS="$LDFLAGS_RLINK"
-	configure-generic --disable-asm --disable-tests
+	export LDFLAGS="$LDFLAGS_RLINK -lgpg-error"
+	configure-generic --disable-asm --disable-tests \
+		--with-gpg-error-prefix="$STAGING_USR"
 	export LDFLAGS="$LDFLAGS_BASE"
 }
 
@@ -265,7 +272,7 @@ hset picocom url "http://picocom.googlecode.com/files/picocom-1.6.tar.gz"
 hset picocom depends "busybox"
 
 compile-picocom() {
-	compile make CFLAGS="$CFLAGS"
+	compile make CC="$GCC" CFLAGS="$CFLAGS"
 }
 
 install-picocom() {
@@ -274,4 +281,30 @@ install-picocom() {
 
 deploy-picocom() {
 	deploy cp "$STAGING_USR"/bin/picocom "$ROOTFS"/bin/
+}
+
+# From xfs repo. BSD borken configure/install
+PACKAGES+=" libattr"
+hset libattr url "ftp://oss.sgi.com/projects/xfs/cmd_tars/attr_2.4.43-1.tar.gz"
+hset libattr depends "busybox"
+hset libattr prefix "/"
+
+install-libattr() {
+	export DIST_ROOT="$STAGING_USR"
+	install-generic
+	unset DIST_ROOT
+}
+
+# Libcap for /sbin/setcap
+# http://www.kernel.org/pub/linux/libs/security/linux-privs/kernel-2.6/
+PACKAGES+=" libcap"
+hset libcap url "http://www.kernel.org/pub/linux/libs/security/linux-privs/kernel-2.6/libcap-2.20.tar.gz"
+hset libcap depends "libattr"
+
+compile-libcap() {
+	compile make CC="$GCC" CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS_RLINK" DESTDIR="$STAGING_USR"
+}
+
+deploy-libcap() {
+	deploy cp $(get_installed_binaries) "$ROOTFS"/sbin/
 }
