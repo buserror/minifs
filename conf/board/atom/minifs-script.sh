@@ -7,7 +7,7 @@ TARGET_KERNEL_ARCH=x86
 TARGET_CFLAGS="-O2 -march=core2 -mtune=generic -mssse3 -mfpmath=sse -fomit-frame-pointer -pipe"
 
 board_set_versions() {
-	hset linux version "2.6.38.2"
+	hset linux version "2.6.38.7"
 	TARGET_FS_SQUASH=0
 	TARGET_FS_EXT_SIZE=262144
 	TARGET_SHARED=1 
