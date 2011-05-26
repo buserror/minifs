@@ -143,11 +143,8 @@ deploy-msfonts() {
 }
 
 PACKAGES+=" flashplugin"
-#hset url flashplugin "http://fpdownload.macromedia.com/get/flashplayer/current/install_flash_player_10_linux.tar.gz#flashplugin-10.tarb"
-#hset flashplugin url "http://download.macromedia.com/pub/labs/flashplayer10/flashplayer10_1_p3_linux_022310.tar.gz#flashplugin-10.1.tarb"
-#hset flashplugin url "http://download.macromedia.com/pub/labs/flashplayer10/flashplayer10_2_r2_32bit_linux_012611.tar.gz#flashplugin-10.2rc2.tarb"
-# get the stable release
-hset flashplugin url "http://fpdownload.macromedia.com/get/flashplayer/current/install_flash_player_10_linux.tar.gz#flashplugin-10.2.tarb"
+# get the stable release -- 10.3.181.14 as of 18/05/12
+hset flashplugin url "http://fpdownload.macromedia.com/get/flashplayer/current/install_flash_player_10_linux.tar.gz#flashplugin-10.3.tarb"
 
 hset flashplugin phases "deploy"
 hset flashplugin depends "gnutls libcurl libnss msfonts libwebkit"
