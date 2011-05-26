@@ -37,7 +37,7 @@ configure-libvorbis() {
 }
 
 # http://gstreamer.freedesktop.org/
-CONFIG_GSTREAMER_VERSION=0.10.32
+CONFIG_GSTREAMER_VERSION=0.10.33
 
 PACKAGES+=" gstreamer gst-plugins-base"
 hset gstreamer url "http://gstreamer.freedesktop.org/src/gstreamer/gstreamer-$CONFIG_GSTREAMER_VERSION.tar.bz2"
