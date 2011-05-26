@@ -23,33 +23,6 @@ configure-libxslt() {
 PACKAGES+=" liboil"
 hset liboil url "http://liboil.freedesktop.org/download/liboil-0.3.17.tar.gz"
 
-PACKAGES+=" alsadrivers"
-hset alsadrivers url "ftp://ftp.alsa-project.org/pub/driver/alsa-driver-1.0.24.tar.bz2"
-
-PACKAGES+=" libalsa"
-hset libalsa url "ftp://ftp.alsa-project.org/pub/lib/alsa-lib-1.0.24.1.tar.bz2"
-#hset libalsa depends "alsadrivers"
-
-configure-libalsa() {
-	configure-generic --disable-python
-}
-
-deploy-libalsa() {
-	mkdir -p "$ROOTFS"/var/lib/alsa
-	deploy rsync -a "$STAGING_USR"/share/alsa "$ROOTFS"/usr/share/
-}
-
-PACKAGES+=" alsautils"
-hset alsautils url "ftp://ftp.alsa-project.org/pub/utils/alsa-utils-1.0.24.2.tar.bz2"
-hset alsautils depends "libalsa libncurses"
-
-configure-alsautils() {
-	configure-generic --disable-xmlto --with-curses=ncurses
-}
-
-deploy-alsautils() {
-	deploy cp $(get_installed_binaries) "$ROOTFS"/bin/
-}
 
 PACKAGES+=" libogg"
 hset libogg url "http://downloads.xiph.org/releases/ogg/libogg-1.1.4.tar.gz"
