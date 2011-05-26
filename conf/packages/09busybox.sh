@@ -1,7 +1,26 @@
 
+
+PACKAGES+=" libtool"
+hset libtool url "http://ftp.gnu.org/gnu/libtool/libtool-2.4.tar.gz"
+hset libtool destdir "$STAGING_TOOLS"
+hset libtool prefix "/"
+
+setup-libtool() {
+	export LIBTOOL="$TARGET_FULL_ARCH"-libtool
+}
+
+configure-libtool() {
+	configure-generic --program-prefix="$TARGET_FULL_ARCH"-
+}
+install-libtoot() {
+	install-generic 
+	ln -f -s "$TARGET_FULL_ARCH"-libtool "$STAGING_TOOLS"/bin/libtool
+	ln -f -s "$TARGET_FULL_ARCH"-libtoolize "$STAGING_TOOLS"/bin/libtoolize
+}
+
 PACKAGES="$PACKAGES busybox"
 hset busybox url "http://busybox.net/downloads/busybox-$(hget busybox version).tar.bz2"
-hset busybox depends "crosstools"
+hset busybox depends "crosstools libtool"
 
 configure-busybox() {
 	if [ -f "$CONFIG"/config_busybox.conf ]; then
