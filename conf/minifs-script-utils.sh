@@ -61,7 +61,7 @@ function package() {
 	export MINIFS_PACKAGE="$1"
 	export PACKAGE="$1"
 	export PACKAGE_DIR="$2"
-	local prefix=$(hget prefix $PACKAGE)
+	local prefix=$(hget $PACKAGE prefix)
 	export PACKAGE_PREFIX=${prefix:-/usr}
 	pushd "$BUILD/$PACKAGE_DIR" >/dev/null
 }
