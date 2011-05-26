@@ -22,7 +22,7 @@ deploy-libdirectfb() {
 PACKAGES+=" libglib"
 #hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.24/glib-2.24.1.tar.bz2"
 hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.28/glib-2.28.3.tar.bz2"
-hset libglib prefix "$STAGING_USR"
+#hset libglib prefix "$STAGING_USR"
 # this is needed for uclibc not NOT otherwise!
 # hset depends libglib "libiconv"
 
@@ -103,12 +103,13 @@ hset libpango depends "libglib libcairo"
 
 configure-libpango() {
 	export LDFLAGS="$LDFLAGS_RLINK"
+	local extras=""
 	if [[ ! $TARGET_X11 ]]; then
 		extras="--without-x"
 	else
 		export LDFLAGS+=" -lxcb"
-		extras="--x-libraries=$STAGING_USR/lib \
-			--x-includes=$STAGING_USR/include"
+	#	extras="--x-libraries=$STAGING_USR/lib \
+	#		--x-includes=$STAGING_USR/include"
 	fi
 	configure-generic "$extras" 
 	export LDFLAGS="$LDFLAGS_BASE"
@@ -149,9 +150,9 @@ hset libgtk depends "libpango libatk libgtkhicolor libgdkpixbuf"
 configure-libgtk() {
 	if [ ! -d "$CROSS_BASE/$TARGET_FULL_ARCH/lib" ];then 
 		# stupid gtk needs that, somehow
-		pushd "$CROSS_BASE/$TARGET_FULL_ARCH"
+		pushd "$CROSS_BASE/$TARGET_FULL_ARCH" >/dev/null
 		ln -s sysroot/lib lib
-		popd
+		popd  >/dev/null
 	fi
 
 	printf "gio_can_sniff=yes" >fake_gtk_cache.conf
