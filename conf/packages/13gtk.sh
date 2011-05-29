@@ -26,6 +26,15 @@ hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.28/glib-2.28.3.t
 # this is needed for uclibc not NOT otherwise!
 # hset depends libglib "libiconv"
 
+hostcheck-libglib() {
+	local genm=$(which glib-genmarshal)
+	if [ ! -x "$genm" ]; then
+		echo "### Stupid libglib needs part of itself () to compile."
+		echo "    please install glib-genmarshal (libglib2.0-dev on debian)"
+		HOSTCHECK_FAILED=1
+	fi
+}
+
 configure-libglib() {
 	printf "glib_cv_stack_grows=no
 ac_cv_func_posix_getpwuid_r=yes
@@ -147,14 +156,27 @@ PACKAGES+=" libgtk"
 hset libgtk url "http://ftp.gnome.org/pub/gnome/sources/gtk+/2.24/gtk+-2.24.3.tar.gz#libgtk-2.24.tar.gz"
 hset libgtk depends "libpango libatk libgtkhicolor libgdkpixbuf"
 
-configure-libgtk() {
+hostcheck-libgtk() {
+	local cmd=$(which gtk-update-icon-cache)
+	if [ ! -x "$cmd" ]; then
+		echo "### ERROR $PACKAGE needs gtk-update-icon-cache"
+		echo "    It's in libgtk2.0-bin on debian"
+		HOSTCHECK_FAILED=1
+	fi
+}
+
+configure-libgtk-local() {
+	set -x
 	if [ ! -d "$CROSS_BASE/$TARGET_FULL_ARCH/lib" ];then 
 		# stupid gtk needs that, somehow
 		pushd "$CROSS_BASE/$TARGET_FULL_ARCH" >/dev/null
 		ln -s sysroot/lib lib
 		popd  >/dev/null
 	fi
-
+	# remove the demos
+#	sed -i '/^demos\//d ; /^tests\//d' configure.in
+	sed -i 's|demos||g ; s|tests||g' Makefile.am
+	rm -f configure
 	printf "gio_can_sniff=yes" >fake_gtk_cache.conf
 	export LDFLAGS="$LDFLAGS_RLINK"
 	if [[ $TARGET_X11 ]]; then
@@ -163,13 +185,18 @@ configure-libgtk() {
 	else
 		extras="--without-x --with-gdktarget=directfb"
 	fi
-	configure-generic \
+	configure-generic-local \
 		--cache=fake_gtk_cache.conf \
 		--disable-glibtest \
 		--disable-cups \
 		--disable-papi \
+		--disable-gtk-doc-html \
 		$extras	
 	export LDFLAGS="$LDFLAGS_BASE"
+}
+
+configure-libgtk() {
+	configure configure-libgtk-local
 }
 
 deploy-libgtk-local() {
