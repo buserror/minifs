@@ -17,18 +17,17 @@ board_set_versions() {
 
 board_prepare() {
 	TARGET_PACKAGES+=" e2fsprogs gdbserver strace"
-	TARGET_PACKAGES+=" libusb usbutils"
+	TARGET_PACKAGES+=" libusb "
 
 	TARGET_PACKAGES+=" curl libexpat libreadline libnetsnmp libgettext hotplug2"
 
 	# all of that for gtk
 	TARGET_PACKAGES+=" libjpeg libpng libfreetype libfontconfig libpixman"
-	TARGET_PACKAGES+=" libts $DIRECTFB_PACKAGE"
 	
 	# all of gtk JUST to get rsvg :/
 	TARGET_PACKAGES+=" librsvg"
 
-	TARGET_PACKAGES+=" xorgserver nvidia xorgvideo-vmware"	
+	TARGET_PACKAGES+=" xorgserver nvidia"	
 	TARGET_PACKAGES+=" libwebkit"
 	TARGET_PACKAGES+=" flashplugin alsautils"
 	
