@@ -102,6 +102,14 @@ XORG_FONTS+=" xorgfontutil xorgfontadobe"
 hset xorgfontutil url $(xorg_module_geturl "font" "font-util")
 hset xorgfontadobe url $(xorg_module_geturl "font" "font-adobe-100dpi")
 
+hostcheck-xorgfontadobe() {
+	local mkf=$(which mkfontdir)
+	if [ ! -x "$mkf" ]; then
+		echo "### ERROR $PACKAGE requires mkfontdir"
+		echo "          install xfonts-utils on the host"
+		HOSTCHECK_FAILED=1
+	fi
+}
 configure-xorgfontadobe() {
 	configure-generic --with-fontrootdir="/usr/share/fonts"
 }
