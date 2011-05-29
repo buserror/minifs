@@ -127,6 +127,10 @@ configure-libgettext() {
 	CFLAGS="$TARGET_CFLAGS"
 }
 
+PACKAGES+=" sqlite3"
+V="3.6.22"
+hset sqlite3 version $V
+hset sqlite3 url "http://www.sqlite.org/sqlite-$V.tar.gz"
 
 #######################################################################
 ## GNU/TLS bits
@@ -189,6 +193,7 @@ compile-openssl() {
 
 PACKAGES+=" libnss"
 hset libnss url "https://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_3_12_9_RTM/src/nss-3.12.9-with-nspr-4.8.7.tar.gz"
+hset libnss depends "sqlite3"
 
 configure-libnss() {
 	configure echo Done
@@ -198,12 +203,17 @@ compile-libnss() {
 	compile make -C mozilla/security/nss \
 		nss_build_all \
 		MOZILLA_CLIENT=1 \
+		CC="$GCC" \
 		NSPR_CONFIGURE_OPTS="--prefix=/usr --host=$TARGET_FULL_ARCH" \
 		BUILD_OPT=1 \
 		NS_USE_GCC=1 \
-		OPTIMIZER="$TARGET_CFLAGS" \
+		OPTIMIZER="$CPPFLAGS $TARGET_CFLAGS" \
+		NSS_ENABLE_ECC=1 \
 		NSS_USE_SYSTEM_SQLITE=1 \
-		NSS_ENABLE_ECC=1 
+		SQLITE_LIB_NAME=sqlite3 \
+		USE_SYSTEM_ZLIB=1 \
+		USE_PTHREADS=1 \
+		ARCHFLAG="$LDFLAGS_RLINK"
 }
 
 # this hack is there only to copy the libs we need for the flash player to link
