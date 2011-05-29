@@ -4,11 +4,6 @@ V="1.5.0"
 hset libenchant version $V
 hset libenchant url "http://www.abisource.com/downloads/enchant/1.5.0/enchant-$V.tar.gz"
 
-PACKAGES+=" sqlite3"
-V="3.6.22"
-hset sqlite3 version $V
-hset sqlite3 url "http://www.sqlite.org/sqlite-$V.tar.gz"
-
 PACKAGES+=" libxslt"
 V="1.1.22"
 hset libxslt version $V
@@ -16,7 +11,8 @@ hset libxslt url "ftp://ftp.gnome.org/pub/GNOME/sources/libxslt/1.1/libxslt-$V.t
 hset libxslt depends "libxml2"
 
 configure-libxslt() {
-	configure-generic --without-crypto --without-python
+	configure-generic --without-crypto --without-python \
+		--with-libxml-prefix="$STAGING_USR"
 }
 
 # for gst-plugins-base etc
@@ -95,12 +91,15 @@ configure-libicu-local() {
 configure-libicu() {
 	configure configure-libicu-local
 }
-install-libicu() {
-	install-generic
+install-libicu-local() {
+	install-generic-local
 	cp "$STAGING_USR"/bin/icu-config \
-		"$TOOLCHAIN"/bin/ &&
+		"$STAGING_TOOLS"/bin/ &&
 	sed -i -e "s|default_prefix=\"/usr\"|default_prefix=\"\$STAGING_USR\"|g" \
-		 "$TOOLCHAIN"/bin/icu-config
+		 "$STAGING_TOOLS"/bin/icu-config
+}
+install-libicu() {
+	log_install install-libicu-local
 }
 
 
@@ -108,6 +107,16 @@ PACKAGES+=" libwebkit"
 #hset libwebkit url "git!git://git.webkit.org/WebKit.git#libwebkit-git.tar.bz2"
 hset libwebkit url "git!git://gitorious.org/webkit/webkit.git#libwebkit-git.tar.bz2"
 hset libwebkit depends "libicu libenchant libsoup sqlite3 libxslt libgtk gstreamer"
+
+hostcheck-libwebkit() {
+	for cmd in gperf ; do
+		local p=$(which $cmd)
+		if [ ! -x "$p" ]; then
+			echo "### ERROR: Package $PACKAGE needs command $cmd"
+			HOSTCHECK_FAILED=1
+		fi
+	done
+}
 
 # needs on the host
 # gtk-docize 
@@ -122,8 +131,9 @@ configure-libwebkit() {
 		CXXFLAGS="$CFLAGS -DENABLE_NETSCAPE_PLUGIN_API=0"
 		export CFLAGS CXXFLAGS
 	fi
-	#	--with-unicode-backend=glib 
 	configure-generic \
+		--disable-glibtest \
+		--disable-gtk-doc-html \
 		$extras
 	CFLAGS=$save
 	CXXFLAGS=$save
