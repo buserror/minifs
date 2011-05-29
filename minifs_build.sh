@@ -130,6 +130,8 @@ CONFIG_UCLIBC=$(grep 'CT_LIBC_UCLIBC_0_9_30_or_later=y' "$CONFIG/config_crosstoo
 if [ "$CONFIG_KERNEL_LZO" != "" ]; then
 	NEEDED_HOST_COMMANDS+=" lzop"
 fi
+# Modern crosstools needs all these too!
+NEEDED_HOST_COMMANDS+=" cvs svn lzma"
 
 #######################################################################
 # PACKAGES is the entire list of possible packages, as filled by the 
@@ -220,9 +222,23 @@ while true; do
 done
 
 #######################################################################
+## Give a chance to each package to cry for help, before downloading
+#######################################################################
+HOSTCHECK_FAILED=0
+for package in $TARGET_PACKAGES; do 
+	PACKAGE=$package
+	optional_one_of \
+		$MINIFS_BOARD-hostcheck-$package \
+		hostcheck-$package || break
+	unset PACKAGE
+done
+if [ $HOSTCHECK_FAILED == 1 ]; then exit 1; fi
+unset PACKAGE
+
+#######################################################################
 ## Download the files, unpack, and patch them
 #######################################################################
-pushd download
+pushd download >/dev/null
 for package in $TARGET_PACKAGES; do 
 	fil=$(hget $package url)
 
@@ -282,6 +298,7 @@ for package in $TARGET_PACKAGES; do
 		esac
 	fi
 	baseroot=$package
+	PACKAGE=$baseroot
 	#echo $package = $fil
 	# try to compare the URL to see if it changed, if so, remove
 	# the old source and rebuild automagically
@@ -331,7 +348,8 @@ for package in $TARGET_PACKAGES; do
 		) >"$BUILD/$baseroot/._patch_$baseroot.log" 2>&1
 	fi
 done
-popd
+unset PACKAGE
+popd >/dev/null
 
 if [ "$COMMAND" == "unpack" ]; then exit ; fi
 
@@ -353,7 +371,7 @@ configure-generic-local() {
 		if [ -f autogen.sh ]; then
 			./autogen.sh \
 				--prefix="$PACKAGE_PREFIX"
-		elif [ -f configure.ac ]; then
+		elif [ -f configure.ac -o -f configure.in ]; then
 			autoreconf --force #;libtoolize;automake --add-missing
 		fi
 	fi
