@@ -15,6 +15,17 @@ function check_host_commands() {
 	fi
 }
 
+function hostcheck_commands() {
+	for name in $*; do 
+		local cmd=$(which $name)
+		if [ ! -x "$cmd" ]; then
+			echo "### ERROR $PACKAGE needs $name"
+			HOSTCHECK_FAILED=1
+			break;
+		fi
+	done
+}
+
 # split the MINIFS_PATH evn and return all existing directories
 # also adding the first parameter to the path
 minifs_path_split() {
