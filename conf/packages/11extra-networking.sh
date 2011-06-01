@@ -17,7 +17,7 @@ hset openssh depends "openssl"
 # tinc tunelling - http://www.tinc-vpn.org/
 #
 PACKAGES+=" tinc"
-hset tinc url "http://www.tinc-vpn.org/packages/tinc-1.0.13.tar.gz"
+hset tinc url "http://www.tinc-vpn.org/packages/tinc-1.0.14.tar.gz"
 hset tinc depends "zlib lzo openssl"
 
 deploy-tinc-local() {
