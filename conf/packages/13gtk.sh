@@ -21,7 +21,7 @@ deploy-libdirectfb() {
 # More recent version of glib fails to conf because of lack of glib-compile-schemas
 PACKAGES+=" libglib"
 #hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.24/glib-2.24.1.tar.bz2"
-hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.28/glib-2.28.3.tar.bz2"
+hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.28/glib-2.28.7.tar.bz2"
 #hset libglib prefix "$STAGING_USR"
 # this is needed for uclibc not NOT otherwise!
 # hset depends libglib "libiconv"
@@ -56,21 +56,25 @@ glib_cv_uscore=no
 }
 
 PACKAGES+=" libglibnet"
-hset libglibnet url "http://ftp.gnome.org/pub/gnome/sources/glib-networking/2.28/glib-networking-2.28.4.tar.bz2"
-hset libglibnet destdir "gnutls"
+hset libglibnet url "http://ftp.gnome.org/pub/gnome/sources/glib-networking/2.28/glib-networking-2.28.7.tar.bz2"
+hset libglibnet depends "gnutls libglib"
+hset libglibnet destdir "none" # let out own "install" fix borken autocrap
 
 setup-libglibnet() {
 	ROOTFS_KEEPERS+="libgnutls.so:"
 }
 
-configure-libglibnet() {
-	configure-generic \
-		--without-gnome \
+configure-libglibnet-local() {
+	configure-generic-local \
 		--disable-glibtest \
 		--with-libgcrypt-prefix="$STAGING_USR" \
-		--with-ca-certificates=/etc/ca-certificates.crt
+		--with-ca-certificates=/etc/ca-certificates.crt \
+		DESTDIR="$STAGING_USR"
 }
 
+configure-libglibnet() {
+	configure configure-libglibnet-local
+}
 PACKAGES+=" libsoup"
 hset libsoup url "http://ftp.gnome.org/pub/gnome/sources/libsoup/2.33/libsoup-2.33.6.tar.bz2"
 hset libsoup depends "libglibnet"
