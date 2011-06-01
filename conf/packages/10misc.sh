@@ -50,6 +50,7 @@ compile-pump() {
 		pump
 }
 install-pump() {
+	mkdir -p "$STAGING_USR"/sbin
 	log_install cp pump "$STAGING_USR"/sbin/
 }
 deploy-pump() {
@@ -63,6 +64,7 @@ hset libnetsnmp url "http://downloads.sourceforge.net/project/net-snmp/net-snmp/
 configure-libnetsnmp() {
 	configure-generic \
 		--with-defaults \
+		--with-openssl="$STAGING_USR" \
 		--with-transports="UDP" \
 		--disable-embedded-perl \
 		--disable-mib-loading \
@@ -123,7 +125,9 @@ configure-libgettext() {
                  --disable-native-java \
                  --disable-openmp \
                  --with-included-glib \
-                 --without-emacs
+                 --without-emacs \
+                 --with-libncurses-prefix="$STAGING_USR" \
+                 --with-libxml2-prefix="$STAGING_USR"
 	CFLAGS="$TARGET_CFLAGS"
 }
 
@@ -168,6 +172,7 @@ configure-gnutls() {
 	configure-generic \
 		--with-libgcrypt-prefix="$STAGING_USR" \
 		--with-libreadline-prefix="$STAGING_USR" \
+		--with-included-libtasn1 \
 		--disable-rpath
 	export LDFLAGS="$LDFLAGS_BASE"
 }
