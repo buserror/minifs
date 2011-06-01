@@ -12,6 +12,7 @@ sharedlibs-rsync() {
 	rsync -av \
 		--chmod=u=rwX \
 		--exclude=\*.o \
+		--exclude=\*.map \
 		--exclude=\*.a --exclude=\*.la --exclude=\*.lai \
 		--exclude pkgconfig \
 		$*
