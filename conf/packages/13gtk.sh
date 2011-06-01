@@ -75,6 +75,11 @@ configure-libglibnet-local() {
 configure-libglibnet() {
 	configure configure-libglibnet-local
 }
+
+PACKAGES+=" libglibjson"
+hset libglibjson url "http://ftp.gnome.org/pub/GNOME/sources/json-glib/0.12/json-glib-0.12.4.tar.bz2"
+hset libglibjson depends "libglib"
+
 PACKAGES+=" libsoup"
 hset libsoup url "http://ftp.gnome.org/pub/gnome/sources/libsoup/2.33/libsoup-2.33.6.tar.bz2"
 hset libsoup depends "libglibnet"
