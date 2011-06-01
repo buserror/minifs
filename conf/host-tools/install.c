@@ -61,6 +61,12 @@ int main(int argc, char * argv[])
 			i++;
 	}
 	char * last = argv[argc-1];
+	char * there = strstr(last + 1, base); // search to see if DESTDIR s duplicated
+	if (there) {
+		char * newp = strdup(there);
+		argv[argc-1] = newp;
+		V(fprintf(o, "%s: Duplicate staging removed %s -> %s\n", getenv("PACKAGE"), last, newp);)
+	}
 	if (last[0] == '/' && strncmp(last, base, strlen(base))) {
 		if (strncmp(last, "/usr", 4) && getenv("INSTALL_USR"))
 			sprintf(fix, "%s/usr%s", staging, last);
