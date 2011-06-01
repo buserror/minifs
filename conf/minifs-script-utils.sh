@@ -94,7 +94,7 @@ function configure() {
 			touch $turd
 		else
 			echo "#### ** ERROR ** Configuring $PACKAGE"
-			echo "     Check $BUILD/$PACKAGE/$LOGFILE"
+			echo "     Check $(pwd)/$LOGFILE"
 			exit 1
 		fi
 	fi
@@ -111,7 +111,7 @@ function compile() {
 			touch $turd
 		else
 			echo "#### ** ERROR ** Compiling $PACKAGE"
-			echo "     Check $BUILD/$PACKAGE/$LOGFILE"
+			echo "     Check $(pwd)/$LOGFILE"
 			exit 1
 		fi
 	fi
@@ -128,7 +128,7 @@ function log_install() {
 			touch $turd
 		else
 			echo "#### ** ERROR ** Installing $PACKAGE"
-			echo "     Check $BUILD/$PACKAGE/$LOGFILE"
+			echo "     Check $(pwd)/$LOGFILE"
 			exit 1
 		fi
 	fi
@@ -203,4 +203,3 @@ function dump_depends() {
 	) >minifs_deps.dot
 	dot -Tpdf -ominifs_deps.pdf minifs_deps.dot
 }
-
