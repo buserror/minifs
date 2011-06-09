@@ -131,7 +131,7 @@ if [ "$CONFIG_KERNEL_LZO" != "" ]; then
 	NEEDED_HOST_COMMANDS+=" lzop"
 fi
 # Modern crosstools needs all these too!
-NEEDED_HOST_COMMANDS+=" cvs svn lzma"
+NEEDED_HOST_COMMANDS+=" svn cvs svn lzma"
 
 #######################################################################
 # PACKAGES is the entire list of possible packages, as filled by the 
