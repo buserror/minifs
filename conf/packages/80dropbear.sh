@@ -3,7 +3,7 @@
 #######################################################################
 PACKAGES+=" dropbear"
 
-V="0.52"
+V="0.53.1"
 hset dropbear version $V
 hset dropbear url "http://matt.ucc.asn.au/dropbear/releases/dropbear-$V.tar.bz2"
 hset dropbear prefix "/"
