@@ -47,6 +47,7 @@ configure-sdlquake() {
 
 PACKAGES+=" sdlplasma"
 hset sdlplasma url "http://www.libsdl.org/projects/plasma/src/plasma-1.0.tar.gz"
+hset sdlplasma depends "libsdl"
 
 configure-sdlplasma() {
 	export LDFLAGS="$LDFLAGS_RLINK -lm"
@@ -59,6 +60,7 @@ deploy-sdlplasma() {
 
 PACKAGES+=" sdlvoxel"
 hset sdlvoxel url "http://www.libsdl.org/projects/newvox/src/newvox-1.0.tar.gz"
+hset sdlvoxel depends "libsdl"
 
 configure-sdlvoxel() {
 	export LDFLAGS="$LDFLAGS_RLINK -lm"

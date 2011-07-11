@@ -58,7 +58,7 @@ install-linux-headers() {
 #######################################################################
 ## linux-modules
 #######################################################################
-hset linux-modules depends "linux-headers"
+hset linux-modules depends "linux-headers crosstools"
 
 configure-linux-modules() {
 	configure echo Done

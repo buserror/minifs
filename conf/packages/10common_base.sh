@@ -15,6 +15,7 @@ configure-zlib() {
 #######################################################################
 PACKAGES+=" lzo"
 hset lzo url "http://www.oberhumer.com/opensource/lzo/download/lzo-2.04.tar.gz"
+hset lzo depends "busybox"
 
 #######################################################################
 ## e2fsprog - http://e2fsprogs.sourceforge.net/

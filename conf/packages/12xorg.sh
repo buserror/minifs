@@ -23,6 +23,7 @@ xorg_module_geturl() {
 
 PACKAGES+=" xorgmacros"
 hset xorgmacros url $(xorg_module_geturl "util" "util-macros")
+hset xorgmacros depends "crosstools"
 
 XORG_LIBS=""
 XORG_PROTOS=""

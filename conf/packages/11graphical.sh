@@ -122,7 +122,7 @@ hset libim-loaders url "http://ignum.dl.sourceforge.net/project/enlightenment/im
 
 PACKAGES+=" libim"
 hset libim url "http://ignum.dl.sourceforge.net/project/enlightenment/imlib2-src/1.4.3/imlib2-1.4.3.tar.bz2"
-hset libim depends "libpng libjpeg"
+hset libim depends "libpng libjpeg libim-loaders"
 
 configure-libim() {
 	configure-generic --without-x
@@ -134,7 +134,7 @@ setup-libim() {
 
 PACKAGES+=" fbgrab"
 hset fbgrab url "http://hem.bredband.net/gmogmo/fbgrab/fbgrab-1.0.tar.gz"
-hset fbgrab depends "libpng"
+hset fbgrab depends "libpng busybox"
 hset fbgrab destdir "$STAGING_USR"
 
 deploy-fbgrab() {

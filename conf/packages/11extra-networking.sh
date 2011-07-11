@@ -4,7 +4,7 @@
 #
 PACKAGES+=" bird"
 hset bird url "ftp://bird.network.cz/pub/bird/bird-1.2.2.tar.gz"
-hset bird depends "libreadline"
+hset bird depends "libreadline busybox"
 
 #
 # Secure Shell (bigger version than dropbear)
@@ -18,7 +18,7 @@ hset openssh depends "openssl"
 #
 PACKAGES+=" tinc"
 hset tinc url "http://www.tinc-vpn.org/packages/tinc-1.0.14.tar.gz"
-hset tinc depends "zlib lzo openssl"
+hset tinc depends "zlib lzo openssl busybox"
 
 deploy-tinc-local() {
 	cp "$STAGING_USR"/sbin/tincd "$ROOTFS"/sbin/
@@ -46,6 +46,7 @@ hset libetpan depends "zlib"
 PACKAGES+=" mdnsd"
 hset mdnsd url "http://www.sourcefiles.org/System/Daemons/DNS/mdnsd-0.7G.tar.gz"
 hset mdnsd destdir "$STAGING_USR"
+hset mdnsd depends "busybox"
 
 deploy-mdnsd() {
 	deploy cp $(get_installed_binaries) "$ROOTFS"/usr/bin/

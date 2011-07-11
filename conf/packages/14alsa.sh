@@ -1,5 +1,6 @@
 PACKAGES+=" alsadrivers"
 hset alsadrivers url "ftp://ftp.alsa-project.org/pub/driver/alsa-driver-1.0.24.tar.bz2"
+hset alsadrivers depends "linux-modules"
 
 PACKAGES+=" libalsa"
 hset libalsa url "ftp://ftp.alsa-project.org/pub/lib/alsa-lib-1.0.24.1.tar.bz2"
