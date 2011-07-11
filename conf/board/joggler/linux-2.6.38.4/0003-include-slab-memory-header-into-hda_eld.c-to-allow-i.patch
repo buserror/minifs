@@ -1,0 +1,24 @@
+From 9e6803bb9c1b182b5b2999ad0f7537012ba5c4b2 Mon Sep 17 00:00:00 2001
+From: Jools Wills <jools@oxfordinspire.co.uk>
+Date: Tue, 7 Dec 2010 03:22:56 +0000
+Subject: [PATCH 3/5] include slab memory header into hda_eld.c to allow it to build on our more recent kernel.
+
+---
+ sound/pci/hda/hda_eld.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/sound/pci/hda/hda_eld.c b/sound/pci/hda/hda_eld.c
+index 9446a5a..e82c671 100644
+--- a/sound/pci/hda/hda_eld.c
++++ b/sound/pci/hda/hda_eld.c
+@@ -22,6 +22,7 @@
+  */
+ 
+ #include <linux/init.h>
++#include <linux/slab.h>
+ #include <sound/core.h>
+ #include <asm/unaligned.h>
+ #include "hda_codec.h"
+-- 
+1.7.0.4
+

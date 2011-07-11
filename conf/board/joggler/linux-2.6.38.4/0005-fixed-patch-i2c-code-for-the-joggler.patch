@@ -1,0 +1,52 @@
+From 17be08ba89a3386015f96445780c38185d55ea9a Mon Sep 17 00:00:00 2001
+From: Jools Wills <jools@oxfordinspire.co.uk>
+Date: Wed, 20 Oct 2010 00:34:11 +0100
+Subject: [PATCH 5/5] fixed: patch i2c code for the joggler.
+
+---
+ drivers/i2c/busses/i2c-isch.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-isch.c b/drivers/i2c/busses/i2c-isch.c
+index ddc258e..6aa15a4 100644
+--- a/drivers/i2c/busses/i2c-isch.c
++++ b/drivers/i2c/busses/i2c-isch.c
+@@ -56,6 +56,8 @@
+ #define SCH_WORD_DATA		0x03
+ #define SCH_BLOCK_DATA		0x05
+ 
++#define SMBIOSIZE	8
++
+ static unsigned short sch_smba;
+ static struct i2c_adapter sch_adapter;
+ 
+@@ -258,7 +260,7 @@ static int __devinit smbus_sch_probe(struct platform_device *dev)
+ 	if (!res)
+ 		return -EBUSY;
+ 
+-	if (!request_region(res->start, resource_size(res), dev->name)) {
++	if (!request_region(res->start, SMBIOSIZE, dev->name)) {
+ 		dev_err(&dev->dev, "SMBus region 0x%x already in use!\n",
+ 			sch_smba);
+ 		return -EBUSY;
+@@ -277,7 +279,7 @@ static int __devinit smbus_sch_probe(struct platform_device *dev)
+ 	retval = i2c_add_adapter(&sch_adapter);
+ 	if (retval) {
+ 		dev_err(&dev->dev, "Couldn't register adapter!\n");
+-		release_region(res->start, resource_size(res));
++		release_region(res->start, SMBIOSIZE);
+ 		sch_smba = 0;
+ 	}
+ 
+@@ -290,7 +292,7 @@ static int __devexit smbus_sch_remove(struct platform_device *pdev)
+ 	if (sch_smba) {
+ 		i2c_del_adapter(&sch_adapter);
+ 		res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+-		release_region(res->start, resource_size(res));
++		release_region(res->start, SMBIOSIZE);
+ 		sch_smba = 0;
+ 	}
+ 
+-- 
+1.7.0.4
+
