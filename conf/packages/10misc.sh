@@ -57,25 +57,6 @@ deploy-pump() {
 	deploy cp "$STAGING_USR"/sbin/pump "$ROOTFS"/sbin/
 }
 
-# http://www.net-snmp.org/download.html
-PACKAGES+=" libnetsnmp"
-hset libnetsnmp url "http://downloads.sourceforge.net/project/net-snmp/net-snmp/5.5/net-snmp-5.5.tar.gz#netsnmp-5.5.tgz"
-
-configure-libnetsnmp() {
-	configure-generic \
-		--with-defaults \
-		--with-openssl="$STAGING_USR" \
-		--with-transports="UDP" \
-		--disable-embedded-perl \
-		--disable-mib-loading \
-		--disable-scripts \
-		--disable-manuals \
-		--disable-des \
-		--disable-privacy \
-		--without-perl-modules \
-		--without-python-modules
-}
-
 # this is only needed for uclibc! otherwise eglibc has one already
 PACKAGES+=" libiconv"
 if [ "$CONFIG_UCLIBC" != "" ]; then
@@ -323,3 +304,24 @@ compile-libcap() {
 deploy-libcap() {
 	deploy cp $(get_installed_binaries) "$ROOTFS"/sbin/
 }
+
+# http://www.net-snmp.org/download.html
+PACKAGES+=" libnetsnmp"
+hset libnetsnmp url "http://downloads.sourceforge.net/project/net-snmp/net-snmp/5.5/net-snmp-5.5.tar.gz#netsnmp-5.5.tgz"
+hset libnetsnmp depends "openssl"
+
+configure-libnetsnmp() {
+	configure-generic \
+		--with-defaults \
+		--with-openssl="$STAGING_USR" \
+		--with-transports="UDP" \
+		--disable-embedded-perl \
+		--disable-mib-loading \
+		--disable-scripts \
+		--disable-manuals \
+		--disable-des \
+		--disable-privacy \
+		--without-perl-modules \
+		--without-python-modules
+}
+
