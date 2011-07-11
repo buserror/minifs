@@ -168,7 +168,7 @@ fid=0
 for p in $package_files; do 
 	name=$(basename $p)
 	order=$(expr match "$name" '0*\([0-9]*\)')
-	echo $p $order
+#	echo $p $order
 	filid=$(((order * 1000) + fid))
 	fid=$((fid + 1))
 	package_set_group $filid

@@ -207,7 +207,7 @@ function dump_depends() {
 function package_set_group() {
 	local v=$1
 	PACKAGE_ORDER=$((v * 1000))
-	echo GROUP $PACKAGE_ORDER
+#	echo GROUP $PACKAGE_ORDER
 }
 
 function package_register() {
