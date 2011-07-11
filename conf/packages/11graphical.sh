@@ -76,7 +76,7 @@ deploy-libfontconfig() {
 
 # http://www.cairographics.org/releases/
 PACKAGES+=" libpixman"
-hset libpixman url "http://xorg.freedesktop.org/archive/individual/lib/pixman-0.21.6.tar.bz2"
+hset libpixman url "http://xorg.freedesktop.org/archive/individual/lib/pixman-0.22.0.tar.bz2"
 
 configure-libpixman() {
 	local extras=""
