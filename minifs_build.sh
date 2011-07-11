@@ -18,6 +18,7 @@
 #######################################################################
 
 set +o posix #needed for dashes in function names
+set -m # enable job control
 
 MINIFS_BOARD=${MINIFS_BOARD:-"atom"}
 # MINIFS_PATH contains collumn separated directories with extra
@@ -70,8 +71,8 @@ GCC="${CROSS}-gcc"
 
 WGET=wget
 MAKE=make
-MAKE_ARGUMENTS="-j8"
-CROSSTOOL_JOBS=".4"
+MAKE_ARGUMENTS="-j10"
+CROSSTOOL_JOBS=".8"
 
 mkdir -p "$STAGING_TOOLS"/bin
 mkdir -p download "$KERNEL" "$ROOTFS" "$STAGING_USR" "$TOOLCHAIN"
@@ -163,7 +164,14 @@ done
 package_files=$(filename_sort $package_files)
 #echo $package_files
 
+fid=0
 for p in $package_files; do 
+	name=$(basename $p)
+	order=$(expr match "$name" '0*\([0-9]*\)')
+	echo $p $order
+	filid=$(((order * 1000) + fid))
+	fid=$((fid + 1))
+	package_set_group $filid
 	source $p
 done
 
@@ -466,6 +474,18 @@ done
 
 export DEFAULT_PHASES="setup configure compile install deploy"
 
+process_one_package() {
+	local package=$1
+	local phases=$2
+	for ph in $phases; do
+		if [[ $ph == "deploy" ]]; then continue ;fi
+		optional_one_of \
+			$MINIFS_BOARD-$ph-$pack \
+			$ph-$pack \
+			$ph-generic || break
+	done
+}
+
 for pack in $PROCESS_PACKAGES; do 	
 	dir=$(hget $pack dir)
 	dir=${dir:-$pack}
@@ -486,17 +506,13 @@ for pack in $PROCESS_PACKAGES; do
 						;;
 				esac
 			fi
-			
-			for ph in $phases; do
-				if [[ $ph == "deploy" ]]; then continue ;fi
-				optional_one_of \
-					$MINIFS_BOARD-$ph-$pack \
-					$ph-$pack \
-					$ph-generic || break
-			done
+			process_one_package $pack "$phases"
 		end_package
 	fi
 done
+
+# Wait for every jobs to have finished
+while true; do fg 2>/dev/null || break; done
 
 #######################################################################
 ## Now, run the deploy phases for packages that wanted it

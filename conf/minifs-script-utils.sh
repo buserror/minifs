@@ -189,7 +189,7 @@ function deploy_staging_path() {
 }
 
 function dump_depends() {
-	(
+	{
 	echo 'digraph G { rankdir=LR; node [shape=rect]; '
 	local all="$PACKAGES crosstools"
 	for pack in $all; do
@@ -200,6 +200,19 @@ function dump_depends() {
 		done
 	done	
 	echo '}'
-	) >minifs_deps.dot
+	} >minifs_deps.dot
 	dot -Tpdf -ominifs_deps.pdf minifs_deps.dot
+}
+
+function package_set_group() {
+	local v=$1
+	PACKAGE_ORDER=$((v * 1000))
+	echo GROUP $PACKAGE_ORDER
+}
+
+function package_register() {
+	PACKAGES+=" $1"
+	hset $1 order $PACKAGE_ORDER
+	echo $1 $PACKAGE_ORDER
+	let PACKAGE_ORDER=PACKAGE_ORDER+1
 }
