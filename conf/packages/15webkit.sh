@@ -19,6 +19,16 @@ configure-libxslt() {
 PACKAGES+=" liboil"
 hset liboil url "http://liboil.freedesktop.org/download/liboil-0.3.17.tar.gz"
 
+configure-liboil-local() {
+	# fix 64 bits build
+	sed -i -e 's/64|/64*|/g' m4/as-unaligned-access.m4
+	rm -f configure
+	configure-generic-local
+}
+
+configure-liboil() {
+	configure configure-liboil-local
+}
 
 PACKAGES+=" libogg"
 hset libogg url "http://downloads.xiph.org/releases/ogg/libogg-1.1.4.tar.gz"
