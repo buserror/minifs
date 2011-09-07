@@ -6,8 +6,8 @@
 # http://cgit.freedesktop.org/xorg/util/modular/plain/module-list.txt?h=X11R7.6
 XORG_VERSION=X11R7.6
 
-
 XORG_MODULES=""
+>/tmp/xorg_url.log
 
 xorg_module_geturl() {
 	local path=$1
@@ -18,6 +18,7 @@ xorg_module_geturl() {
 	fi
 	mod=$(echo $XORG_MODULES|awk "{c=split(\$0,a); for(i=0;i<c;i++) if(match(a[i],/^$module-/)) print a[i] ;}")
 	url="http://xorg.freedesktop.org/archive/individual/$path/$mod.tar.bz2#xorg-$mod.tar.bz2"
+	echo $path $module $url >>/tmp/xorg_url.log
 	echo $url
 }
 
@@ -62,25 +63,35 @@ hset libxcb url "http://xcb.freedesktop.org/dist/libxcb-1.5.tar.bz2"
 hset libxcb depends "libpthreadstubs xcbproto $XCB_LIBS"
 hset xkeyboardconfig url "http://xlibs.freedesktop.org/xkbdesc/xkeyboard-config-1.7.tar.bz2"
 
+hostcheck-libxcb() {
+	hostcheck_commands xsltproc
+}
+
 PACKAGES+=" xtrans" 
 hset xtrans url $(xorg_module_geturl "lib" "xtrans")
 
+PACKAGES+=" xorglibX11" 
+hset xorglibX11 url $(xorg_module_geturl "lib" libX11)
+hset xorglibX11 depends "libxcb xtrans xorgxproto"
+
 # libXfont needs "xmlto" tool on the host
-for p in  libXdmcp libX11 libfontenc libXfont libxkbfile \
+for p in  libXdmcp libfontenc libXfont \
 		libXrender libXft libXext libXfixes libXcursor libXdamage \
 		libXrandr libXcomposite libXinerama \
 		libXxf86vm libICE libSM libXt libXmu libXi libXv libXvMC \
-		libpciaccess libXtst \
+		libpciaccess libXtst libxkbfile \
 		 ; do
 	XORG_LIBS+=" xorg$p"
 	hset xorg$p url $(xorg_module_geturl "lib" $p)
+	hset xorg$p depends "xorglibX11"
 done
+
+hset xorglibXtst depends "xorglibXext"
+
 # stupid documentation breaks build
 configure-xorglibXfont() {
 	configure-generic --without-xmlto --without-fop
 }
-
-hset xorglibX11 depends "libxcb xtrans xorgxproto $XORG_LIBS"
 
 configure-xorglibXt() {
 	configure-generic
@@ -117,6 +128,7 @@ configure-xorgfontadobe() {
 
 PACKAGES+=" $XORG_LIBS $XORG_FONTS"
 
+
 PACKAGES+=" xkbcomp" 
 hset xkbcomp url $(xorg_module_geturl "app" "xkbcomp")
 hset xkbcomp depends "xkeyboardconfig xorglibxkbfile"
@@ -146,8 +158,15 @@ configure-libmesadrm() {
 PACKAGES+=" libmesa"
 #hset libmesa url "ftp://ftp.freedesktop.org/pub/mesa/7.7.1/MesaLib-7.7.1.tar.bz2"
 hset libmesa url "http://cgit.freedesktop.org/mesa/mesa/snapshot/mesa-7.9.2.tar.gz"
-
 hset libmesa depends "libtalloc libmesadrm xorglibX11"
+
+hostcheck-libmesa() {
+	local py="libxml2"
+	{ echo import $py|python >/dev/null 2>&1; } || {
+			echo "### ERROR $PACKAGE needs python modules $py"
+			HOSTCHECK_FAILED=1		
+	}
+}
 
 configure-libmesa-local() {
 	export X11_LIBS="" # needs that otherwise the config/compile fails
@@ -176,14 +195,13 @@ hset xorgserver url $(xorg_module_geturl "xserver" "xorg-server")
 hset xorgserver depends \
 	"busybox libsha1 xorglibX11 xorgfontutil \
 	xkbcomp xtrans \
+	$XORG_LIBS \
 	xorgfontadobe \
-	xorginput-evdev xorginput-keyboard xorginput-mouse \
-	xorgvideo-fbdev libmesa openssl"
+	libmesa openssl"
 
 configure-xorgserver-local() {
 	export LDFLAGS="$LDFLAGS_RLINK"
 	./autogen.sh
-#		--enable-kdrive --enable-kdrive-kbd --enable-kdrive-mouse --enable-kdrive-evdev 
 	configure-generic-local \
 		--disable-xwin --disable-xprint --disable-ipv6 \
 		--disable-dmx --enable-xvfb --disable-xnest \
@@ -218,11 +236,10 @@ for p in \
 	input-evdev input-keyboard input-mouse \
 	video-fbdev video-vmware \
 		 ; do
-	PACKAGES+=" xorg$p"
 	fname=${p//-/}
-#	hset xorg$p url "git!git://anongit.freedesktop.org/git/xorg/driver/xf86-$p#xorg$fname-git.tar.bz2"
-	hset xorg$p url $(xorg_module_geturl "driver" "xf86-$p")
-	hset xorg$p depends "xorgserver"
+	PACKAGES+=" xorg$fname"
+	hset xorg$fname url $(xorg_module_geturl "driver" "xf86-$p")
+	hset xorg$fname depends "xorgserver"
 done
 
 PACKAGES+=" xorgvideo-nouveau"
