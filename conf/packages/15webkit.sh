@@ -151,17 +151,23 @@ deploy-msfonts() {
 
 PACKAGES+=" flashplugin"
 # get the stable release -- 10.3.181.14 as of 18/05/12
-hset flashplugin url "http://fpdownload.macromedia.com/get/flashplayer/current/install_flash_player_10_linux.tar.gz#flashplugin-10.3.tarb"
-
+#hset flashplugin url "http://fpdownload.macromedia.com/get/flashplayer/current/install_flash_player_10_linux.tar.gz#flashplugin-10.3-$TARGET_ARCH.tarb"
+# 64 bits player 11 beta 2
+#hset flashplugin url "http://download.macromedia.com/pub/labs/flashplatformruntimes/flashplayer11/flashplayer11_b2_install_lin_64_080811.tar.gz#flashplugin-11b2-$TARGET_ARCH.tarb"
+# 64 bits player 11 RC
+hset flashplugin url "http://download.macromedia.com/pub/labs/flashplatformruntimes/flashplayer11/flashplayer11_rc1_install_lin_64_090611.tar.gz#flashplugin-11rc1-$TARGET_ARCH.tarb"
 hset flashplugin phases "deploy"
 hset flashplugin depends "gnutls libcurl libnss msfonts libwebkit"
 
-deploy-flashplugin() {
-	deploy echo Deploying flashplugin
+deploy-flashplugin-local() {
 	mkdir -p "$ROOTFS"/usr/lib/mozilla/plugins/
 	cp *.so "$ROOTFS"/usr/lib/mozilla/plugins/
 	ROOTFS_PLUGINS+="$ROOTFS/usr/lib/mozilla/plugins/:"
 	# these are not loaded automaticaly
 	ROOTFS_KEEPERS+="libcurl.so.4:libcurl-gnutls.so.4:libasound.so.2:"
+}
+deploy-flashplugin() {
+	touch ._install_flashplugin
+	deploy deploy-flashplugin-local
 }
 
