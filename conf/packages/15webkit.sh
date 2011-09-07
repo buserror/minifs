@@ -109,16 +109,10 @@ configure-libicu() {
 PACKAGES+=" libwebkit"
 #hset libwebkit url "git!git://git.webkit.org/WebKit.git#libwebkit-git.tar.bz2"
 hset libwebkit url "git!git://gitorious.org/webkit/webkit.git#libwebkit-git.tar.bz2"
-hset libwebkit depends "libicu libenchant libsoup sqlite3 libxslt libgtk gstreamer"
+hset libwebkit depends "libicu libenchant libsoup sqlite3 libxslt libgtk gstreamer gst-plugins-base"
 
 hostcheck-libwebkit() {
-	for cmd in gperf ; do
-		local p=$(which $cmd)
-		if [ ! -x "$p" ]; then
-			echo "### ERROR: Package $PACKAGE needs command $cmd"
-			HOSTCHECK_FAILED=1
-		fi
-	done
+	hostcheck_commands gperf
 }
 
 # needs on the host
