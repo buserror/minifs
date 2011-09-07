@@ -33,13 +33,13 @@ configure-libvorbis() {
 }
 
 # http://gstreamer.freedesktop.org/
-CONFIG_GSTREAMER_VERSION=0.10.33
+CONFIG_GSTREAMER_VERSION=0.10.35
 
 PACKAGES+=" gstreamer gst-plugins-base"
 hset gstreamer url "http://gstreamer.freedesktop.org/src/gstreamer/gstreamer-$CONFIG_GSTREAMER_VERSION.tar.bz2"
 hset gst-plugins-base url "http://gstreamer.freedesktop.org/src/gst-plugins-base/gst-plugins-base-$CONFIG_GSTREAMER_VERSION.tar.bz2"
-hset gst-plugins-base depends "liboil libalsa libogg libvorbis gstreamer"
-hset gstreamer depends "gst-plugins-base"
+hset gst-plugins-base depends "liboil libalsa libogg libvorbis"
+hset gstreamer targets "gstreamer gst-plugins-base"
 
 setup-gstreamer() {
 	ROOTFS_PLUGINS+="$ROOTFS/usr/lib/gstreamer-0.10:"
@@ -47,7 +47,7 @@ setup-gstreamer() {
 
 configure-gstreamer() {
 	export LDFLAGS="$LDFLAGS_RLINK"
-	configure-generic
+	configure-generic --libexecdir="$STAGING_USR"/lib
 	export LDFLAGS="$LDFLAGS_BASE"
 }
 
