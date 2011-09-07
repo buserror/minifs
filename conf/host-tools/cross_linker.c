@@ -229,12 +229,11 @@ void sp_file_dump(so_file_t * file)
  */
 so_file_t * elf_read_dynamic(const char * file)
 {
-	Elf32_Ehdr elf_header; /* ELF header */
+	GElf_Ehdr elf_header;
 	Elf *elf = NULL; /* Our Elf pointer for libelf */
 	int fd; // File Descriptor
 
-	if ((fd = open(file, O_RDONLY)) == -1 ||
-		(read(fd, &elf_header, sizeof(elf_header))) < sizeof(elf_header)) {
+	if ((fd = open(file, O_RDONLY)) == -1) {
 		close(fd);
 		return NULL;
 	}
@@ -244,6 +243,11 @@ so_file_t * elf_read_dynamic(const char * file)
 		close(fd);
 		return NULL;
 	}
+	if (gelf_getehdr(elf, &elf_header) == 0) {
+		close(fd);
+		return NULL;
+	}
+	
 	so_file_t * res = malloc(sizeof(so_file_t));
 	memset(res, 0, sizeof(so_file_t));
 
@@ -256,33 +260,35 @@ so_file_t * elf_read_dynamic(const char * file)
 		char * name = elf_strptr(elf, elf_header.e_shstrndx, shdr.sh_name);
 
 		if (shdr.sh_type == SHT_STRTAB) {
+			if (!name) {
+				printf("%s: HAS NO STRING TABLE\n", file);
+				exit(1);
+			}
 			if (strcmp(name, ".dynstr"))
 				continue;
 			Elf_Data *s = elf_getdata(scn, NULL);
 			strings = s->d_buf;
-//			printf("Found dynamic string table\n");
+		//	printf("Found dynamic string table\n");
 		}
 		if (shdr.sh_type != SHT_DYNAMIC)
 			continue;
 
 		Elf_Data *s = elf_getdata(scn, NULL);
 		uint32_t size = s->d_size;
-//		printf("Walking elf dynamic section '%s' %d bytes\n", name, size);
+	//	printf("Walking elf dynamic section '%s' %d bytes\n", name, size);
 
-		Elf32_Dyn * e = (Elf32_Dyn *)s->d_buf;
-
-		while (e->d_tag != DT_NULL) {
-			switch (e->d_tag) {
+		GElf_Dyn e;
+		for (int i = 0; gelf_getdyn(s, i, &e) && e.d_tag != DT_NULL; i++) {
+			switch (e.d_tag) {
 				case DT_NEEDED: {
 					res->so_needed = so_new(res->so_needed, 
-						e->d_un.d_val, NULL);
+						e.d_un.d_val, NULL);
 				}	break;
 				case DT_SONAME: {
 					res->so_name = so_new(res->so_name, 
-						e->d_un.d_val, NULL);
+						e.d_un.d_val, NULL);
 				}	break;
-			}
-			e++;
+			}	
 		}
 	}
 	// load the actual string values now

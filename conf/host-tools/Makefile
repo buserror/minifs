@@ -1,5 +1,5 @@
 
-CFLAGS	= -std=gnu99 -g -Os
+CFLAGS	= -std=gnu99 -g -O0
 CC		= gcc
 DESTDIR ?= /tmp/tt
 BIN		= $(DESTDIR)/bin
