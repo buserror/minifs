@@ -11,6 +11,16 @@ hset crosstools depends "linux-headers"
 # ${HOME}/x-tools/${CT_TARGET}
 # MINIFS_TOOLCHAIN/${CT_TARGET}
 
+hostcheck-crossrools() {
+	for cmd in gawk bison flex ; do
+		local p=$(which $cmd)
+		if [ ! -x "$p" ]; then
+			echo "### ERROR: Package $PACKAGE needs command $cmd"
+			HOSTCHECK_FAILED=1
+		fi
+	done
+}
+
 reset-crossrools-env() {
 	export PATH="$BASE_PATH"
 	unset CC CXX GCC LD CFLAGS CXXFLAGS CPPFLAGS LDFLAGS ACLOCAL ; 
