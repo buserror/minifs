@@ -143,7 +143,7 @@ deploy-fbgrab() {
 
 # http://www.bootsplash.org/
 PACKAGES+=" bootsplash"
-hset bootsplash url ftp://ftp.bootsplash.org/pub/bootsplash/rpm-sources/bootsplash/bootsplash-3.1.tar.bz2
+hset bootsplash url "ftp://ftp.bootsplash.org/pub/bootsplash/rpm-sources/bootsplash/bootsplash-3.1.tar.bz2"
 hset bootsplash dir "bootsplash/Utilities"
 
 compile-bootsplash() {
