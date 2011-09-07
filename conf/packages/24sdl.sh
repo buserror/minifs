@@ -15,15 +15,17 @@ configure-libsdl() {
 		--enable-pulseaudio=no \
 		--enable-video-directfb=no
 }
-
-install-libsdl() {
-	install-generic
-	sed -i -e "s|prefix=/usr|prefix=$STAGING_USR|g" \
+install-libsdl-local() {
+	install-generic-local
+	# can't use the 'configscript' option here
+	sed -e "s|prefix=/usr|prefix=$STAGING_USR|g" \
 		-e "s|-lm .*$||g" \
-		"$STAGING_USR"/bin/sdl-config
-	sed -i -e "s|-lm .*'|'|g" \
-		"$STAGING_USR"/lib/libSDL.la
-	cp "$STAGING_USR"/bin/sdl-config "$STAGING_TOOLS"/bin
+		"$STAGING_USR"/bin/sdl-config \
+			>"$STAGING_TOOLS"/bin/sdl-config && \
+		chmod +x "$STAGING_TOOLS"/bin/sdl-config
+}
+install-libsdl() {
+	install-generic install-libsdl-local
 }
 
 PACKAGES+=" libsdlimage"
