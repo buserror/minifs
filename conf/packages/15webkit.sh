@@ -9,6 +9,7 @@ V="1.1.22"
 hset libxslt version $V
 hset libxslt url "ftp://ftp.gnome.org/pub/GNOME/sources/libxslt/1.1/libxslt-$V.tar.bz2"
 hset libxslt depends "libxml2"
+hset libxslt configscript "xslt-config"
 
 configure-libxslt() {
 	configure-generic --without-crypto --without-python \
@@ -102,16 +103,6 @@ configure-libicu-local() {
 }
 configure-libicu() {
 	configure configure-libicu-local
-}
-install-libicu-local() {
-	install-generic-local
-	cp "$STAGING_USR"/bin/icu-config \
-		"$STAGING_TOOLS"/bin/ &&
-	sed -i -e "s|default_prefix=\"/usr\"|default_prefix=\"\$STAGING_USR\"|g" \
-		 "$STAGING_TOOLS"/bin/icu-config
-}
-install-libicu() {
-	log_install install-libicu-local
 }
 
 
