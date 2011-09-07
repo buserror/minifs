@@ -1,9 +1,11 @@
 
-# http://samba.org/ftp/talloc/
+# 110906 Updated 2.0.6 http://samba.org/ftp/talloc/
 PACKAGES+=" libtalloc"
-hset libtalloc url "http://samba.org/ftp/talloc/talloc-2.0.1.tar.gz"
+hset libtalloc url "http://samba.org/ftp/talloc/talloc-2.0.6.tar.gz"
 
-# http://expat.sourceforge.net/
+patch-libtalloc() {
+	cp "$PATCHES"/libtalloc-make/* .
+}
 PACKAGES+=" libexpat"
 hset libexpat url "http://downloads.sourceforge.net/project/expat/expat/2.0.1/expat-2.0.1.tar.gz"
 
