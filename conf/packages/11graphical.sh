@@ -7,6 +7,7 @@ hset libjpeg url "http://www.ijg.org/files/jpegsrc.v8b.tar.gz"
 PACKAGES+=" libpng"
 hset libpng url "ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng-1.4.7.tar.bz2"
 hset libpng depends "zlib"
+hset libpng configscript "libpng-config"
 
 PACKAGES+=" libfreetype"
 #hset libfreetype url "http://download.savannah.gnu.org/releases/freetype/freetype-2.3.12.tar.bz2"
@@ -14,9 +15,11 @@ hset libfreetype url "http://download.savannah.gnu.org/releases/freetype/freetyp
 
 install-libfreetype() {
 	install-generic
-	sed -i -e "s|prefix=/usr|prefix=$STAGING_USR|" \
-		-e "s|/include|/include/freetype2|" \
-		$STAGING_USR/bin/freetype-config
+	sed -e "s|prefix=/usr|prefix=$STAGING_USR|" \
+		-e "s|/include$|/include/freetype2|" \
+		$STAGING_USR/bin/freetype-config \
+			>$STAGING_TOOLS/bin/freetype-config && \
+		chmod +x $STAGING_TOOLS/bin/freetype-config
 }
 
 PACKAGES+=" font-bitstream-vera"

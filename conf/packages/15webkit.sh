@@ -65,6 +65,8 @@ PACKAGES+=" libicu"
 hset libicu url "http://download.icu-project.org/files/icu4c/4.2.1/icu4c-4_2_1-src.tgz"
 #hset libicu url "http://download.icu-project.org/files/icu4c/4.4.2/icu4c-4_4_2-src.tgz"
 hset libicu dir "libicu/source"
+hset libicu configscript "icu-config"
+
 
 # libicu needs a host version of itself
 configure-libicu-local() {

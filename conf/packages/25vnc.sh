@@ -4,6 +4,7 @@
 PACKAGES+=" libvncserver"
 hset libvncserver url "http://downloads.sourceforge.net/project/libvncserver/libvncserver/0.9.7/LibVNCServer-0.9.7.tar.gz"
 hset libvncserver depends "zlib libjpeg"
+hset libvncserver configscript "libvncserver-config"
 
 configure-libvncserver-local() {
 	set -x
@@ -35,14 +36,15 @@ configure-libvncserver() {
 	configure configure-libvncserver-local
 }
 
-install-libvncserver() {
-	install-generic
-	sed -i -e "s|prefix=/usr|prefix=$STAGING_USR|g" \
-		"$STAGING_USR"/bin/libvncserver-config
+install-libvncserver-local() {
+	install-generic-local
 	viewer=client_examples/.libs/SDLvncviewer
 	if [ -x $viewer ]; then
 		cp $viewer "$STAGING_USR"/bin
 	fi
+}
+install-libvncserver() {
+	install-generic install-libvncserver-local
 }
 
 deploy-libvncserver() {
