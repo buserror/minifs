@@ -35,7 +35,7 @@ hostcheck-libglib() {
 	fi
 }
 
-configure-libglib() {
+configure-libglib-local() {
 	printf "glib_cv_stack_grows=no
 ac_cv_func_posix_getpwuid_r=yes
 ac_cv_func_posix_getgrgid_r=yes
@@ -48,11 +48,17 @@ glib_cv_uscore=no
 	CFLAGS+=" -DDISABLE_IPV6"
 	export CFLAGS
 	export LDFLAGS="$LDFLAGS_RLINK -Wl,-rpath -Wl,$BUILD/libglib/gthread/.libs -Wl,-rpath -Wl,$BUILD/libglib/gmodule/.libs"
-	configure-generic \
+	export NOCONFIGURE=1
+	configure-generic-local \
 		--cache=fake_glib_cache.conf \
 		--with-pcre=internal
 	export LDFLAGS="$LDFLAGS_BASE"
 	export CFLAGS=$save
+	unset NOCONFIGURE
+}
+
+configure-libglib() {
+	configure configure-libglib-local
 }
 
 PACKAGES+=" libglibnet"
@@ -181,6 +187,14 @@ configure-libgtk-local() {
 		pushd "$CROSS_BASE/$TARGET_FULL_ARCH" >/dev/null
 		ln -s sysroot/lib lib
 		popd  >/dev/null
+	fi
+	if [ "$TARGET_ARCH" = "x86_64" ]; then
+		if [ ! -d "$CROSS_BASE/$TARGET_FULL_ARCH/lib64" ];then 
+			# stupid gtk needs that, somehow. pile of garbage
+			pushd "$CROSS_BASE/$TARGET_FULL_ARCH" >/dev/null
+			ln -s sysroot/lib lib64
+			popd  >/dev/null
+		fi
 	fi
 	# remove the demos
 #	sed -i '/^demos\//d ; /^tests\//d' configure.in
