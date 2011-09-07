@@ -21,14 +21,13 @@ function hostcheck_commands() {
 		if [ ! -x "$cmd" ]; then
 			echo "### ERROR $PACKAGE needs $name"
 			HOSTCHECK_FAILED=1
-			break;
 		fi
 	done
 }
 
 # split the MINIFS_PATH evn and return all existing directories
 # also adding the first parameter to the path
-minifs_path_split() {
+function minifs_path_split() {
 	for pd in $(echo "$MINIFS_PATH"| tr ":" "\n") ; do
 		if [ -d "$pd/$1" ]; then
 			echo "$pd/$1"

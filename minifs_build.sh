@@ -84,7 +84,7 @@ rm -rf "$ROOTFS"/*
 
 TARGET_INITRD=${TARGET_INITRD:-0}
 TARGET_FS_SQUASH=1
-TARGET_FS_EXT=1
+TARGET_FS_EXT=${TARGET_FS_EXT:-1}
 # only set this if you /know/ the parameters for your NAND
 # TARGET_FS_JFFS2="-q -l -p -e 0x20000 -s 0x800"
 
@@ -99,7 +99,7 @@ TARGET_SHARED=0
 rm -f /tmp/pkg-config.log
 if [ "$COMMAND" == "tools" ]; then exit ;fi
 
-hset busybox version "1.18.4"
+hset busybox version "1.19.0"
 hset linux version "2.6.32.2"
 hset crosstools version "1.12.1"
 
@@ -117,7 +117,7 @@ export CPPFLAGS="$TARGET_CPPFLAGS"
 export LDFLAGS_BASE="-L$STAGING/lib -L$STAGING_USR/lib"
 export CFLAGS="$TARGET_CFLAGS" 
 export CXXFLAGS="$CFLAGS" 
-export LIBC_CFLAGS="${LIBC_CFLAGS:-$TARGET_CFLAGS}"
+export LIBC_CFLAGS="${TARGET_LIBC_CFLAGS:-$TARGET_CFLAGS}"
 export PKG_CONFIG_PATH="$STAGING/lib/pkgconfig:$STAGING_USR/lib/pkgconfig:$STAGING_USR/share/pkgconfig"
 export PKG_CONFIG_LIBDIR="" # do not search local paths
 export ACLOCAL="aclocal -I $STAGING_USR/share/aclocal"
@@ -177,6 +177,7 @@ done
 
 # Add the list of external packages
 TARGET_PACKAGES+=" $MINIFS_PACKAGES"
+TARGET_PACKAGES+=" filesystems"
 
 optional board_prepare
 
@@ -207,25 +208,22 @@ fi
 ## Take all the selected packages, and add their dependencies
 ## This loops until none of the packages add any more.
 #######################################################################
+export TARGET_PACKAGES
 while true; do
 	changed=0; newlist=""
-	for pack in $TARGET_PACKAGES; do 
-		deps=$(hget $pack depends)
-		for d in $deps; do
-			isthere=0
-			for look in $TARGET_PACKAGES; do 
-				if [ "$d" = "$look" ]; then
-					isthere=1; break
+	for wpack in $TARGET_PACKAGES; do 
+		targets=$(hget $wpack targets)
+		targets=${targets:-$wpack}
+		for pack in $targets; do
+			deps=$(hget $pack depends)
+			for d in $deps; do
+				if ! env_contains TARGET_PACKAGES $d; then
+				#	echo ADD $pack depends on $d
+					TARGET_PACKAGES+=" $d"; changed=1
 				fi
 			done
-			if [ $isthere -eq 0 ]; then
-		#		echo ADD $pack depends on $d
-				newlist+=" $d"; changed=1
-			fi
 		done
-		newlist+=" $pack"
 	done
-	TARGET_PACKAGES=$newlist
 	if [ $changed -eq 0 ]; then break; fi
 done
 
@@ -421,6 +419,17 @@ install-generic-local() {
 		echo LDCONFIG PATCH $n
 		sed -i -e "s|\([ ']\)/usr|\1$STAGING_USR|g" $n
 	done
+	# Check to see if there are lame comfig scripts around
+	scr=$(hget $PACKAGE configscript)
+	for sc in "$STAGING_USR"/bin/$scr "$STAGING"/bin/$scr; do 
+		if [ -x "$sc" ]; then
+			sed -e "s|=/usr|=$STAGING_USR|g" \
+				-e "s|=\"/usr|=\"$STAGING_USR|g" "$sc" \
+					>"$STAGING_TOOLS"/bin/$scr && \
+				chmod +x "$STAGING_TOOLS"/bin/$scr
+			break;
+		fi
+	done
 	set +x
 }
 
@@ -452,18 +461,24 @@ shell-generic() {
 #######################################################################
 ## Find out which package we want/have, and order them by build order
 #######################################################################
-PROCESS_PACKAGES=""
+DEPLIST=""
+export BUILD_PACKAGES
 for pack in $PACKAGES; do 
 	# check to see if that package was requested, otherwise, skip it
 	dobuild=0
-	for can in $BUILD_PACKAGES; do
-		if [ "$can" = "$pack" ]; then
-			dobuild=1; break
-		fi
-	done
-	if [ $dobuild -eq 0 ]; then continue; fi
-	PROCESS_PACKAGES+=" $pack"
+	if env_contains BUILD_PACKAGES $pack; then
+		PROCESS_PACKAGES+=" $pack"
+		DEPLIST+=" $pack($(hget $pack depends))"
+	fi
 done
+
+#######################################################################
+## Call the dependency sorter, and get back the result
+#######################################################################
+#echo DEPLIST $DEPLIST
+PROCESS_PACKAGES=$(echo $DEPLIST|depsort 2>/tmp/depsort.log)
+#echo PROCESS_PACKAGES $PROCESS_PACKAGES
+#exit
 
 #######################################################################
 ## Build each packages
@@ -522,7 +537,6 @@ echo "Deploying packages"
 for pack in $PROCESS_PACKAGES; do 	
 	dir=$(hget $pack dir)
 	dir=${dir:-$pack}
-	# echo PACK $pack dir $dir
 	if [ -d "$BUILD/$dir" ]; then
 		package $pack $dir
 			phases=$(hget $pack phases)
