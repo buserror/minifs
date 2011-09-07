@@ -13,6 +13,7 @@ sharedlibs-rsync() {
 		--chmod=u=rwX \
 		--exclude=\*.o \
 		--exclude=\*.map \
+		--exclude=\*.h \
 		--exclude=\*.a --exclude=\*.la --exclude=\*.lai \
 		--exclude pkgconfig \
 		$*
@@ -35,10 +36,16 @@ deploy-sharedlibs-local() {
 		--exclude ct-ng\* \
 		"$STAGING_USR/lib/" \
 		"$ROOTFS/usr/lib/" 
-
+	if [ "$TARGET_ARCH" = "x86_64" ]; then
+		ln -s -f lib "$ROOTFS"/lib64 
+		ln -s -f lib "$ROOTFS"/usr/lib64 
+	fi
 	optional $MINIFS_BOARD-sharedlibs-cleanup
-	# export CROSS_LINKER_INVOKE="/tmp/cross_linker_run.sh"
-	cross_linker --purge
+	export CROSS_LINKER_INVOKE="/tmp/cross_linker_run.sh"
+	cross_linker --purge || {
+		echo "### cross_linker error, debug with $CROSS_LINKER_INVOKE"
+		exit 1
+	}
 	set +x
 }
 
