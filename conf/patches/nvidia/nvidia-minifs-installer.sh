@@ -61,10 +61,15 @@ function env(what, extra) {
 		case /DESKTOP$/:
 		case /INSTALLER_BINARY/:
 		case /NEWSYM/: # not needed
-		#	print \"skip\", dest;
+		#	print \"# skip\", dest;
+			next;
+		case /COMPAT32/: 
+			print \"# skip\", dest;
 			next;
 	}
 	path=\"\"
+	if (\$(NF) == \"COMPAT32\")
+		next;
 	for (i = 4; i < NF; i++) {
 		switch (\$(i)) {
 			case \"NATIVE\":
@@ -72,17 +77,24 @@ function env(what, extra) {
 			case \"CLASSIC\":
 			case \"/\":
 				break;
+			case \"COMPAT32\": 
+			#	print \"# skip\", fil;
+				next;
 			default:
 				path=path \$(i)
 		}
 	}
 		
 	switch (dest) {
+		case /COMPAT32/:
+			print \"# skip LOW \", fil;
+			next;
 		case /SYMLINK/:
 			printf(\"ln -f -s %s %s%s\\n\", \$(NF), env(dest,path), fil);
 			next;
 		
 		default:
+	#		print \"# dest\", dest, \$(NF);
 			dir = sprintf(\"%s%s\", env(dest, path), match(\$(NF), /^[A-Z]/) ? \"\" : \$(NF));
 			if (!(dir in dirmade)) {
 				printf(\"mkdir -p %s\n\", dir);

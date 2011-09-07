@@ -1,9 +1,9 @@
 
-#NVIDIA_VERSION=260.19.44
 NVIDIA_VERSION=275.09.07
-NVIDIA_NAME=NVIDIA-Linux-x86-${NVIDIA_VERSION}
+NVIDIA_VERSION=280.13
+NVIDIA_NAME="NVIDIA-Linux-$TARGET_ARCH-${NVIDIA_VERSION}"
 PACKAGES+=" nvidia"
-hset nvidia url "http://us.download.nvidia.com/XFree86/Linux-x86/$NVIDIA_VERSION/$NVIDIA_NAME.run"
+hset nvidia url "http://us.download.nvidia.com/XFree86/Linux-$TARGET_ARCH/$NVIDIA_VERSION/$NVIDIA_NAME.run"
 hset nvidia depends "xorgserver linux-modules"
 
 setup-nvidia() {
@@ -38,7 +38,10 @@ compile-nvidia-local() {
 			CC=$GCC \
 			HOST_CC=gcc \
 				$1 || exit 1
-	) || exit 1
+	) || {
+		echo "### Error building $PACKAGE!"
+		exit 1
+	}
 }
 
 compile-nvidia() {
