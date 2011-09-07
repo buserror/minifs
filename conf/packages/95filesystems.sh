@@ -30,11 +30,13 @@ cat << EOF | tee "$STAGING_TOOLS"/special_file_table.txt |\
 /var/run	d    755  0    0    -    -    -    -    -
 EOF
 
-PACKAGES+=" filesystems"
-FILESYSTEMS="filesystem-prepack"
+PACKAGES+=" filesystem-prepack"
+hset filesystem-prepack url "none"
 
+PACKAGES+=" filesystems"
 hset filesystems url "none"
-hset filesystems depends "busybox sharedlibs"
+hset filesystems depends "busybox sharedlibs filesystem-prepack"
+FILESYSTEMS=""
 
 if [ $TARGET_FS_SQUASH -eq 1 ]; then
 	FILESYSTEMS+=" filesystem-squash"
@@ -53,22 +55,22 @@ if [ "$TARGET_FS_INITRD" != "" ]; then
 fi
 
 PACKAGES+=" $FILESYSTEMS"
-hset filesystems targets "$FILESYSTEMS"
+hset filesystems targets " filesystems $FILESYSTEMS"
 
 hset filesystem-prepack dir "."
 hset filesystem-prepack phases "deploy"
 hset filesystem-squash dir "."
 hset filesystem-squash phases "deploy"
-hset filesystem-squash depends "filesystem-prepack"
+hset filesystem-squash depends "filesystems"
 hset filesystem-ext dir "."
 hset filesystem-ext phases "deploy"
-hset filesystem-ext depends "filesystem-prepack"
+hset filesystem-ext depends "filesystems"
 hset filesystem-jffs dir "."
 hset filesystem-jffs phases "deploy"
-hset filesystem-jffs depends "filesystem-prepack"
+hset filesystem-jffs depends "filesystems"
 hset filesystem-initrd dir "linux-obj"
 hset filesystem-initrd phases "deploy"
-hset filesystem-initrd depends "filesystem-prepack"
+hset filesystem-initrd depends "filesystems"
 
 MINIFS_CROSS_STRIP="${CROSS}-strip"
 MINIFS_STRIP=sstrip
