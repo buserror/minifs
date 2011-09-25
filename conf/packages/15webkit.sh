@@ -109,7 +109,7 @@ configure-libicu() {
 PACKAGES+=" libwebkit"
 #hset libwebkit url "git!git://git.webkit.org/WebKit.git#libwebkit-git.tar.bz2"
 hset libwebkit url "git!git://gitorious.org/webkit/webkit.git#libwebkit-git.tar.bz2"
-hset libwebkit depends "libicu libenchant libsoup sqlite3 libxslt libgtk gstreamer gst-plugins-base"
+hset libwebkit depends "libicu libenchant libsoup sqlite3 libxslt libgail libgtk gstreamer gst-plugins-base"
 
 hostcheck-libwebkit() {
 	hostcheck_commands gperf
@@ -131,6 +131,8 @@ configure-libwebkit() {
 	configure-generic \
 		--disable-glibtest \
 		--disable-gtk-doc-html \
+		--disable-webkit2 \
+		--with-gtk=2.0 \
 		$extras
 	CFLAGS=$save
 	CXXFLAGS=$save
@@ -156,6 +158,8 @@ PACKAGES+=" flashplugin"
 #hset flashplugin url "http://download.macromedia.com/pub/labs/flashplatformruntimes/flashplayer11/flashplayer11_b2_install_lin_64_080811.tar.gz#flashplugin-11b2-$TARGET_ARCH.tarb"
 # 64 bits player 11 RC
 hset flashplugin url "http://download.macromedia.com/pub/labs/flashplatformruntimes/flashplayer11/flashplayer11_rc1_install_lin_64_090611.tar.gz#flashplugin-11rc1-$TARGET_ARCH.tarb"
+# 11 final
+#hset flashplugin url "http://fpdownload.macromedia.com/get/flashplayer/current/install_flash_player_11_linux.tar.gz#flashplugin-10.3-$TARGET_ARCH.tarb"
 hset flashplugin phases "deploy"
 hset flashplugin depends "gnutls libcurl libnss msfonts libwebkit"
 
