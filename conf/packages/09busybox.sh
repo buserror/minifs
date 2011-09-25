@@ -12,7 +12,7 @@ setup-libtool() {
 configure-libtool() {
 	configure-generic --program-prefix="$TARGET_FULL_ARCH"-
 }
-install-libtoot() {
+install-libtool() {
 	install-generic 
 	ln -f -s "$TARGET_FULL_ARCH"-libtool "$STAGING_TOOLS"/bin/libtool
 	ln -f -s "$TARGET_FULL_ARCH"-libtoolize "$STAGING_TOOLS"/bin/libtoolize
