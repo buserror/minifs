@@ -1,0 +1,20 @@
+From 3ad6c2190f91b485ad5fb0a669d350c2a3edf8c2 Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:02 +0000
+Subject: [PATCH 2010/2070] local-biarch.patch
+
+---
+ sysdeps/unix/sysv/linux/i386/dl-cache.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+ create mode 100644 sysdeps/unix/sysv/linux/i386/dl-cache.h
+
+diff --git a/sysdeps/unix/sysv/linux/i386/dl-cache.h b/sysdeps/unix/sysv/linux/i386/dl-cache.h
+new file mode 100644
+index 0000000..766bba4
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/i386/dl-cache.h
+@@ -0,0 +1 @@
++#include <sysdeps/unix/sysv/linux/sparc/dl-cache.h>
+-- 
+1.7.0.4
+

@@ -1,0 +1,60 @@
+From 126ad17ff5037e125cb6d2b9016c4372362f7c75 Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:06 +0000
+Subject: [PATCH 2051/2070] local-rtld.patch
+
+---
+ Makeconfig   |    7 ++++++-
+ elf/Makefile |    4 ++--
+ 2 files changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/Makeconfig b/Makeconfig
+index e3c0d41..7b921a2 100644
+--- a/Makeconfig
++++ b/Makeconfig
+@@ -212,6 +212,11 @@ slibdir = $(exec_prefix)/lib
+ endif
+ inst_slibdir = $(install_root)$(slibdir)
+ 
++# Directory of the dynamic linker in the ELF binaries
++ifndef rtlddir
++rtlddir := $(slibdir)
++endif
++
+ # Prefix to put on files installed in $(libdir).  For libraries `libNAME.a',
+ # the prefix is spliced between `lib' and the name, so the linker switch
+ # `-l$(libprefix)NAME' finds the library; for other files the prefix is
+@@ -496,7 +501,7 @@ ifndef +link-bounded
+ endif
+ ifndef config-LDFLAGS
+ ifeq (yesyes,$(build-shared)$(elf))
+-config-LDFLAGS = -Wl,-dynamic-linker=$(slibdir)/$(rtld-installed-name)
++config-LDFLAGS = -Wl,-dynamic-linker=$(rtlddir)/$(rtld-installed-name)
+ endif
+ endif
+ ifndef link-libc
+diff --git a/elf/Makefile b/elf/Makefile
+index 237bd12..3c43798 100644
+--- a/elf/Makefile
++++ b/elf/Makefile
+@@ -393,7 +393,7 @@ $(objpfx)ld.so: $(objpfx)librtld.os $(ld-map)
+ 	  | $(AWK) '($$7 ~ /^UND(|EF)$$/ && $$1 != "0:" && $$4 != "REGISTER") { print; p=1 } END { exit p != 0 }'
+ 
+ # interp.c exists just to get this string into the libraries.
+-CFLAGS-interp.c = -D'RUNTIME_LINKER="$(slibdir)/$(rtld-installed-name)"' \
++CFLAGS-interp.c = -D'RUNTIME_LINKER="$(rtlddir)/$(rtld-installed-name)"' \
+ 		  -DNOT_IN_libc=1
+ $(objpfx)interp.os: $(common-objpfx)config.make
+ 
+@@ -436,7 +436,7 @@ ldso_install: $(inst_slibdir)/$(rtld-installed-name)
+ endif
+ 
+ 
+-common-ldd-rewrite = -e 's%@RTLD@%$(slibdir)/$(rtld-installed-name)%g' \
++common-ldd-rewrite = -e 's%@RTLD@%$(rtlddir)/$(rtld-installed-name)%g' \
+ 		     -e 's%@VERSION@%$(version)%g' \
+ 		     -e 's%@PKGVERSION@%$(PKGVERSION)%g' \
+ 		     -e 's%@REPORT_BUGS_TO@%$(REPORT_BUGS_TO)%g'
+-- 
+1.7.0.4
+

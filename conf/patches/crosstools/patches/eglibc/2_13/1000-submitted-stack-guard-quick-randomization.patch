@@ -1,0 +1,115 @@
+Description: when AT_RANDOM is not available, attempt to build randomization
+ of stack guard value from the ASLR of stack and heap locations, and finally
+ the hp_timing_t value.  Upstream glibc does not want this patch, as they
+ feel AT_RANDOM is sufficient.
+Author: Jakub Jelinek
+Origin: http://cvs.fedora.redhat.com/viewvc/devel/glibc/
+Forwarded: not-needed
+
+---
+ elf/tst-stackguard1.c               |    8 ++++++--
+ nptl/tst-stackguard1.c              |    8 ++++++--
+ sysdeps/unix/sysv/linux/dl-osinfo.h |   29 +++++++++++++++++++++++++++++
+ 3 files changed, 41 insertions(+), 4 deletions(-)
+
+--- a/sysdeps/unix/sysv/linux/dl-osinfo.h
++++ b/sysdeps/unix/sysv/linux/dl-osinfo.h
+@@ -17,10 +17,13 @@
+    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA.  */
+ 
++#include <errno.h>
+ #include <kernel-features.h>
+ #include <dl-sysdep.h>
+ #include <fcntl.h>
+ #include <stdint.h>
++#include <hp-timing.h>
++#include <endian.h>
+ 
+ #ifndef MIN
+ # define MIN(a,b) (((a)<(b))?(a):(b))
+@@ -80,6 +83,32 @@
+       unsigned char *p = (unsigned char *) &ret;
+       p[sizeof (ret) - 1] = 255;
+       p[sizeof (ret) - 2] = '\n';
++#ifdef HP_TIMING_NOW
++      hp_timing_t hpt;
++      HP_TIMING_NOW (hpt);
++      hpt = (hpt & 0xffff) << 8;
++      ret ^= hpt;
++#endif
++      uintptr_t stk;
++      /* Avoid GCC being too smart.  */
++      asm ("" : "=r" (stk) : "r" (p));
++      stk &= 0x7ffff0;
++#if __BYTE_ORDER == __LITTLE_ENDIAN
++      stk <<= (__WORDSIZE - 23);
++#elif __WORDSIZE == 64
++      stk <<= 31;
++#endif
++      ret ^= stk;
++      /* Avoid GCC being too smart.  */
++      p = (unsigned char *) &errno;
++      asm ("" : "=r" (stk) : "r" (p));
++      stk &= 0x7fff00;
++#if __BYTE_ORDER == __LITTLE_ENDIAN
++      stk <<= (__WORDSIZE - 29);
++#else
++      stk >>= 8;
++#endif
++      ret ^= stk;
+     }
+   else
+ #endif
+--- a/elf/tst-stackguard1.c
++++ b/elf/tst-stackguard1.c
+@@ -160,17 +160,21 @@
+      the 16 runs, something is very wrong.  */
+   int ndifferences = 0;
+   int ndefaults = 0;
++  int npartlyrandomized = 0;
+   for (i = 0; i < N; ++i) 
+     {
+       if (child_stack_chk_guards[i] != child_stack_chk_guards[i+1])
+ 	ndifferences++;
+       else if (child_stack_chk_guards[i] == default_guard)
+ 	ndefaults++;
++      else if (*(char *) &child_stack_chk_guards[i] == 0)
++	npartlyrandomized++;
+     }
+ 
+-  printf ("differences %d defaults %d\n", ndifferences, ndefaults);
++  printf ("differences %d defaults %d partly randomized %d\n",
++	  ndifferences, ndefaults, npartlyrandomized);
+ 
+-  if (ndifferences < N / 2 && ndefaults < N / 2)
++  if ((ndifferences + ndefaults + npartlyrandomized) < 3 * N / 4)
+     {
+       puts ("stack guard canaries are not randomized enough");
+       puts ("nor equal to the default canary value");
+--- a/nptl/tst-stackguard1.c
++++ b/nptl/tst-stackguard1.c
+@@ -190,17 +190,21 @@
+      the 16 runs, something is very wrong.  */
+   int ndifferences = 0;
+   int ndefaults = 0;
++  int npartlyrandomized = 0;
+   for (i = 0; i < N; ++i) 
+     {
+       if (child_stack_chk_guards[i] != child_stack_chk_guards[i+1])
+ 	ndifferences++;
+       else if (child_stack_chk_guards[i] == default_guard)
+ 	ndefaults++;
++      else if (*(char *) &child_stack_chk_guards[i] == 0)
++	npartlyrandomized++;
+     }
+ 
+-  printf ("differences %d defaults %d\n", ndifferences, ndefaults);
++  printf ("differences %d defaults %d partly randomized %d\n",
++	  ndifferences, ndefaults, npartlyrandomized);
+ 
+-  if (ndifferences < N / 2 && ndefaults < N / 2)
++  if ((ndifferences + ndefaults + npartlyrandomized) < 3 * N / 4)
+     {
+       puts ("stack guard canaries are not randomized enough");
+       puts ("nor equal to the default canary value");

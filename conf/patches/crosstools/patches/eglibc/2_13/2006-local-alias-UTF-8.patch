@@ -1,0 +1,34 @@
+From 00843232cd0d2d5648178367e9fac5b6edc10368 Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:02 +0000
+Subject: [PATCH 2006/2070] local-alias-UTF-8.patch
+
+---
+ intl/locale.alias |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/intl/locale.alias b/intl/locale.alias
+index 05c979c..9dca902 100644
+--- a/intl/locale.alias
++++ b/intl/locale.alias
+@@ -26,7 +26,7 @@
+ # Locales should always be specified by their full name.
+ 
+ bokmal		nb_NO.ISO-8859-1
+-bokmål		nb_NO.ISO-8859-1
++bokmÃ¥l		nb_NO.ISO-8859-1
+ catalan		ca_ES.ISO-8859-1
+ croatian	hr_HR.ISO-8859-2
+ czech		cs_CZ.ISO-8859-2
+@@ -37,7 +37,7 @@ dutch		nl_NL.ISO-8859-1
+ eesti		et_EE.ISO-8859-1
+ estonian	et_EE.ISO-8859-1
+ finnish         fi_FI.ISO-8859-1
+-français	fr_FR.ISO-8859-1
++franÃ§ais	fr_FR.ISO-8859-1
+ french		fr_FR.ISO-8859-1
+ galego		gl_ES.ISO-8859-1
+ galician	gl_ES.ISO-8859-1
+-- 
+1.7.0.4
+

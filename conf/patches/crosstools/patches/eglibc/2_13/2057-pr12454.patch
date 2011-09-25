@@ -1,0 +1,45 @@
+From 393f30e4a0c004da2f18041335d810609dfe20d6 Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:07 +0000
+Subject: [PATCH 2057/2070] pr12454.patch
+
+---
+ elf/dl-close.c |    3 ++-
+ elf/dl-deps.c  |    4 ++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/elf/dl-close.c b/elf/dl-close.c
+index 866c0a6..6e9c31d 100644
+--- a/elf/dl-close.c
++++ b/elf/dl-close.c
+@@ -222,7 +222,8 @@ _dl_close_worker (struct link_map *map)
+     }
+ 
+   /* Sort the entries.  */
+-  _dl_sort_fini (ns->_ns_loaded, maps, nloaded, used, nsid);
++  if (nloaded > 1)
++    _dl_sort_fini (ns->_ns_loaded, maps, nloaded, used, nsid);
+ 
+   /* Call all termination functions at once.  */
+ #ifdef SHARED
+diff --git a/elf/dl-deps.c b/elf/dl-deps.c
+index bd81677..73268ab 100644
+--- a/elf/dl-deps.c
++++ b/elf/dl-deps.c
+@@ -623,11 +623,11 @@ Filters not supported with LD_TRACE_PRELINKING"));
+ 
+   /* We can skip looking for the binary itself which is at the front
+      of the search list.  */
+-  assert (nlist > 1);
++  assert (nlist > 0);
+   i = 1;
+   bool seen[nlist];
+   memset (seen, false, nlist * sizeof (seen[0]));
+-  while (1)
++  while (nlist > 1)
+     {
+       /* Keep track of which object we looked at this round.  */
+       seen[i] = true;
+-- 
+1.7.0.4
+

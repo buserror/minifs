@@ -1,0 +1,25 @@
+From 3c207f321b939fc30c5263d51f7a44e50ddf87ce Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:07 +0000
+Subject: [PATCH 2058/2070] submitted-accept4-hidden.patch
+
+---
+ socket/accept4.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
+
+diff --git a/socket/accept4.c b/socket/accept4.c
+index 40709d5..53a3e96 100644
+--- a/socket/accept4.c
++++ b/socket/accept4.c
+@@ -35,8 +35,6 @@ accept4 (fd, addr, addr_len, flags)
+   __set_errno (ENOSYS);
+   return -1;
+ }
+-libc_hidden_def (accept4)
+-
+ 
+ stub_warning (accept4)
+ #include <stub-tag.h>
+-- 
+1.7.0.4
+

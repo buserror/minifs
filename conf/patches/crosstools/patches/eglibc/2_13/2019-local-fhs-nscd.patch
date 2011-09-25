@@ -1,0 +1,31 @@
+From 7fff1f0b7d9aa059ba0fed1a4a131fc0ca4a20e3 Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:03 +0000
+Subject: [PATCH 2019/2070] local-fhs-nscd.patch
+
+---
+ nscd/nscd.h |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/nscd/nscd.h b/nscd/nscd.h
+index 3279b85..b7de6e9 100644
+--- a/nscd/nscd.h
++++ b/nscd/nscd.h
+@@ -103,10 +103,10 @@ struct database_dyn
+ 
+ 
+ /* Paths of the file for the persistent storage.  */
+-#define _PATH_NSCD_PASSWD_DB	"/var/db/nscd/passwd"
+-#define _PATH_NSCD_GROUP_DB	"/var/db/nscd/group"
+-#define _PATH_NSCD_HOSTS_DB	"/var/db/nscd/hosts"
+-#define _PATH_NSCD_SERVICES_DB	"/var/db/nscd/services"
++#define _PATH_NSCD_PASSWD_DB	"/var/cache/nscd/passwd"
++#define _PATH_NSCD_GROUP_DB	"/var/cache/nscd/group"
++#define _PATH_NSCD_HOSTS_DB	"/var/cache/nscd/hosts"
++#define _PATH_NSCD_SERVICES_DB	"/var/cache/nscd/services"
+ 
+ /* Path used when not using persistent storage.  */
+ #define _PATH_NSCD_XYZ_DB_TMP	"/var/run/nscd/dbXXXXXX"
+-- 
+1.7.0.4
+

@@ -1,0 +1,33 @@
+From ab818f0bc2af40b4ecbe957bb0714212544f8fc5 Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:02 +0000
+Subject: [PATCH 2009/2070] local-asserth-decls.patch
+
+---
+ assert/assert.h |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/assert/assert.h b/assert/assert.h
+index 841f435..8989713 100644
+--- a/assert/assert.h
++++ b/assert/assert.h
+@@ -63,6 +63,8 @@
+ 
+ #else /* Not NDEBUG.  */
+ 
++#ifndef _ASSERT_H_DECLS
++#define _ASSERT_H_DECLS
+ __BEGIN_DECLS
+ 
+ /* This prints an "Assertion failed" message and aborts.  */
+@@ -84,6 +86,7 @@ extern void __assert (const char *__assertion, const char *__file, int __line)
+ 
+ 
+ __END_DECLS
++#endif /* Not _ASSERT_H_DECLS */
+ 
+ # define assert(expr)							\
+   ((expr)								\
+-- 
+1.7.0.4
+

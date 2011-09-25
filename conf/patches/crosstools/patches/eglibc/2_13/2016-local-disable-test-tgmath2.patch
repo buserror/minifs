@@ -1,0 +1,25 @@
+From 580419b7e3501da0154e3d3709d9c56deecfd642 Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:03 +0000
+Subject: [PATCH 2016/2070] local-disable-test-tgmath2.patch
+
+---
+ math/Makefile |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/math/Makefile b/math/Makefile
+index 3d5a00c..92550ab 100644
+--- a/math/Makefile
++++ b/math/Makefile
+@@ -92,7 +92,7 @@ distribute += $(filter-out $(generated),$(long-m-yes:=.c) $(long-c-yes:=.c))
+ # Rules for the test suite.
+ tests = test-matherr test-fenv basic-test \
+ 	test-misc test-fpucw tst-definitions test-tgmath test-tgmath-ret \
+-	bug-nextafter bug-nexttoward bug-tgmath1 test-tgmath-int test-tgmath2 \
++	bug-nextafter bug-nexttoward bug-tgmath1 test-tgmath-int \
+ 	test-dbl-wrap
+ tests-$(OPTION_EGLIBC_LIBM_BIG) += atest-exp atest-sincos atest-exp2
+ # We do the `long double' tests only if this data type is available and
+-- 
+1.7.0.4
+

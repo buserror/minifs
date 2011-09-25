@@ -1,0 +1,48 @@
+From 9f0547255b57cc76040bbd3045eca89fdbb699e9 Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:08 +0000
+Subject: [PATCH 2068/2070] submitted-popen.patch
+
+---
+ include/unistd.h           |    5 +----
+ socket/have_sock_cloexec.c |    5 +++++
+ 2 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/include/unistd.h b/include/unistd.h
+index 0ad2983..6b7aa79 100644
+--- a/include/unistd.h
++++ b/include/unistd.h
+@@ -171,10 +171,7 @@ extern int __libc_pause (void);
+ extern int __pause_nocancel (void) attribute_hidden;
+ 
+ extern int __have_sock_cloexec;
+-/* At lot of other functionality became available at the same time as
+-   SOCK_CLOEXEC.  Avoid defining separate variables for all of them
+-   unless it is really necessary.  */
+-#define __have_pipe2 __have_sock_cloexec
++extern int __have_pipe2;
+ 
+ extern int __getlogin_r_loginuid (char *name, size_t namesize)
+      attribute_hidden;
+diff --git a/socket/have_sock_cloexec.c b/socket/have_sock_cloexec.c
+index 22dccdf..c728d98 100644
+--- a/socket/have_sock_cloexec.c
++++ b/socket/have_sock_cloexec.c
+@@ -16,9 +16,14 @@
+    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA.  */
+ 
++#include <fcntl.h>
+ #include <sys/socket.h>
+ #include <kernel-features.h>
+ 
+ #if defined SOCK_CLOEXEC && !defined __ASSUME_SOCK_CLOEXEC
+ int __have_sock_cloexec;
+ #endif
++
++#if defined O_CLOEXEC && !defined __ASSUME_PIPE2
++int __have_pipe2;
++#endif
+-- 
+1.7.0.4
+

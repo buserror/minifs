@@ -1,0 +1,42 @@
+From dae7ae499d7d24ce25eaceee83f3ee8daee8786d Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:07 +0000
+Subject: [PATCH 2053/2070] local-stdio-lock.patch
+
+---
+ bits/stdio-lock.h |   17 +++++++++++++----
+ 1 files changed, 13 insertions(+), 4 deletions(-)
+
+diff --git a/bits/stdio-lock.h b/bits/stdio-lock.h
+index d7c1db0..3407171 100644
+--- a/bits/stdio-lock.h
++++ b/bits/stdio-lock.h
+@@ -47,12 +47,21 @@ __libc_lock_define_recursive (typedef, _IO_lock_t)
+ 
+ #if defined _LIBC && !defined NOT_IN_libc
+ # define _IO_acquire_lock(_fp) \
+-  _IO_cleanup_region_start ((void (*) (void *)) _IO_funlockfile, (_fp));      \
+-  _IO_flockfile (_fp)
++  { \
++  _IO_FILE *_IO_acquire_lock_file = _fp; \
++  __libc_cleanup_region_start (1, (void (*) (void *)) _IO_acquire_lock_fct, &_IO_acquire_lock_file); \
++  _IO_flockfile (_IO_acquire_lock_file)
++
++# define _IO_acquire_lock_clear_flags2(_fp) \
++  { \
++  _IO_FILE *_IO_acquire_lock_file = _fp; \
++  __libc_cleanup_region_start (1, (void (*) (void *)) _IO_acquire_lock_clear_flags2_fct, &_IO_acquire_lock_file); \
++  _IO_flockfile (_IO_acquire_lock_file)
+ 
+ # define _IO_release_lock(_fp) \
+-  _IO_funlockfile (_fp);						      \
+-  _IO_cleanup_region_end (0)
++  __libc_cleanup_region_end (1); \
++   }
++   
+ #endif
+ 
+ #endif /* bits/stdio-lock.h */
+-- 
+1.7.0.4
+

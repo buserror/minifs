@@ -11,7 +11,7 @@ hset crosstools depends "linux-headers"
 # ${HOME}/x-tools/${CT_TARGET}
 # MINIFS_TOOLCHAIN/${CT_TARGET}
 
-hostcheck-crossrools() {
+hostcheck-crosstools() {
 	for cmd in gawk bison flex ; do
 		local p=$(which $cmd)
 		if [ ! -x "$p" ]; then
@@ -19,6 +19,13 @@ hostcheck-crossrools() {
 			HOSTCHECK_FAILED=1
 		fi
 	done
+}
+
+patch-crosstools() {
+	if [ -d "$PATCHES/crosstools/patches" ]; then
+		echo "** crosstools ** Adding extra patches"
+		rsync -av "$PATCHES/crosstools/patches/" ./patches/
+	fi
 }
 
 reset-crossrools-env() {

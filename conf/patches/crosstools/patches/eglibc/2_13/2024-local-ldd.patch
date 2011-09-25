@@ -1,0 +1,57 @@
+From 39d9424dcf187b3ee54888cdde42c59b846b744a Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:04 +0000
+Subject: [PATCH 2024/2070] local-ldd.patch
+
+---
+ elf/ldd.bash.in |   20 +++-----------------
+ 1 files changed, 3 insertions(+), 17 deletions(-)
+
+diff --git a/elf/ldd.bash.in b/elf/ldd.bash.in
+index 2825046..15af6e3 100644
+--- a/elf/ldd.bash.in
++++ b/elf/ldd.bash.in
+@@ -153,8 +153,6 @@ for file do
+     echo "ldd: ${file}:" $"not regular file" >&2
+     result=1
+   elif test -r "$file"; then
+-    test -x "$file" || echo 'ldd:' $"\
+-warning: you do not have execution permission for" "\`$file'" >&2
+     RTLD=
+     ret=1
+     for rtld in ${RTLDLIST}; do
+@@ -167,28 +165,16 @@ warning: you do not have execution permission for" "\`$file'" >&2
+       fi
+     done
+     case $ret in
+-    0)
+-      # If the program exits with exit code 5, it means the process has been
+-      # invoked with __libc_enable_secure.  Fall back to running it through
+-      # the dynamic linker.
+-      try_trace "$file"
+-      rc=$?
+-      if [ $rc = 5 ]; then
+-	try_trace "$RTLD" "$file"
+-	rc=$?
+-      fi
+-      [ $rc = 0 ] || result=1
++    0|2)
++      try_trace "$RTLD" "$file" || result=1
+       ;;
+-    1)
++    1|126)
+       # This can be a non-ELF binary or no binary at all.
+       nonelf "$file" || {
+ 	echo $"	not a dynamic executable"
+ 	result=1
+       }
+       ;;
+-    2)
+-      try_trace "$RTLD" "$file" || result=1
+-      ;;
+     *)
+       echo 'ldd:' ${RTLD} $"exited with unknown exit code" "($ret)" >&2
+       exit 1
+-- 
+1.7.0.4
+

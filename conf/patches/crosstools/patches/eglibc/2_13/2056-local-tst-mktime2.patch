@@ -1,0 +1,24 @@
+From e9b6d74c4be4a797ed4ca1a382c7307d1c3c7877 Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:07 +0000
+Subject: [PATCH 2056/2070] local-tst-mktime2.patch
+
+---
+ time/tst-mktime2.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/time/tst-mktime2.c b/time/tst-mktime2.c
+index 0e4fd1e..407e940 100644
+--- a/time/tst-mktime2.c
++++ b/time/tst-mktime2.c
+@@ -2,6 +2,7 @@
+ #include <time.h>
+ #include <stdlib.h>
+ #include <unistd.h>
++#include <limits.h>
+ 
+ static time_t time_t_max;
+ static time_t time_t_min;
+-- 
+1.7.0.4
+

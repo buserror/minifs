@@ -1,0 +1,83 @@
+From fe92c5d5a08d6dc86a3f58920c8b6679a1d65b0b Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:04 +0000
+Subject: [PATCH 2025/2070] local-ldso-disable-hwcap.patch
+
+---
+ elf/dl-cache.c  |    6 ++++++
+ elf/dl-sysdep.c |   21 +++++++++++++++++++--
+ 2 files changed, 25 insertions(+), 2 deletions(-)
+
+diff --git a/elf/dl-cache.c b/elf/dl-cache.c
+index 544704c..e107e72 100644
+--- a/elf/dl-cache.c
++++ b/elf/dl-cache.c
+@@ -245,6 +245,7 @@ _dl_load_cache_lookup (const char *name)
+   if (cache_new != (void *) -1)
+     {
+       uint64_t platform;
++      int disable_hwcap = 0;
+ 
+       /* This is where the strings start.  */
+       cache_data = (const char *) cache_new;
+@@ -256,6 +257,9 @@ _dl_load_cache_lookup (const char *name)
+       if (platform != (uint64_t) -1)
+ 	platform = 1ULL << platform;
+ 
++      if (__access ("/etc/ld.so.nohwcap", F_OK) == 0)
++	disable_hwcap = 1;
++
+ #define _DL_HWCAP_TLS_MASK (1LL << 63)
+       uint64_t hwcap_exclude = ~((GLRO(dl_hwcap) & GLRO(dl_hwcap_mask))
+ 				 | _DL_HWCAP_PLATFORM | _DL_HWCAP_TLS_MASK);
+@@ -266,6 +270,8 @@ _dl_load_cache_lookup (const char *name)
+ 	continue;							      \
+       if (GLRO(dl_osversion) && lib->osversion > GLRO(dl_osversion))	      \
+ 	continue;							      \
++      if (disable_hwcap && lib->hwcap != 0)				      \
++	continue;							      \
+       if (_DL_PLATFORMS_COUNT						      \
+ 	  && (lib->hwcap & _DL_HWCAP_PLATFORM) != 0			      \
+ 	  && (lib->hwcap & _DL_HWCAP_PLATFORM) != platform)		      \
+diff --git a/elf/dl-sysdep.c b/elf/dl-sysdep.c
+index e6c8660..41f2020 100644
+--- a/elf/dl-sysdep.c
++++ b/elf/dl-sysdep.c
+@@ -417,6 +417,20 @@ _dl_important_hwcaps (const char *platform, size_t platform_len, size_t *sz,
+   /* For TLS enabled builds always add 'tls'.  */
+   ++cnt;
+ 
++  if (__access ("/etc/ld.so.nohwcap", F_OK) == 0)
++    {
++      /* If hwcap is disabled, we only have the base directory to search.  */
++      result = (struct r_strlenpair *) malloc (sizeof (*result));
++      if (result == NULL)
++	goto no_memory;
++
++      result[0].str = (char *) result;  /* Does not really matter.  */
++      result[0].len = 0;
++
++      *sz = 1;
++      return result;
++    }
++
+   /* Create temporary data structure to generate result table.  */
+   temp = (struct r_strlenpair *) alloca (cnt * sizeof (*temp));
+   m = 0;
+@@ -496,8 +510,11 @@ _dl_important_hwcaps (const char *platform, size_t platform_len, size_t *sz,
+   *sz = 1 << cnt;
+   result = (struct r_strlenpair *) malloc (*sz * sizeof (*result) + total);
+   if (result == NULL)
+-    _dl_signal_error (ENOMEM, NULL, NULL,
+-		      N_("cannot create capability list"));
++    {
++    no_memory:
++      _dl_signal_error (ENOMEM, NULL, NULL,
++		     	N_("cannot create capability list"));
++    }
+ 
+   if (cnt == 1)
+     {
+-- 
+1.7.0.4
+

@@ -1,0 +1,33 @@
+From 21daefd13dd066b82daf0a1caa85230d0cb41d1b Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:08 +0000
+Subject: [PATCH 2070/2070] submitted-sys-uio-vector.patch
+
+---
+ include/sys/uio.h |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/include/sys/uio.h b/include/sys/uio.h
+index 8c2b016..bfaec59 100644
+--- a/include/sys/uio.h
++++ b/include/sys/uio.h
+@@ -2,12 +2,12 @@
+ #include <misc/sys/uio.h>
+ 
+ /* Now define the internal interfaces.  */
+-extern ssize_t __readv (int __fd, __const struct iovec *__vector,
++extern ssize_t __readv (int __fd, __const struct iovec *__iovec,
+ 			int __count);
+-extern ssize_t __libc_readv (int __fd, __const struct iovec *__vector,
++extern ssize_t __libc_readv (int __fd, __const struct iovec *__iovec,
+ 			     int __count);
+-extern ssize_t __writev (int __fd, __const struct iovec *__vector,
++extern ssize_t __writev (int __fd, __const struct iovec *__iovec,
+ 			 int __count);
+-extern ssize_t __libc_writev (int __fd, __const struct iovec *__vector,
++extern ssize_t __libc_writev (int __fd, __const struct iovec *__iovec,
+ 			      int __count);
+ #endif
+-- 
+1.7.0.4
+

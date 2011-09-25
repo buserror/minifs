@@ -1,0 +1,49 @@
+From 239c97aab22d9ef4921d04c350b2a71a18c9a2df Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:04 +0000
+Subject: [PATCH 2021/2070] local-ld-multiarch.patch
+
+---
+ Makeconfig |   19 +++++++++++++++++++
+ 1 files changed, 19 insertions(+), 0 deletions(-)
+
+diff --git a/Makeconfig b/Makeconfig
+index c9fe199..e3c0d41 100644
+--- a/Makeconfig
++++ b/Makeconfig
+@@ -191,6 +191,21 @@ libdir = $(exec_prefix)/lib
+ endif
+ inst_libdir = $(install_root)$(libdir)
+ 
++# Multiarch places to look for libraries
++ifndef extra_libdir
++ifneq (,$(findstring $(config-machine),i586 i686))
++multiarch-machine = i486
++else
++multiarch-machine = $(config-machine)
++endif
++ifeq ($(config-os),gnu-gnu)
++multiarch-os = gnu
++else
++multiarch-os = $(config-os)
++endif
++extra_libdir = /lib/$(multiarch-machine)-$(multiarch-os):$(exec_prefix)/lib/$(multiarch-machine)-$(multiarch-os)
++endif
++
+ # Where to install the shared library and dynamic linker.
+ ifndef slibdir
+ slibdir = $(exec_prefix)/lib
+@@ -523,6 +538,10 @@ else
+ default-rpath = $(libdir)
+ endif
+ 
++ifdef extra_libdir
++default-rpath += :$(extra_libdir)
++endif
++
+ ifndef link-extra-libs
+ link-extra-libs = $(LDLIBS-$(@F))
+ link-extra-libs-static = $(link-extra-libs)
+-- 
+1.7.0.4
+

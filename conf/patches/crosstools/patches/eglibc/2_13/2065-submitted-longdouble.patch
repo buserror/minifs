@@ -1,0 +1,56 @@
+From cc0daa4fa26f73a0737b0c4963486906e82a80bf Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:08 +0000
+Subject: [PATCH 2065/2070] submitted-longdouble.patch
+
+---
+ math/Makefile |   20 ++++++++++++++------
+ 1 files changed, 14 insertions(+), 6 deletions(-)
+
+diff --git a/math/Makefile b/math/Makefile
+index 92550ab..04cd48e 100644
+--- a/math/Makefile
++++ b/math/Makefile
+@@ -95,13 +95,17 @@ tests = test-matherr test-fenv basic-test \
+ 	bug-nextafter bug-nexttoward bug-tgmath1 test-tgmath-int \
+ 	test-dbl-wrap
+ tests-$(OPTION_EGLIBC_LIBM_BIG) += atest-exp atest-sincos atest-exp2
+-# We do the `long double' tests only if this data type is available and
+-# distinct from `double'.
++# We do the `long double' tests only if this data type is available.
+ test-longdouble-yes = test-ldouble test-ildoubl
+ distribute += $(test-longdouble-yes:=.c)
+ 
++ifeq ($(long-double-fcts),yes)
++# If we have distinct types then enable testing.
++test-long-double-fcts = yes
++endif
++
+ ifneq (no,$(PERL))
+-libm-tests = test-float test-double $(test-longdouble-$(long-double-fcts)) \
++libm-tests = test-float test-double $(test-longdouble-$(test-long-double-fcts)) \
+ 	test-ifloat test-idouble
+ libm-tests.o = $(addsuffix .o,$(libm-tests))
+ 
+@@ -178,11 +182,15 @@ math-CPPFLAGS += -D__NO_MATH_INLINES -D__LIBC_INTERNAL_MATH_INLINES
+ ifneq ($(long-double-fcts),yes)
+ # The `double' and `long double' types are the same on this machine.
+ # We won't compile the `long double' code at all.  Tell the `double' code
+-# to define aliases for the `FUNCl' names.  To avoid type conflicts in
+-# defining those aliases, tell <math.h> to declare the `FUNCl' names with
+-# `double' instead of `long double'.
++# to define aliases for the `FUNCl' names.
++ifeq ($(header-long-double-fcts),yes)
++math-CPPFLAGS += -DNO_LONG_DOUBLE
++else
++# To avoid type conflicts in  defining those aliases, tell <math.h> to
++# declare the `FUNCl' names with `double' instead of `long double'.
+ math-CPPFLAGS += -DNO_LONG_DOUBLE -D_Mlong_double_=double
+ endif
++endif
+ 
+ # The fdlibm code generates a lot of these warnings but is otherwise clean.
+ override CFLAGS += -Wno-uninitialized
+-- 
+1.7.0.4
+

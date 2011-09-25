@@ -1,0 +1,22 @@
+From 90b186178a2eb3ad6769fa45213181a9b2614919 Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:06 +0000
+Subject: [PATCH 2042/2070] local-mktemp.patch
+
+---
+ misc/mktemp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/misc/mktemp.c b/misc/mktemp.c
+index c42fd5e..f15e1ce 100644
+--- a/misc/mktemp.c
++++ b/misc/mktemp.c
+@@ -33,4 +33,4 @@ mktemp (template)
+   return template;
+ }
+ 
+-link_warning (mktemp, "the use of `mktemp' is dangerous, better use `mkstemp'")
++link_warning (mktemp, "the use of `mktemp' is dangerous, better use `mkstemp' or `mkdtemp'")
+-- 
+1.7.0.4
+

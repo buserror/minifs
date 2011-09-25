@@ -1,0 +1,25 @@
+From 2584b5d4860a7bc4ddcf547f865cdf2050a35b52 Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:02 +0000
+Subject: [PATCH 2008/2070] local-allocalim-header.patch
+
+---
+ sysdeps/unix/sysv/linux/check_pf.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/sysdeps/unix/sysv/linux/check_pf.c b/sysdeps/unix/sysv/linux/check_pf.c
+index 5630e86..042c115 100644
+--- a/sysdeps/unix/sysv/linux/check_pf.c
++++ b/sysdeps/unix/sysv/linux/check_pf.c
+@@ -25,6 +25,8 @@
+ #include <string.h>
+ #include <time.h>
+ #include <unistd.h>
++#include <alloca.h>
++#include <stdlib.h>
+ #include <sys/socket.h>
+ 
+ #include <asm/types.h>
+-- 
+1.7.0.4
+

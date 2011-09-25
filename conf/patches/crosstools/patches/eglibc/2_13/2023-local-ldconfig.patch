@@ -1,0 +1,26 @@
+From bb8ce1ceb9e7f215f24de3a862d4bf0e7e3c92ef Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:04 +0000
+Subject: [PATCH 2023/2070] local-ldconfig.patch
+
+---
+ elf/ldconfig.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/elf/ldconfig.c b/elf/ldconfig.c
+index cb75a46..a602a16 100644
+--- a/elf/ldconfig.c
++++ b/elf/ldconfig.c
+@@ -1062,7 +1062,8 @@ parse_conf (const char *filename, bool do_chroot)
+ 
+   if (file == NULL)
+     {
+-      error (0, errno, _("Can't open configuration file %s"), canon);
++      if (strcmp(canon, LD_SO_CONF) != 0 || opt_verbose)
++	error (0, errno, _("Can't open configuration file %s"), canon);
+       if (canon != filename)
+ 	free ((char *) canon);
+       return;
+-- 
+1.7.0.4
+

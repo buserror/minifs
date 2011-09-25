@@ -1,0 +1,32 @@
+From bf64fdd569f7212a81d9b98237fd32dc5027f7dd Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:06 +0000
+Subject: [PATCH 2047/2070] local-o_cloexec.patch
+
+---
+ sysdeps/unix/opendir.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/sysdeps/unix/opendir.c b/sysdeps/unix/opendir.c
+index fbf14f5..9024445 100644
+--- a/sysdeps/unix/opendir.c
++++ b/sysdeps/unix/opendir.c
+@@ -146,6 +146,7 @@ weak_alias (__opendir, opendir)
+ #ifdef __ASSUME_O_CLOEXEC
+ # define check_have_o_cloexec(fd) 1
+ #else
++#ifdef O_CLOEXEC
+ static int
+ check_have_o_cloexec (int fd)
+ {
+@@ -154,6 +155,7 @@ check_have_o_cloexec (int fd)
+   return __have_o_cloexec > 0;
+ }
+ #endif
++#endif
+ 
+ 
+ DIR *
+-- 
+1.7.0.4
+

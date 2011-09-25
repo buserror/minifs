@@ -1,0 +1,58 @@
+Description: require that the first byte in the stack guard in a NULL byte,
+ to improve mitigation of NULL-terminated string overflows.
+Bug: http://sourceware.org/bugzilla/show_bug.cgi?id=10149
+Bug-Ubuntu: https://bugs.launchpad.net/bugs/413278
+Author: Kees Cook <kees.cook@canonical.com>
+
+---
+ sysdeps/unix/sysv/linux/dl-osinfo.h |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
+
+--- a/sysdeps/unix/sysv/linux/dl-osinfo.h
++++ b/sysdeps/unix/sysv/linux/dl-osinfo.h
+@@ -65,7 +65,12 @@
+ static inline uintptr_t __attribute__ ((always_inline))
+ _dl_setup_stack_chk_guard (void *dl_random)
+ {
+-  uintptr_t ret;
++  uintptr_t ret = 0;
++  /* Having a leading zero byte protects the stack guard from being
++     overwritten with str* write operations or exposed by an
++     unterminated str* read operation. */
++  unsigned char *p = ((unsigned char *) &ret) + 1;
++  int size = sizeof (ret) - 1;
+ #ifndef __ASSUME_AT_RANDOM
+   if (__builtin_expect (dl_random == NULL, 0))
+     {
+@@ -73,16 +78,16 @@
+       int fd = __open ("/dev/urandom", O_RDONLY);
+       if (fd >= 0)
+ 	{
+-	  ssize_t reslen = __read (fd, &ret, sizeof (ret));
++	  ssize_t reslen = __read (fd, p, size);
+ 	  __close (fd);
+-	  if (reslen == (ssize_t) sizeof (ret))
++	  if (reslen == (ssize_t) size)
+ 	    return ret;
+ 	}
+ # endif
+-      ret = 0;
+-      unsigned char *p = (unsigned char *) &ret;
+-      p[sizeof (ret) - 1] = 255;
+-      p[sizeof (ret) - 2] = '\n';
++      /* Lacking any other form of randomized stack guard, add other
++         terminators in an attempt to block things like fgets, etc. */
++      p[size - 1] = 255;
++      p[size - 2] = '\n';
+ #ifdef HP_TIMING_NOW
+       hp_timing_t hpt;
+       HP_TIMING_NOW (hpt);
+@@ -115,7 +120,7 @@
+     /* We need in the moment only 8 bytes on 32-bit platforms and 16
+        bytes on 64-bit platforms.  Therefore we can use the data
+        directly and not use the kernel-provided data to seed a PRNG.  */
+-    memcpy (&ret, dl_random, sizeof (ret));
++    memcpy (p, dl_random, size);
+   return ret;
+ }
+ 

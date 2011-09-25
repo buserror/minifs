@@ -1,0 +1,25 @@
+From 6e6859fe14f9880c6f13ddc0d9364f3a6ff0dfda Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:02 +0000
+Subject: [PATCH 2005/2070] fedora-nss_dns-gethostbyname4-disable.patch
+
+---
+ resolv/Versions |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/resolv/Versions b/resolv/Versions
+index 4b2e5e9..b22c90e 100644
+--- a/resolv/Versions
++++ b/resolv/Versions
+@@ -102,7 +102,7 @@ libnss_dns {
+     _nss_dns_gethostbyname_r; _nss_dns_getnetbyaddr_r;
+     _nss_dns_getnetbyname_r; _nss_dns_getcanonname_r;
+     _nss_dns_gethostbyaddr2_r;
+-    _nss_dns_gethostbyname4_r;
++#    _nss_dns_gethostbyname4_r;
+   }
+ }
+ 
+-- 
+1.7.0.4
+

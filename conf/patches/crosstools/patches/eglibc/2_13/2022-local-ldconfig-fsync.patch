@@ -1,0 +1,24 @@
+From 9f5895be4295cef9d7ec6f1dc480864944746a41 Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:04 +0000
+Subject: [PATCH 2022/2070] local-ldconfig-fsync.patch
+
+---
+ elf/cache.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/elf/cache.c b/elf/cache.c
+index b8561e4..4f99678 100644
+--- a/elf/cache.c
++++ b/elf/cache.c
+@@ -426,6 +426,7 @@ save_cache (const char *cache_name)
+     }
+ 
+   if (write (fd, strings, total_strlen) != (ssize_t) total_strlen
++      || fsync (fd)
+       || close (fd))
+     error (EXIT_FAILURE, errno, _("Writing of cache data failed"));
+ 
+-- 
+1.7.0.4
+

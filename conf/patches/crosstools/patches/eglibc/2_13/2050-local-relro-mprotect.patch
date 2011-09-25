@@ -1,0 +1,29 @@
+From 4494ee9708229e99d576be2aa6c8cbae7dd0b6e9 Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:06 +0000
+Subject: [PATCH 2050/2070] local-relro-mprotect.patch
+
+---
+ elf/dl-load.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
+
+diff --git a/elf/dl-load.c b/elf/dl-load.c
+index b017258..5b7c348 100644
+--- a/elf/dl-load.c
++++ b/elf/dl-load.c
+@@ -1388,7 +1388,11 @@ cannot allocate TLS data structures for initial thread");
+ 	  if (__builtin_expect (p + s <= relro_end, 1))
+ 	    {
+ 	      /* The variable lies in the region protected by RELRO.  */
+-	      __mprotect ((void *) p, s, PROT_READ|PROT_WRITE);
++	      if (__mprotect ((void *) p, s, PROT_READ|PROT_WRITE) < 0)
++		{
++		  errstring = N_("cannot change memory protections");
++		  goto call_lose_errno;
++		}
+ 	      __stack_prot |= PROT_READ|PROT_WRITE|PROT_EXEC;
+ 	      __mprotect ((void *) p, s, PROT_READ);
+ 	    }
+-- 
+1.7.0.4
+

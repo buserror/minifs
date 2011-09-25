@@ -1,0 +1,32 @@
+From 717956869db76893c945843e06799f8b6ffd8af6 Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:07 +0000
+Subject: [PATCH 2061/2070] submitted-getaddrinfo-lo.patch
+
+---
+ sysdeps/posix/getaddrinfo.c |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletions(-)
+
+diff --git a/sysdeps/posix/getaddrinfo.c b/sysdeps/posix/getaddrinfo.c
+index ddd1b5d..6dc4bbc 100644
+--- a/sysdeps/posix/getaddrinfo.c
++++ b/sysdeps/posix/getaddrinfo.c
+@@ -2267,7 +2267,14 @@ getaddrinfo (const char *name, const char *service,
+ 			  tmp.addr[0] = 0;
+ 			  tmp.addr[1] = 0;
+ 			  tmp.addr[2] = htonl (0xffff);
+-			  tmp.addr[3] = sinp->sin_addr.s_addr;
++			  /* Special case for lo interface, the source address
++			     being possibly different than the interface 
++			     address. */
++			  if ((ntohl(sinp->sin_addr.s_addr) & 0xff000000)
++			      == 0x7f000000)
++			    tmp.addr[3] = htonl(0x7f000001);
++			  else
++			    tmp.addr[3] = sinp->sin_addr.s_addr;
+ 			}
+ 		      else
+ 			{
+-- 
+1.7.0.4
+

@@ -1,0 +1,25 @@
+From 4e09f690e6e4e0f5a86725270c879ab0d08a6e1e Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:07 +0000
+Subject: [PATCH 2054/2070] local-stubs_h.patch
+
+---
+ include/stubs-prologue.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/include/stubs-prologue.h b/include/stubs-prologue.h
+index 0577bc6..cf8eba0 100644
+--- a/include/stubs-prologue.h
++++ b/include/stubs-prologue.h
+@@ -8,7 +8,7 @@
+    every time called, usually setting errno to ENOSYS.  */
+ 
+ #ifdef _LIBC
+- #error Applications may not define the macro _LIBC
++# error Applications may not define the macro _LIBC
+ #endif
+ 
+ @ Placeholder line so we remember to keep the preceding blank line here.
+-- 
+1.7.0.4
+

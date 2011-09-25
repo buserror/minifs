@@ -1,0 +1,28 @@
+From 4481dbf802d32efe7079a728de76a45e34751dba Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:08 +0000
+Subject: [PATCH 2067/2070] submitted-nis-netgrp.patch
+
+---
+ nis/nss_nis/nis-netgrp.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/nis/nss_nis/nis-netgrp.c b/nis/nss_nis/nis-netgrp.c
+index 5a88b72..d31fa2b 100644
+--- a/nis/nss_nis/nis-netgrp.c
++++ b/nis/nss_nis/nis-netgrp.c
+@@ -72,7 +72,10 @@ _nss_nis_setnetgrent (const char *group, struct __netgrent *netgrp)
+ 	 and the last byte is filled with NUL.  So we can simply
+ 	 use that buffer.  */
+       assert (len >= 0);
+-      assert (malloc_usable_size (netgrp->data) >= len + 1);
++      /* Call to malloc_usable_size disabled, this breaks if applications
++         redefine malloc/free with a different implementation.
++         This assert is always true, see yp_match.  */
++      /* assert (malloc_usable_size (netgrp->data) >= len + 1); */
+       assert (netgrp->data[len] == '\0');
+ 
+       netgrp->data_size = len;
+-- 
+1.7.0.4
+

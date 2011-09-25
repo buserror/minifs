@@ -1,0 +1,27 @@
+From d774a9c61fbe49e64c28e7492dbc3d24c692f93d Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:03 +0000
+Subject: [PATCH 2015/2070] local-disable-nscd-host-caching.patch
+
+---
+ nscd/nscd.conf |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/nscd/nscd.conf b/nscd/nscd.conf
+index ada88e6..596f30f 100644
+--- a/nscd/nscd.conf
++++ b/nscd/nscd.conf
+@@ -60,7 +60,9 @@
+ 	max-db-size		group		33554432
+ 	auto-propagate		group		yes
+ 
+-	enable-cache		hosts		yes
++# hosts caching is broken with gethostby* calls, hence is now disabled
++# per default.  See /usr/share/doc/nscd/NEWS.Debian.
++	enable-cache		hosts		no
+ 	positive-time-to-live	hosts		3600
+ 	negative-time-to-live	hosts		20
+ 	suggested-size		hosts		211
+-- 
+1.7.0.4
+

@@ -1,0 +1,24 @@
+From 38b14a4752f854ce7a3cedbb39c71692c254c8ca Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:08 +0000
+Subject: [PATCH 2063/2070] submitted-ldsodefs_rtld_debug.patch
+
+---
+ sysdeps/generic/ldsodefs.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/sysdeps/generic/ldsodefs.h b/sysdeps/generic/ldsodefs.h
+index 8ad537c..93c73bc 100644
+--- a/sysdeps/generic/ldsodefs.h
++++ b/sysdeps/generic/ldsodefs.h
+@@ -39,6 +39,7 @@
+ #include <hp-timing.h>
+ #include <tls.h>
+ #include <kernel-features.h>
++#include <gnu/option-groups.h> /* For __OPTION_EGLIBC_RTLD_DEBUG.  */
+ 
+ __BEGIN_DECLS
+ 
+-- 
+1.7.0.4
+

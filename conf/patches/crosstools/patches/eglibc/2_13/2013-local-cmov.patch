@@ -1,0 +1,25 @@
+From 93ae7043098338729c7480318a2f496a0eeae0e9 Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:03 +0000
+Subject: [PATCH 2013/2070] local-cmov.patch
+
+---
+ sysdeps/i386/dl-procinfo.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/sysdeps/i386/dl-procinfo.h b/sysdeps/i386/dl-procinfo.h
+index d114fec..8fcb1ea 100644
+--- a/sysdeps/i386/dl-procinfo.h
++++ b/sysdeps/i386/dl-procinfo.h
+@@ -57,7 +57,7 @@ enum
+   HWCAP_I386_AMD3D = 1 << 31,
+ 
+   /* XXX Which others to add here?  */
+-  HWCAP_IMPORTANT = (HWCAP_I386_XMM2)
++  HWCAP_IMPORTANT = (HWCAP_I386_CMOV | HWCAP_I386_XMM2)
+ 
+ };
+ 
+-- 
+1.7.0.4
+

@@ -1,0 +1,25 @@
+From 7ca807b86479abf19b28e7ac7e0aeae4e139da1b Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:02 +0000
+Subject: [PATCH 2001/2070] cvs-at-pagesize.patch
+
+---
+ sysdeps/unix/sysv/linux/getpagesize.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/sysdeps/unix/sysv/linux/getpagesize.c b/sysdeps/unix/sysv/linux/getpagesize.c
+index 0866079..fe9bc8e 100644
+--- a/sysdeps/unix/sysv/linux/getpagesize.c
++++ b/sysdeps/unix/sysv/linux/getpagesize.c
+@@ -28,7 +28,7 @@
+ int
+ __getpagesize ()
+ {
+-#ifdef __ASSUME_AT_PAGESIZE
++#if 0 && defined __ASSUME_AT_PAGESIZE
+   assert (GLRO(dl_pagesize) != 0);
+   return GLRO(dl_pagesize);
+ #else
+-- 
+1.7.0.4
+

@@ -1,0 +1,32 @@
+From 2da39073742595cf6e8f80c10bb2df651ff9c931 Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:03 +0000
+Subject: [PATCH 2020/2070] local-getaddrinfo-interface.patch
+
+---
+ sysdeps/posix/getaddrinfo.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/sysdeps/posix/getaddrinfo.c b/sysdeps/posix/getaddrinfo.c
+index 4a0b6b1..ddd1b5d 100644
+--- a/sysdeps/posix/getaddrinfo.c
++++ b/sysdeps/posix/getaddrinfo.c
+@@ -1458,13 +1458,13 @@ rfc3484_sort (const void *p1, const void *p2, void *arg)
+ 
+ 	      /* Fill in the results in all the records.  */
+ 	      for (int i = 0; i < src->nresults; ++i)
+-		if (src->results[i].index == a1_index)
++		if (a1_index != -1 && src->results[i].index == a1_index)
+ 		  {
+ 		    assert (src->results[i].native == -1
+ 			    || src->results[i].native == a1_native);
+ 		    src->results[i].native = a1_native;
+ 		  }
+-		else if (src->results[i].index == a2_index)
++		else if (a2_index != -1 && src->results[i].index == a2_index)
+ 		  {
+ 		    assert (src->results[i].native == -1
+ 			    || src->results[i].native == a2_native);
+-- 
+1.7.0.4
+

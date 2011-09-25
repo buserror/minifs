@@ -1,0 +1,26 @@
+From b11a2509dccda4531f8b8933f85b19a583b3f5fc Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 06:04:28 +0000
+Subject: [PATCH 02/10] disable ipv6 DNS lookups when isolated (lp:417757)
+
+---
+ sysdeps/unix/sysv/linux/check_pf.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/sysdeps/unix/sysv/linux/check_pf.c b/sysdeps/unix/sysv/linux/check_pf.c
+index b789a32..5630e86 100644
+--- a/sysdeps/unix/sysv/linux/check_pf.c
++++ b/sysdeps/unix/sysv/linux/check_pf.c
+@@ -176,7 +176,8 @@ make_request (int fd, pid_t pid, bool *seen_ipv4, bool *seen_ipv6,
+ 		    }
+ 		  else
+ 		    {
+-		      if (!IN6_IS_ADDR_LOOPBACK (address))
++		      if (!IN6_IS_ADDR_LOOPBACK (address)
++			  && !IN6_IS_ADDR_LINKLOCAL(address))
+ 			*seen_ipv6 = true;
+ 		    }
+ 		}
+-- 
+1.7.0.4
+

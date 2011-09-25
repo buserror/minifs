@@ -1,0 +1,69 @@
+From 2e0f6e21518328916d54e65a9e834aa374092c5c Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:03 +0000
+Subject: [PATCH 2017/2070] local-dlfptr.patch
+
+---
+ elf/dl-fptr.c             |   18 +++++++++++++++++-
+ sysdeps/generic/dl-fptr.h |    3 +++
+ 2 files changed, 20 insertions(+), 1 deletions(-)
+
+diff --git a/elf/dl-fptr.c b/elf/dl-fptr.c
+index e068124..0853894 100644
+--- a/elf/dl-fptr.c
++++ b/elf/dl-fptr.c
+@@ -1,5 +1,5 @@
+ /* Manage function descriptors.  Generic version.
+-   Copyright (C) 1999-2004, 2006 Free Software Foundation, Inc.
++   Copyright (C) 1999-2004, 2006, 2010 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -56,7 +56,12 @@ static struct local
+   }
+ local =
+   {
++#ifndef SHARED
+     .root = &local.boot_table,
++#else
++    /* Address of .boot_table is not known until runtime.  */
++    .root = 0,
++#endif
+     .npages = 2,
+     .boot_table =
+       {
+@@ -93,6 +98,17 @@ new_fdesc_table (struct local *l, size_t *size)
+   return new_table;
+ }
+ 
++/* Must call _dl_fptr_init before using any other function.  */
++void 
++_dl_fptr_init (void)
++{
++  struct local *l;
++
++  ELF_MACHINE_LOAD_ADDRESS (l, local);
++  /* Initialize root once.  */
++  if (__builtin_expect (l->root == 0, 0))
++    l->root = &l->boot_table;
++}
+ 
+ static ElfW(Addr)
+ make_fdesc (ElfW(Addr) ip, ElfW(Addr) gp)
+diff --git a/sysdeps/generic/dl-fptr.h b/sysdeps/generic/dl-fptr.h
+index d47fb7b..b957fbb 100644
+--- a/sysdeps/generic/dl-fptr.h
++++ b/sysdeps/generic/dl-fptr.h
+@@ -40,6 +40,9 @@ struct link_map;
+ 
+ extern ElfW(Addr) _dl_boot_fptr_table [];
+ 
++/* Must be called before any other function.  */
++extern void _dl_fptr_init (void);
++
+ extern ElfW(Addr) _dl_make_fptr (struct link_map *, const ElfW(Sym) *,
+ 				 ElfW(Addr));
+ 
+-- 
+1.7.0.4
+

@@ -1,0 +1,85 @@
+From 050ac95439c8916ba400bc4143d988153b407dec Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:07 +0000
+Subject: [PATCH 2055/2070] local-tcsetaddr.patch
+
+---
+ sysdeps/unix/sysv/linux/tcsetattr.c |   55 ++++++++++++++++++++++++++++++++++-
+ 1 files changed, 54 insertions(+), 1 deletions(-)
+
+diff --git a/sysdeps/unix/sysv/linux/tcsetattr.c b/sysdeps/unix/sysv/linux/tcsetattr.c
+index f73ec88..e8df472 100644
+--- a/sysdeps/unix/sysv/linux/tcsetattr.c
++++ b/sysdeps/unix/sysv/linux/tcsetattr.c
+@@ -48,7 +48,12 @@ tcsetattr (fd, optional_actions, termios_p)
+      const struct termios *termios_p;
+ {
+   struct __kernel_termios k_termios;
++  struct __kernel_termios k_termios_old;
+   unsigned long int cmd;
++  int retval, old_retval;
++
++  /* Preserve the previous termios state if we can. */
++  old_retval = INLINE_SYSCALL (ioctl, 3, fd, TCGETS, &k_termios_old);
+ 
+   switch (optional_actions)
+     {
+@@ -80,6 +85,54 @@ tcsetattr (fd, optional_actions, termios_p)
+   memcpy (&k_termios.c_cc[0], &termios_p->c_cc[0],
+ 	  __KERNEL_NCCS * sizeof (cc_t));
+ 
+-  return INLINE_SYSCALL (ioctl, 3, fd, cmd, &k_termios);
++  retval = INLINE_SYSCALL (ioctl, 3, fd, cmd, &k_termios);
++
++  /* The Linux kernel silently ignores the invalid c_cflag on pty. 
++     We have to check it here, and return an error.  But if some other
++     setting was successfully changed, POSIX requires us to report
++     success. */
++  if ((retval == 0) && (old_retval == 0))
++    {
++      int save = errno;
++      retval = INLINE_SYSCALL (ioctl, 3, fd, TCGETS, &k_termios);
++      if (retval)
++	{
++	  /* We cannot verify if the setting is ok. We don't return
++	     an error (?). */
++	  __set_errno (save);
++	  retval = 0;
++	}
++      else if ((k_termios_old.c_oflag != k_termios.c_oflag) ||
++	       (k_termios_old.c_lflag != k_termios.c_lflag) ||
++	       (k_termios_old.c_line != k_termios.c_line) ||
++	       ((k_termios_old.c_iflag | IBAUD0) != (k_termios.c_iflag | IBAUD0)))
++	{
++	  /* Some other setting was successfully changed, which
++	     means we should not return an error. */
++	  __set_errno (save);
++	  retval = 0;
++	}
++      else if ((k_termios_old.c_cflag | (PARENB & CREAD & CSIZE)) !=
++	       (k_termios.c_cflag | (PARENB & CREAD & CSIZE)))
++	{
++	  /* Some other c_cflag setting was successfully changed, which
++	     means we should not return an error. */
++	  __set_errno (save);
++	  retval = 0;
++	}
++      else if ((termios_p->c_cflag & (PARENB | CREAD))
++			!= (k_termios.c_cflag & (PARENB | CREAD))
++	       || ((termios_p->c_cflag & CSIZE)
++		   && (termios_p->c_cflag & CSIZE)
++			!= (k_termios.c_cflag & CSIZE)))
++	{
++	  /* It looks like the Linux kernel silently changed the
++	     PARENB/CREAD/CSIZE bits in c_cflag. Report it as an
++	     error. */
++	  __set_errno (EINVAL);
++	  retval = -1;
++	}
++    }
++   return retval;
+ }
+ libc_hidden_def (tcsetattr)
+-- 
+1.7.0.4
+

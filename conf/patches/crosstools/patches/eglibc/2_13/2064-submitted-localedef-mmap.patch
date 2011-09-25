@@ -1,0 +1,43 @@
+From 510b496d6ed8a1ce6827a5f95a66c4f8ab7767cf Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:08 +0000
+Subject: [PATCH 2064/2070] submitted-localedef-mmap.patch
+
+---
+ locale/programs/locarchive.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/locale/programs/locarchive.c b/locale/programs/locarchive.c
+index 27d589b..cb82951 100644
+--- a/locale/programs/locarchive.c
++++ b/locale/programs/locarchive.c
+@@ -134,7 +134,7 @@ create_archive (const char *archivefname, struct locarhandle *ah)
+   size_t reserved = RESERVE_MMAP_SIZE;
+   int xflags = 0;
+   if (total < reserved
+-      && ((p = mmap64 (NULL, reserved, PROT_NONE, MAP_PRIVATE | MAP_ANON,
++      && ((p = mmap64 (NULL, reserved, PROT_NONE, MAP_SHARED | MAP_ANON,
+ 		       -1, 0)) != MAP_FAILED))
+     xflags = MAP_FIXED;
+   else
+@@ -397,7 +397,7 @@ enlarge_archive (struct locarhandle *ah, const struct locarhead *head)
+   size_t reserved = RESERVE_MMAP_SIZE;
+   int xflags = 0;
+   if (total < reserved
+-      && ((p = mmap64 (NULL, reserved, PROT_NONE, MAP_PRIVATE | MAP_ANON,
++      && ((p = mmap64 (NULL, reserved, PROT_NONE, MAP_SHARED | MAP_ANON,
+ 		       -1, 0)) != MAP_FAILED))
+     xflags = MAP_FIXED;
+   else
+@@ -615,7 +615,7 @@ open_archive (struct locarhandle *ah, bool readonly)
+   int xflags = 0;
+   void *p;
+   if (st.st_size < reserved
+-      && ((p = mmap64 (NULL, reserved, PROT_NONE, MAP_PRIVATE | MAP_ANON,
++      && ((p = mmap64 (NULL, reserved, PROT_NONE, MAP_SHARED | MAP_ANON,
+ 		       -1, 0)) != MAP_FAILED))
+     xflags = MAP_FIXED;
+   else
+-- 
+1.7.0.4
+

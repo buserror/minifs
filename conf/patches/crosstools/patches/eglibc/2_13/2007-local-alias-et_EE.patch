@@ -1,0 +1,27 @@
+From 49f50ecc8a0571878f21d39e32d428b6403c0dd0 Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:02 +0000
+Subject: [PATCH 2007/2070] local-alias-et_EE.patch
+
+---
+ intl/locale.alias |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/intl/locale.alias b/intl/locale.alias
+index 9dca902..46f6720 100644
+--- a/intl/locale.alias
++++ b/intl/locale.alias
+@@ -34,8 +34,8 @@ danish          da_DK.ISO-8859-1
+ dansk		da_DK.ISO-8859-1
+ deutsch		de_DE.ISO-8859-1
+ dutch		nl_NL.ISO-8859-1
+-eesti		et_EE.ISO-8859-1
+-estonian	et_EE.ISO-8859-1
++eesti		et_EE.ISO-8859-15
++estonian	et_EE.ISO-8859-15
+ finnish         fi_FI.ISO-8859-1
+ français	fr_FR.ISO-8859-1
+ french		fr_FR.ISO-8859-1
+-- 
+1.7.0.4
+

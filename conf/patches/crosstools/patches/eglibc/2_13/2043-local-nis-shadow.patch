@@ -1,0 +1,22 @@
+From d2779af9fa6f05545a2b1dd4b9ee134a9f467759 Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:06 +0000
+Subject: [PATCH 2043/2070] local-nis-shadow.patch
+
+---
+ nis/nss |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/nis/nss b/nis/nss
+index 0ac6774..c43e88b 100644
+--- a/nis/nss
++++ b/nis/nss
+@@ -34,4 +34,4 @@
+ #  server cannot be trusted to send the passwd.adjuct table only to
+ #  privileged clients.  Instead the passwd.adjunct.byname table is
+ #  used to synthesize the shadow.byname table if it does not exist.
+-#ADJUNCT_AS_SHADOW=TRUE
++ADJUNCT_AS_SHADOW=TRUE
+-- 
+1.7.0.4
+

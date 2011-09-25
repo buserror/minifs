@@ -1,0 +1,152 @@
+From 5046f3c0047e0c6a0cee4633ae8a2228de986c54 Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:07 +0000
+Subject: [PATCH 2062/2070] submitted-i686-timing.patch
+
+---
+ elf/Makefile               |    6 +++++-
+ elf/dl-altinit.c           |   43 +++++++++++++++++++++++++++++++++++++++++++
+ sysdeps/generic/ldsodefs.h |    4 ++--
+ sysdeps/i386/hp-timing.h   |   34 ++++++++++++++++++++++++++++++++++
+ 4 files changed, 84 insertions(+), 3 deletions(-)
+ create mode 100644 elf/dl-altinit.c
+ create mode 100644 sysdeps/i386/hp-timing.h
+
+diff --git a/elf/Makefile b/elf/Makefile
+index 3c43798..2cb4177 100644
+--- a/elf/Makefile
++++ b/elf/Makefile
+@@ -23,7 +23,7 @@ subdir		:= elf
+ headers		= elf.h bits/elfclass.h link.h bits/link.h
+ routines	= $(dl-routines) dl-support dl-iteratephdr \
+ 		  dl-addr enbl-secure dl-profstub \
+-		  dl-origin dl-libc dl-sym dl-tsd dl-sysdep
++		  dl-origin dl-libc dl-sym dl-tsd dl-sysdep dl-altinit
+ 
+ # The core dynamic linking functions are in libc for the static and
+ # profiled libraries.
+@@ -42,6 +42,10 @@ shared-only-routines += dl-caller
+ rtld-routines	:= rtld $(dl-routines) dl-sysdep dl-environ dl-minimal
+ all-rtld-routines = $(rtld-routines) $(sysdep-rtld-routines)
+ 
++# We only need to re-run initializers if ld.so and libc.so might be built
++# for different machines, so only shared libraries need dl-altinit.
++shared-only-routines = dl-altinit
++
+ distribute	:= rtld-Rules \
+ 		   $(rtld-routines:=.c) dynamic-link.h do-rel.h dl-machine.h \
+ 		   dl-cache.h dl-hash.h soinit.c sofini.c ldd.bash.in \
+diff --git a/elf/dl-altinit.c b/elf/dl-altinit.c
+new file mode 100644
+index 0000000..5325917
+--- /dev/null
++++ b/elf/dl-altinit.c
+@@ -0,0 +1,43 @@
++/* Extra initializers for shared libc.
++   Copyright (C) 2003 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <ldsodefs.h>
++#include <hp-timing.h>
++
++/* This file is used from the shared libc, to initialize anything which
++   ld.so should have initialized but didn't - for instance, if ld.so
++   is built for a machine without HP_TIMING but libc.so is built for
++   a machine with HP_TIMING, clock_gettime will expect dl_cpuclock_offset
++   to be initialized.  */
++
++static void
++dlinit_hptiming (void)
++{
++#if HP_TIMING_AVAIL || HP_SMALL_TIMING_AVAIL
++  if (GL(dl_cpuclock_offset) == 0)
++    HP_TIMING_NOW (GL(dl_cpuclock_offset));
++#endif
++}
++
++static void dlinit_alt (void) __attribute__((constructor));
++static void
++dlinit_alt (void)
++{
++  dlinit_hptiming ();
++}
+diff --git a/sysdeps/generic/ldsodefs.h b/sysdeps/generic/ldsodefs.h
+index e79252f..8ad537c 100644
+--- a/sysdeps/generic/ldsodefs.h
++++ b/sysdeps/generic/ldsodefs.h
+@@ -427,7 +427,7 @@ struct rtld_global
+   /* The object to be initialized first.  */
+   EXTERN struct link_map *_dl_initfirst;
+ 
+-#if HP_TIMING_AVAIL || HP_SMALL_TIMING_AVAIL
++#if HP_TIMING_AVAIL || HP_SMALL_TIMING_AVAIL || HP_TIMING_PAD
+   /* Start time on CPU clock.  */
+   EXTERN hp_timing_t _dl_cpuclock_offset;
+ #endif
+@@ -641,7 +641,7 @@ struct rtld_global_ro
+   /* All search directories defined at startup.  */
+   EXTERN struct r_search_path_elem *_dl_init_all_dirs;
+ 
+-#if HP_TIMING_AVAIL || HP_SMALL_TIMING_AVAIL
++#if HP_TIMING_AVAIL || HP_SMALL_TIMING_AVAIL || HP_TIMING_PAD
+   /* Overhead of a high-precision timing measurement.  */
+   EXTERN hp_timing_t _dl_hp_timing_overhead;
+ #endif
+diff --git a/sysdeps/i386/hp-timing.h b/sysdeps/i386/hp-timing.h
+new file mode 100644
+index 0000000..1029091
+--- /dev/null
++++ b/sysdeps/i386/hp-timing.h
+@@ -0,0 +1,34 @@
++/* High precision, low overhead timing functions.  i386 version.
++   Copyright (C) 2003 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#ifndef _i386_HP_TIMING_H
++#define _i386_HP_TIMING_H	1
++
++#define hp_timing_t hp_timing_t__
++#include <sysdeps/generic/hp-timing.h>
++#undef hp_timing_t
++
++/* We don't use high-precision timers, but we might load an i686 libpthread
++   which does.  */
++#define HP_TIMING_PAD 1
++
++/* i686 uses 64bit values for the times.  */
++typedef unsigned long long int hp_timing_t;
++
++#endif	/* hp-timing.h */
+-- 
+1.7.0.4
+

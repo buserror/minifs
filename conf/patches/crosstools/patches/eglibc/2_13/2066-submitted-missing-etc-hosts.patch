@@ -1,0 +1,25 @@
+From 3d5c1952a39420614021228205e7f3071e97fdcb Mon Sep 17 00:00:00 2001
+From: michaedw in build chroot <build@ctbu-bld5.cisco.com>
+Date: Wed, 9 Mar 2011 08:05:08 +0000
+Subject: [PATCH 2066/2070] submitted-missing-etc-hosts.patch
+
+---
+ nss/nss_files/files-hosts.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/nss/nss_files/files-hosts.c b/nss/nss_files/files-hosts.c
+index 83de650..08119ce 100644
+--- a/nss/nss_files/files-hosts.c
++++ b/nss/nss_files/files-hosts.c
+@@ -480,7 +480,7 @@ _nss_files_gethostbyname4_r (const char *name, struct gaih_addrtuple **pat,
+   else
+     {
+       *errnop = errno;
+-      *herrnop = NO_DATA;
++      *herrnop = HOST_NOT_FOUND;
+     }
+ 
+   __libc_lock_unlock (lock);
+-- 
+1.7.0.4
+
