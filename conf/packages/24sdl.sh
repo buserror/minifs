@@ -25,7 +25,7 @@ install-libsdl-local() {
 		chmod +x "$STAGING_TOOLS"/bin/sdl-config
 }
 install-libsdl() {
-	install-generic install-libsdl-local
+	log_install install-libsdl-local
 }
 
 PACKAGES+=" libsdlimage"
