@@ -18,13 +18,17 @@ deploy-libdirectfb() {
 	deploy cp "$STAGING_USR"/bin/dfb* "$ROOTFS/usr/bin"
 }
 
+PACKAGES+=" libffi"
+hset libffi url "ftp://sourceware.org/pub/libffi/libffi-3.0.9.tar.gz"
+
 # More recent version of glib fails to conf because of lack of glib-compile-schemas
 PACKAGES+=" libglib"
 #hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.24/glib-2.24.1.tar.bz2"
-hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.28/glib-2.28.7.tar.bz2"
+#hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.28/glib-2.28.7.tar.bz2"
+hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.29/glib-2.29.18.tar.bz2"
 #hset libglib prefix "$STAGING_USR"
 # this is needed for uclibc not NOT otherwise!
-# hset depends libglib "libiconv"
+hset libglib depends "libffi"
 
 hostcheck-libglib() {
 	local genm=$(which glib-genmarshal)
@@ -40,6 +44,7 @@ configure-libglib-local() {
 ac_cv_func_posix_getpwuid_r=yes
 ac_cv_func_posix_getgrgid_r=yes
 glib_cv_uscore=no
+ac_cv_func_qsort_r=no
 " >fake_glib_cache.conf
 	# yuck yuck yuck. fixes ARM thumb build
 	sed -i -e 's:swp %0, %1, \[%2\]:nop:g' glib/gatomic.c
@@ -51,7 +56,7 @@ glib_cv_uscore=no
 	export NOCONFIGURE=1
 	configure-generic-local \
 		--cache=fake_glib_cache.conf \
-		--with-pcre=internal
+		--with-pcre=internal || { echo FAILED ; exit 1; }
 	export LDFLAGS="$LDFLAGS_BASE"
 	export CFLAGS=$save
 	unset NOCONFIGURE
@@ -62,7 +67,8 @@ configure-libglib() {
 }
 
 PACKAGES+=" libglibnet"
-hset libglibnet url "http://ftp.gnome.org/pub/gnome/sources/glib-networking/2.28/glib-networking-2.28.7.tar.bz2"
+#hset libglibnet url "http://ftp.gnome.org/pub/gnome/sources/glib-networking/2.28/glib-networking-2.28.7.tar.bz2"
+hset libglibnet url "http://ftp.gnome.org/pub/gnome/sources/glib-networking/2.29/glib-networking-2.29.18.tar.bz2"
 hset libglibnet depends "gnutls libglib"
 hset libglibnet destdir "none" # let out own "install" fix borken autocrap
 
@@ -83,11 +89,13 @@ configure-libglibnet() {
 }
 
 PACKAGES+=" libglibjson"
-hset libglibjson url "http://ftp.gnome.org/pub/GNOME/sources/json-glib/0.12/json-glib-0.12.4.tar.bz2"
+#hset libglibjson url "http://ftp.gnome.org/pub/GNOME/sources/json-glib/0.12/json-glib-0.12.4.tar.bz2"
+hset libglibjson url "http://ftp.gnome.org/pub/GNOME/sources/json-glib/0.13/json-glib-0.13.4.tar.bz2"
 hset libglibjson depends "libglib"
 
 PACKAGES+=" libsoup"
-hset libsoup url "http://ftp.gnome.org/pub/gnome/sources/libsoup/2.33/libsoup-2.33.6.tar.bz2"
+#hset libsoup url "http://ftp.gnome.org/pub/gnome/sources/libsoup/2.33/libsoup-2.33.6.tar.bz2"
+hset libsoup url "http://ftp.gnome.org/pub/gnome/sources/libsoup/2.35/libsoup-2.35.5.tar.bz2"
 hset libsoup depends "libglibnet"
 
 configure-libsoup() {
@@ -153,6 +161,7 @@ deploy-libpango() {
 }
 
 PACKAGES+=" libatk"
+#hset libatk url "http://ftp.gnome.org/pub/gnome/sources/atk/1.33/atk-1.33.6.tar.bz2"
 hset libatk url "http://ftp.gnome.org/pub/gnome/sources/atk/1.33/atk-1.33.6.tar.bz2"
 
 PACKAGES+=" libgdkpixbuf"
@@ -165,6 +174,10 @@ configure-libgdkpixbuf() {
 		--disable-glibtest \
 		--without-libtiff	
 }
+
+# this is included in GTK
+#PACKAGES+=" libgail"
+#hset libgail url "http://ftp.acc.umu.se/pub/gnome/sources/gail/1.22/gail-1.22.3.tar.bz2"
 
 PACKAGES+=" libgtk"
 #hset libgtk url "http://ftp.gnome.org/pub/gnome/sources/gtk+/2.18/gtk+-2.18.7.tar.gz#libgtk-2.18.tar.gz"
