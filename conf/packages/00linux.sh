@@ -106,7 +106,7 @@ deploy-linux-modules() {
 #######################################################################
 
 PACKAGES+=" linux-bare"
-hset linux-bare depends "linux-modules linux-headers"
+hset linux-bare depends "linux-modules linux-headers crosstools uboot"
 
 configure-linux-bare() {
 	configure echo Done
