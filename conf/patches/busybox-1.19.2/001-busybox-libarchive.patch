@@ -1,0 +1,1224 @@
+diff -Naur busybox-1.19.2//archival/ar.c busybox/archival/ar.c
+--- busybox-1.19.2//archival/ar.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/ar.c	2011-09-25 10:27:25.000000000 +0100
+@@ -28,7 +28,7 @@
+ //usage:     "\n	-v	Verbose"
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ #include "ar.h"
+ 
+ #if ENABLE_FEATURE_AR_CREATE
+diff -Naur busybox-1.19.2//archival/bbunzip.c busybox/archival/bbunzip.c
+--- busybox-1.19.2//archival/bbunzip.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/bbunzip.c	2011-09-25 10:27:25.000000000 +0100
+@@ -5,7 +5,7 @@
+  * Licensed under GPLv2 or later, see file LICENSE in this source tree.
+  */
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ enum {
+ 	OPT_STDOUT     = 1 << 0,
+diff -Naur busybox-1.19.2//archival/bzip2.c busybox/archival/bzip2.c
+--- busybox-1.19.2//archival/bzip2.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/bzip2.c	2011-09-25 10:27:25.000000000 +0100
+@@ -17,7 +17,7 @@
+ //usage:     "\n	-f	Force"
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ #define CONFIG_BZIP2_FEATURE_SPEED 1
+ 
+diff -Naur busybox-1.19.2//archival/bzip2.c.orig busybox/archival/bzip2.c.orig
+--- busybox-1.19.2//archival/bzip2.c.orig	1970-01-01 01:00:00.000000000 +0100
++++ busybox/archival/bzip2.c.orig	2011-08-22 03:57:49.000000000 +0100
+@@ -0,0 +1,190 @@
++/*
++ * Copyright (C) 2007 Denys Vlasenko <vda.linux@googlemail.com>
++ *
++ * This file uses bzip2 library code which is written
++ * by Julian Seward <jseward@bzip.org>.
++ * See README and LICENSE files in bz/ directory for more information
++ * about bzip2 library code.
++ */
++
++//usage:#define bzip2_trivial_usage
++//usage:       "[OPTIONS] [FILE]..."
++//usage:#define bzip2_full_usage "\n\n"
++//usage:       "Compress FILEs (or stdin) with bzip2 algorithm\n"
++//usage:     "\n	-1..9	Compression level"
++//usage:     "\n	-d	Decompress"
++//usage:     "\n	-c	Write to stdout"
++//usage:     "\n	-f	Force"
++
++#include "libbb.h"
++#include "archive.h"
++
++#define CONFIG_BZIP2_FEATURE_SPEED 1
++
++/* Speed test:
++ * Compiled with gcc 4.2.1, run on Athlon 64 1800 MHz (512K L2 cache).
++ * Stock bzip2 is 26.4% slower than bbox bzip2 at SPEED 1
++ * (time to compress gcc-4.2.1.tar is 126.4% compared to bbox).
++ * At SPEED 5 difference is 32.7%.
++ *
++ * Test run of all CONFIG_BZIP2_FEATURE_SPEED values on a 11Mb text file:
++ *     Size   Time (3 runs)
++ * 0:  10828  4.145 4.146 4.148
++ * 1:  11097  3.845 3.860 3.861
++ * 2:  11392  3.763 3.767 3.768
++ * 3:  11892  3.722 3.724 3.727
++ * 4:  12740  3.637 3.640 3.644
++ * 5:  17273  3.497 3.509 3.509
++ */
++
++
++#define BZ_DEBUG 0
++/* Takes ~300 bytes, detects corruption caused by bad RAM etc */
++#define BZ_LIGHT_DEBUG 0
++
++#include "libarchive/bz/bzlib.h"
++
++#include "libarchive/bz/bzlib_private.h"
++
++#include "libarchive/bz/blocksort.c"
++#include "libarchive/bz/bzlib.c"
++#include "libarchive/bz/compress.c"
++#include "libarchive/bz/huffman.c"
++
++/* No point in being shy and having very small buffer here.
++ * bzip2 internal buffers are much bigger anyway, hundreds of kbytes.
++ * If iobuf is several pages long, malloc() may use mmap,
++ * making iobuf is page aligned and thus (maybe) have one memcpy less
++ * if kernel is clever enough.
++ */
++enum {
++	IOBUF_SIZE = 8 * 1024
++};
++
++static uint8_t level;
++
++/* NB: compressStream() has to return -1 on errors, not die.
++ * bbunpack() will correctly clean up in this case
++ * (delete incomplete .bz2 file)
++ */
++
++/* Returns:
++ * -1 on errors
++ * total written bytes so far otherwise
++ */
++static
++IF_DESKTOP(long long) int bz_write(bz_stream *strm, void* rbuf, ssize_t rlen, void *wbuf)
++{
++	int n, n2, ret;
++
++	strm->avail_in = rlen;
++	strm->next_in = rbuf;
++	while (1) {
++		strm->avail_out = IOBUF_SIZE;
++		strm->next_out = wbuf;
++
++		ret = BZ2_bzCompress(strm, rlen ? BZ_RUN : BZ_FINISH);
++		if (ret != BZ_RUN_OK /* BZ_RUNning */
++		 && ret != BZ_FINISH_OK /* BZ_FINISHing, but not done yet */
++		 && ret != BZ_STREAM_END /* BZ_FINISHed */
++		) {
++			bb_error_msg_and_die("internal error %d", ret);
++		}
++
++		n = IOBUF_SIZE - strm->avail_out;
++		if (n) {
++			n2 = full_write(STDOUT_FILENO, wbuf, n);
++			if (n2 != n) {
++				if (n2 >= 0)
++					errno = 0; /* prevent bogus error message */
++				bb_perror_msg(n2 >= 0 ? "short write" : bb_msg_write_error);
++				return -1;
++			}
++		}
++
++		if (ret == BZ_STREAM_END)
++			break;
++		if (rlen && strm->avail_in == 0)
++			break;
++	}
++	return 0 IF_DESKTOP( + strm->total_out );
++}
++
++static
++IF_DESKTOP(long long) int FAST_FUNC compressStream(unpack_info_t *info UNUSED_PARAM)
++{
++	IF_DESKTOP(long long) int total;
++	ssize_t count;
++	bz_stream bzs; /* it's small */
++#define strm (&bzs)
++	char *iobuf;
++#define rbuf iobuf
++#define wbuf (iobuf + IOBUF_SIZE)
++
++	iobuf = xmalloc(2 * IOBUF_SIZE);
++	BZ2_bzCompressInit(strm, level);
++
++	while (1) {
++		count = full_read(STDIN_FILENO, rbuf, IOBUF_SIZE);
++		if (count < 0) {
++			bb_perror_msg(bb_msg_read_error);
++			total = -1;
++			break;
++		}
++		/* if count == 0, bz_write finalizes compression */
++		total = bz_write(strm, rbuf, count, wbuf);
++		if (count == 0 || total < 0)
++			break;
++	}
++
++	/* Can't be conditional on ENABLE_FEATURE_CLEAN_UP -
++	 * we are called repeatedly
++	 */
++	BZ2_bzCompressEnd(strm);
++	free(iobuf);
++
++	return total;
++}
++
++int bzip2_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
++int bzip2_main(int argc UNUSED_PARAM, char **argv)
++{
++	unsigned opt;
++
++	/* standard bzip2 flags
++	 * -d --decompress force decompression
++	 * -z --compress force compression
++	 * -k --keep     keep (don't delete) input files
++	 * -f --force    overwrite existing output files
++	 * -t --test     test compressed file integrity
++	 * -c --stdout   output to standard out
++	 * -q --quiet    suppress noncritical error messages
++	 * -v --verbose  be verbose (a 2nd -v gives more)
++	 * -s --small    use less memory (at most 2500k)
++	 * -1 .. -9      set block size to 100k .. 900k
++	 * --fast        alias for -1
++	 * --best        alias for -9
++	 */
++
++	opt_complementary = "s2"; /* -s means -2 (compatibility) */
++	/* Must match bbunzip's constants OPT_STDOUT, OPT_FORCE! */
++	opt = getopt32(argv, "cfv" IF_BUNZIP2("dt") "123456789qzs");
++#if ENABLE_BUNZIP2 /* bunzip2_main may not be visible... */
++	if (opt & 0x18) // -d and/or -t
++		return bunzip2_main(argc, argv);
++	opt >>= 5;
++#else
++	opt >>= 3;
++#endif
++	opt = (uint8_t)opt; /* isolate bits for -1..-8 */
++	opt |= 0x100; /* if nothing else, assume -9 */
++	level = 1;
++	while (!(opt & 1)) {
++		level++;
++		opt >>= 1;
++	}
++
++	argv += optind;
++	option_mask32 &= 0x7; /* ignore all except -cfv */
++	return bbunpack(argv, compressStream, append_ext, "bz2");
++}
+diff -Naur busybox-1.19.2//archival/cpio.c busybox/archival/cpio.c
+--- busybox-1.19.2//archival/cpio.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/cpio.c	2011-09-25 10:27:25.000000000 +0100
+@@ -12,7 +12,7 @@
+  *
+  */
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ //usage:#define cpio_trivial_usage
+ //usage:       "[-dmvu] [-F FILE]" IF_FEATURE_CPIO_O(" [-H newc]")
+diff -Naur busybox-1.19.2//archival/dpkg.c busybox/archival/dpkg.c
+--- busybox-1.19.2//archival/dpkg.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/dpkg.c	2011-09-25 10:27:25.000000000 +0100
+@@ -57,7 +57,7 @@
+ 
+ #include "libbb.h"
+ #include <fnmatch.h>
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ /* note: if you vary hash_prime sizes be aware,
+  * 1) tweaking these will have a big effect on how much memory this program uses.
+diff -Naur busybox-1.19.2//archival/dpkg_deb.c busybox/archival/dpkg_deb.c
+--- busybox-1.19.2//archival/dpkg_deb.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/dpkg_deb.c	2011-09-25 10:27:25.000000000 +0100
+@@ -19,7 +19,7 @@
+ //usage:       "$ dpkg-deb -X ./busybox_0.48-1_i386.deb /tmp\n"
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ #define DPKG_DEB_OPT_CONTENTS         1
+ #define DPKG_DEB_OPT_CONTROL          2
+diff -Naur busybox-1.19.2//archival/gzip.c busybox/archival/gzip.c
+--- busybox-1.19.2//archival/gzip.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/gzip.c	2011-09-25 10:27:25.000000000 +0100
+@@ -55,7 +55,7 @@
+ //usage:       "-rw-rw-r--    1 andersen andersen   554058 Apr 14 17:49 /tmp/busybox.tar.gz\n"
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ 
+ /* ===========================================================================
+diff -Naur busybox-1.19.2//archival/libarchive/data_align.c busybox/archival/libarchive/data_align.c
+--- busybox-1.19.2//archival/libarchive/data_align.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/data_align.c	2011-09-25 10:27:25.000000000 +0100
+@@ -4,7 +4,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ void FAST_FUNC data_align(archive_handle_t *archive_handle, unsigned boundary)
+ {
+diff -Naur busybox-1.19.2//archival/libarchive/data_extract_all.c busybox/archival/libarchive/data_extract_all.c
+--- busybox-1.19.2//archival/libarchive/data_extract_all.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/data_extract_all.c	2011-09-25 10:27:25.000000000 +0100
+@@ -4,7 +4,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ void FAST_FUNC data_extract_all(archive_handle_t *archive_handle)
+ {
+diff -Naur busybox-1.19.2//archival/libarchive/data_extract_to_command.c busybox/archival/libarchive/data_extract_to_command.c
+--- busybox-1.19.2//archival/libarchive/data_extract_to_command.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/data_extract_to_command.c	2011-09-25 10:27:25.000000000 +0100
+@@ -4,7 +4,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ enum {
+ 	//TAR_FILETYPE,
+diff -Naur busybox-1.19.2//archival/libarchive/data_extract_to_stdout.c busybox/archival/libarchive/data_extract_to_stdout.c
+--- busybox-1.19.2//archival/libarchive/data_extract_to_stdout.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/data_extract_to_stdout.c	2011-09-25 10:27:25.000000000 +0100
+@@ -4,7 +4,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ void FAST_FUNC data_extract_to_stdout(archive_handle_t *archive_handle)
+ {
+diff -Naur busybox-1.19.2//archival/libarchive/data_skip.c busybox/archival/libarchive/data_skip.c
+--- busybox-1.19.2//archival/libarchive/data_skip.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/data_skip.c	2011-09-25 10:27:25.000000000 +0100
+@@ -4,7 +4,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ void FAST_FUNC data_skip(archive_handle_t *archive_handle)
+ {
+diff -Naur busybox-1.19.2//archival/libarchive/decompress_bunzip2.c busybox/archival/libarchive/decompress_bunzip2.c
+--- busybox-1.19.2//archival/libarchive/decompress_bunzip2.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/decompress_bunzip2.c	2011-09-25 10:27:25.000000000 +0100
+@@ -40,7 +40,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ /* Constants for Huffman coding */
+ #define MAX_GROUPS          6
+diff -Naur busybox-1.19.2//archival/libarchive/decompress_uncompress.c busybox/archival/libarchive/decompress_uncompress.c
+--- busybox-1.19.2//archival/libarchive/decompress_uncompress.c	2011-08-28 11:59:56.000000000 +0100
++++ busybox/archival/libarchive/decompress_uncompress.c	2011-09-25 10:27:25.000000000 +0100
+@@ -25,7 +25,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ 
+ /* Default input buffer size */
+diff -Naur busybox-1.19.2//archival/libarchive/decompress_unlzma.c busybox/archival/libarchive/decompress_unlzma.c
+--- busybox-1.19.2//archival/libarchive/decompress_unlzma.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/decompress_unlzma.c	2011-09-25 10:27:25.000000000 +0100
+@@ -9,7 +9,7 @@
+  * Licensed under GPLv2 or later, see file LICENSE in this source tree.
+  */
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ #if ENABLE_FEATURE_LZMA_FAST
+ #  define speed_inline ALWAYS_INLINE
+diff -Naur busybox-1.19.2//archival/libarchive/decompress_unxz.c busybox/archival/libarchive/decompress_unxz.c
+--- busybox-1.19.2//archival/libarchive/decompress_unxz.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/decompress_unxz.c	2011-09-25 10:27:25.000000000 +0100
+@@ -10,7 +10,7 @@
+  * Licensed under GPLv2, see file LICENSE in this source tree.
+  */
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ #define XZ_FUNC FAST_FUNC
+ #define XZ_EXTERN static
+diff -Naur busybox-1.19.2//archival/libarchive/decompress_unzip.c busybox/archival/libarchive/decompress_unzip.c
+--- busybox-1.19.2//archival/libarchive/decompress_unzip.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/decompress_unzip.c	2011-09-25 10:27:25.000000000 +0100
+@@ -35,7 +35,7 @@
+ 
+ #include <setjmp.h>
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ typedef struct huft_t {
+ 	unsigned char e;	/* number of extra bits or operation */
+diff -Naur busybox-1.19.2//archival/libarchive/filter_accept_all.c busybox/archival/libarchive/filter_accept_all.c
+--- busybox-1.19.2//archival/libarchive/filter_accept_all.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/filter_accept_all.c	2011-09-25 10:27:25.000000000 +0100
+@@ -6,7 +6,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ /* Accept any non-null name, its not really a filter at all */
+ char FAST_FUNC filter_accept_all(archive_handle_t *archive_handle)
+diff -Naur busybox-1.19.2//archival/libarchive/filter_accept_list.c busybox/archival/libarchive/filter_accept_list.c
+--- busybox-1.19.2//archival/libarchive/filter_accept_list.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/filter_accept_list.c	2011-09-25 10:27:25.000000000 +0100
+@@ -6,7 +6,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ /*
+  * Accept names that are in the accept list, ignoring reject list.
+diff -Naur busybox-1.19.2//archival/libarchive/filter_accept_list_reassign.c busybox/archival/libarchive/filter_accept_list_reassign.c
+--- busybox-1.19.2//archival/libarchive/filter_accept_list_reassign.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/filter_accept_list_reassign.c	2011-09-25 10:27:25.000000000 +0100
+@@ -6,7 +6,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ /* Built and used only if ENABLE_DPKG || ENABLE_DPKG_DEB */
+ 
+diff -Naur busybox-1.19.2//archival/libarchive/filter_accept_reject_list.c busybox/archival/libarchive/filter_accept_reject_list.c
+--- busybox-1.19.2//archival/libarchive/filter_accept_reject_list.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/filter_accept_reject_list.c	2011-09-25 10:27:25.000000000 +0100
+@@ -6,7 +6,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ /*
+  * Accept names that are in the accept list and not in the reject list
+diff -Naur busybox-1.19.2//archival/libarchive/find_list_entry.c busybox/archival/libarchive/find_list_entry.c
+--- busybox-1.19.2//archival/libarchive/find_list_entry.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/find_list_entry.c	2011-09-25 10:27:25.000000000 +0100
+@@ -7,7 +7,7 @@
+ 
+ #include <fnmatch.h>
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ /* Find a string in a shell pattern list */
+ const llist_t* FAST_FUNC find_list_entry(const llist_t *list, const char *filename)
+diff -Naur busybox-1.19.2//archival/libarchive/get_header_ar.c busybox/archival/libarchive/get_header_ar.c
+--- busybox-1.19.2//archival/libarchive/get_header_ar.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/get_header_ar.c	2011-09-25 10:27:25.000000000 +0100
+@@ -5,7 +5,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ #include "ar.h"
+ 
+ static unsigned read_num(const char *str, int base)
+diff -Naur busybox-1.19.2//archival/libarchive/get_header_cpio.c busybox/archival/libarchive/get_header_cpio.c
+--- busybox-1.19.2//archival/libarchive/get_header_cpio.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/get_header_cpio.c	2011-09-25 10:27:25.000000000 +0100
+@@ -5,7 +5,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ typedef struct hardlinks_t {
+ 	struct hardlinks_t *next;
+diff -Naur busybox-1.19.2//archival/libarchive/get_header_tar.c busybox/archival/libarchive/get_header_tar.c
+--- busybox-1.19.2//archival/libarchive/get_header_tar.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/get_header_tar.c	2011-09-25 10:27:25.000000000 +0100
+@@ -12,7 +12,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ typedef uint32_t aliased_uint32_t FIX_ALIASING;
+ typedef off_t    aliased_off_t    FIX_ALIASING;
+diff -Naur busybox-1.19.2//archival/libarchive/get_header_tar_bz2.c busybox/archival/libarchive/get_header_tar_bz2.c
+--- busybox-1.19.2//archival/libarchive/get_header_tar_bz2.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/get_header_tar_bz2.c	2011-09-25 10:27:25.000000000 +0100
+@@ -4,7 +4,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ char FAST_FUNC get_header_tar_bz2(archive_handle_t *archive_handle)
+ {
+diff -Naur busybox-1.19.2//archival/libarchive/get_header_tar_gz.c busybox/archival/libarchive/get_header_tar_gz.c
+--- busybox-1.19.2//archival/libarchive/get_header_tar_gz.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/get_header_tar_gz.c	2011-09-25 10:27:25.000000000 +0100
+@@ -4,7 +4,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ char FAST_FUNC get_header_tar_gz(archive_handle_t *archive_handle)
+ {
+diff -Naur busybox-1.19.2//archival/libarchive/get_header_tar_lzma.c busybox/archival/libarchive/get_header_tar_lzma.c
+--- busybox-1.19.2//archival/libarchive/get_header_tar_lzma.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/get_header_tar_lzma.c	2011-09-25 10:27:25.000000000 +0100
+@@ -7,7 +7,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ char FAST_FUNC get_header_tar_lzma(archive_handle_t *archive_handle)
+ {
+diff -Naur busybox-1.19.2//archival/libarchive/header_list.c busybox/archival/libarchive/header_list.c
+--- busybox-1.19.2//archival/libarchive/header_list.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/header_list.c	2011-09-25 10:27:25.000000000 +0100
+@@ -3,7 +3,7 @@
+  * Licensed under GPLv2 or later, see file LICENSE in this source tree.
+  */
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ void FAST_FUNC header_list(const file_header_t *file_header)
+ {
+diff -Naur busybox-1.19.2//archival/libarchive/header_skip.c busybox/archival/libarchive/header_skip.c
+--- busybox-1.19.2//archival/libarchive/header_skip.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/header_skip.c	2011-09-25 10:27:25.000000000 +0100
+@@ -3,7 +3,7 @@
+  * Licensed under GPLv2 or later, see file LICENSE in this source tree.
+  */
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ void FAST_FUNC header_skip(const file_header_t *file_header UNUSED_PARAM)
+ {
+diff -Naur busybox-1.19.2//archival/libarchive/header_verbose_list.c busybox/archival/libarchive/header_verbose_list.c
+--- busybox-1.19.2//archival/libarchive/header_verbose_list.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/header_verbose_list.c	2011-09-25 10:27:25.000000000 +0100
+@@ -4,7 +4,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ void FAST_FUNC header_verbose_list(const file_header_t *file_header)
+ {
+diff -Naur busybox-1.19.2//archival/libarchive/init_handle.c busybox/archival/libarchive/init_handle.c
+--- busybox-1.19.2//archival/libarchive/init_handle.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/init_handle.c	2011-09-25 10:27:25.000000000 +0100
+@@ -4,7 +4,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ archive_handle_t* FAST_FUNC init_handle(void)
+ {
+diff -Naur busybox-1.19.2//archival/libarchive/open_transformer.c busybox/archival/libarchive/open_transformer.c
+--- busybox-1.19.2//archival/libarchive/open_transformer.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/open_transformer.c	2011-09-25 10:27:25.000000000 +0100
+@@ -4,7 +4,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ /* transformer(), more than meets the eye */
+ /*
+diff -Naur busybox-1.19.2//archival/libarchive/seek_by_jump.c busybox/archival/libarchive/seek_by_jump.c
+--- busybox-1.19.2//archival/libarchive/seek_by_jump.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/seek_by_jump.c	2011-09-25 10:27:25.000000000 +0100
+@@ -4,7 +4,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ void FAST_FUNC seek_by_jump(int fd, off_t amount)
+ {
+diff -Naur busybox-1.19.2//archival/libarchive/seek_by_read.c busybox/archival/libarchive/seek_by_read.c
+--- busybox-1.19.2//archival/libarchive/seek_by_read.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/seek_by_read.c	2011-09-25 10:27:25.000000000 +0100
+@@ -4,7 +4,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ /*  If we are reading through a pipe, or from stdin then we can't lseek,
+  *  we must read and discard the data to skip over it.
+diff -Naur busybox-1.19.2//archival/libarchive/unpack_ar_archive.c busybox/archival/libarchive/unpack_ar_archive.c
+--- busybox-1.19.2//archival/libarchive/unpack_ar_archive.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/libarchive/unpack_ar_archive.c	2011-09-25 10:27:25.000000000 +0100
+@@ -4,7 +4,7 @@
+  */
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ #include "ar.h"
+ 
+ void FAST_FUNC unpack_ar_archive(archive_handle_t *ar_archive)
+diff -Naur busybox-1.19.2//archival/lzop.c busybox/archival/lzop.c
+--- busybox-1.19.2//archival/lzop.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/lzop.c	2011-09-25 10:27:25.000000000 +0100
+@@ -51,7 +51,7 @@
+ //usage:     "\n	-F	Don't store or verify checksum"
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ #include "liblzo_interface.h"
+ 
+ /* lzo-2.03/src/lzo_ptr.h */
+diff -Naur busybox-1.19.2//archival/rpm.c busybox/archival/rpm.c
+--- busybox-1.19.2//archival/rpm.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/rpm.c	2011-09-25 10:27:25.000000000 +0100
+@@ -20,7 +20,7 @@
+ //usage:     "\n	-c	List config files"
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ #include "rpm.h"
+ 
+ #define RPM_CHAR_TYPE           1
+diff -Naur busybox-1.19.2//archival/rpm2cpio.c busybox/archival/rpm2cpio.c
+--- busybox-1.19.2//archival/rpm2cpio.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/rpm2cpio.c	2011-09-25 10:27:25.000000000 +0100
+@@ -13,7 +13,7 @@
+ //usage:       "Output a cpio archive of the rpm file"
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ #include "rpm.h"
+ 
+ enum { rpm_fd = STDIN_FILENO };
+diff -Naur busybox-1.19.2//archival/tar.c busybox/archival/tar.c
+--- busybox-1.19.2//archival/tar.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/tar.c	2011-09-25 10:27:25.000000000 +0100
+@@ -44,7 +44,7 @@
+ 
+ #include <fnmatch.h>
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ /* FIXME: Stop using this non-standard feature */
+ #ifndef FNM_LEADING_DIR
+ # define FNM_LEADING_DIR 0
+diff -Naur busybox-1.19.2//archival/unzip.c busybox/archival/unzip.c
+--- busybox-1.19.2//archival/unzip.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/archival/unzip.c	2011-09-25 10:27:25.000000000 +0100
+@@ -32,7 +32,7 @@
+ //usage:     "\n	-d DIR	Extract files into DIR"
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ enum {
+ #if BB_BIG_ENDIAN
+diff -Naur busybox-1.19.2//include/archive.h busybox/include/archive.h
+--- busybox-1.19.2//include/archive.h	2011-08-22 03:57:49.000000000 +0100
++++ busybox/include/archive.h	1970-01-01 01:00:00.000000000 +0100
+@@ -1,241 +0,0 @@
+-/* vi: set sw=4 ts=4: */
+-#ifndef UNARCHIVE_H
+-#define UNARCHIVE_H 1
+-
+-PUSH_AND_SET_FUNCTION_VISIBILITY_TO_HIDDEN
+-
+-enum {
+-#if BB_BIG_ENDIAN
+-	COMPRESS_MAGIC = 0x1f9d,
+-	GZIP_MAGIC  = 0x1f8b,
+-	BZIP2_MAGIC = 256 * 'B' + 'Z',
+-	/* .xz signature: 0xfd, '7', 'z', 'X', 'Z', 0x00 */
+-	/* More info at: http://tukaani.org/xz/xz-file-format.txt */
+-	XZ_MAGIC1   = 256 * 0xfd + '7',
+-	XZ_MAGIC2   = 256 * (256 * (256 * 'z' + 'X') + 'Z') + 0,
+-	/* Different form: 32 bits, then 16 bits: */
+-	XZ_MAGIC1a  = 256 * (256 * (256 * 0xfd + '7') + 'z') + 'X',
+-	XZ_MAGIC2a  = 256 * 'Z' + 0,
+-#else
+-	COMPRESS_MAGIC = 0x9d1f,
+-	GZIP_MAGIC  = 0x8b1f,
+-	BZIP2_MAGIC = 'B' + 'Z' * 256,
+-	XZ_MAGIC1   = 0xfd + '7' * 256,
+-	XZ_MAGIC2   = 'z' + ('X' + ('Z' + 0 * 256) * 256) * 256,
+-	XZ_MAGIC1a  = 0xfd + ('7' + ('z' + 'X' * 256) * 256) * 256,
+-	XZ_MAGIC2a  = 'Z' + 0 * 256,
+-#endif
+-};
+-
+-typedef struct file_header_t {
+-	char *name;
+-	char *link_target;
+-#if ENABLE_FEATURE_TAR_UNAME_GNAME
+-	char *tar__uname;
+-	char *tar__gname;
+-#endif
+-	off_t size;
+-	uid_t uid;
+-	gid_t gid;
+-	mode_t mode;
+-	time_t mtime;
+-	dev_t device;
+-} file_header_t;
+-
+-struct hardlinks_t;
+-
+-typedef struct archive_handle_t {
+-	/* Flags. 1st since it is most used member */
+-	unsigned ah_flags;
+-
+-	/* The raw stream as read from disk or stdin */
+-	int src_fd;
+-
+-	/* Define if the header and data component should be processed */
+-	char FAST_FUNC (*filter)(struct archive_handle_t *);
+-	/* List of files that have been accepted */
+-	llist_t *accept;
+-	/* List of files that have been rejected */
+-	llist_t *reject;
+-	/* List of files that have successfully been worked on */
+-	llist_t *passed;
+-
+-	/* Currently processed file's header */
+-	file_header_t *file_header;
+-
+-	/* Process the header component, e.g. tar -t */
+-	void FAST_FUNC (*action_header)(const file_header_t *);
+-
+-	/* Process the data component, e.g. extract to filesystem */
+-	void FAST_FUNC (*action_data)(struct archive_handle_t *);
+-
+-	/* Function that skips data */
+-	void FAST_FUNC (*seek)(int fd, off_t amount);
+-
+-	/* Count processed bytes */
+-	off_t offset;
+-
+-	/* Archiver specific. Can make it a union if it ever gets big */
+-#if ENABLE_TAR || ENABLE_DPKG || ENABLE_DPKG_DEB
+-	smallint tar__end;
+-# if ENABLE_FEATURE_TAR_GNU_EXTENSIONS
+-	char* tar__longname;
+-	char* tar__linkname;
+-# endif
+-#if ENABLE_FEATURE_TAR_TO_COMMAND
+-	char* tar__to_command;
+-	const char* tar__to_command_shell;
+-#endif
+-# if ENABLE_FEATURE_TAR_SELINUX
+-	char* tar__global_sctx;
+-	char* tar__next_file_sctx;
+-# endif
+-#endif
+-#if ENABLE_CPIO || ENABLE_RPM2CPIO || ENABLE_RPM
+-	uoff_t cpio__blocks;
+-	struct hardlinks_t *cpio__hardlinks_to_create;
+-	struct hardlinks_t *cpio__created_hardlinks;
+-#endif
+-#if ENABLE_DPKG || ENABLE_DPKG_DEB
+-	/* Temporary storage */
+-	char *dpkg__buffer;
+-	/* How to process any sub archive, e.g. get_header_tar_gz */
+-	char FAST_FUNC (*dpkg__action_data_subarchive)(struct archive_handle_t *);
+-	/* Contains the handle to a sub archive */
+-	struct archive_handle_t *dpkg__sub_archive;
+-#endif
+-#if ENABLE_FEATURE_AR_CREATE
+-	const char *ar__name;
+-	struct archive_handle_t *ar__out;
+-#endif
+-} archive_handle_t;
+-/* bits in ah_flags */
+-#define ARCHIVE_RESTORE_DATE        (1 << 0)
+-#define ARCHIVE_CREATE_LEADING_DIRS (1 << 1)
+-#define ARCHIVE_UNLINK_OLD          (1 << 2)
+-#define ARCHIVE_EXTRACT_QUIET       (1 << 3)
+-#define ARCHIVE_EXTRACT_NEWER       (1 << 4)
+-#define ARCHIVE_DONT_RESTORE_OWNER  (1 << 5)
+-#define ARCHIVE_DONT_RESTORE_PERM   (1 << 6)
+-#define ARCHIVE_NUMERIC_OWNER       (1 << 7)
+-#define ARCHIVE_O_TRUNC             (1 << 8)
+-
+-
+-/* POSIX tar Header Block, from POSIX 1003.1-1990  */
+-#define TAR_BLOCK_SIZE 512
+-#define NAME_SIZE      100
+-#define NAME_SIZE_STR "100"
+-typedef struct tar_header_t {     /* byte offset */
+-	char name[NAME_SIZE];     /*   0-99 */
+-	char mode[8];             /* 100-107 */
+-	char uid[8];              /* 108-115 */
+-	char gid[8];              /* 116-123 */
+-	char size[12];            /* 124-135 */
+-	char mtime[12];           /* 136-147 */
+-	char chksum[8];           /* 148-155 */
+-	char typeflag;            /* 156-156 */
+-	char linkname[NAME_SIZE]; /* 157-256 */
+-	/* POSIX:   "ustar" NUL "00" */
+-	/* GNU tar: "ustar  " NUL */
+-	/* Normally it's defined as magic[6] followed by
+-	 * version[2], but we put them together to save code.
+-	 */
+-	char magic[8];            /* 257-264 */
+-	char uname[32];           /* 265-296 */
+-	char gname[32];           /* 297-328 */
+-	char devmajor[8];         /* 329-336 */
+-	char devminor[8];         /* 337-344 */
+-	char prefix[155];         /* 345-499 */
+-	char padding[12];         /* 500-512 (pad to exactly TAR_BLOCK_SIZE) */
+-} tar_header_t;
+-struct BUG_tar_header {
+-	char c[sizeof(tar_header_t) == TAR_BLOCK_SIZE ? 1 : -1];
+-};
+-
+-
+-
+-/* Info struct unpackers can fill out to inform users of thing like
+- * timestamps of unpacked files */
+-typedef struct unpack_info_t {
+-	time_t mtime;
+-} unpack_info_t;
+-
+-archive_handle_t *init_handle(void) FAST_FUNC;
+-
+-char filter_accept_all(archive_handle_t *archive_handle) FAST_FUNC;
+-char filter_accept_list(archive_handle_t *archive_handle) FAST_FUNC;
+-char filter_accept_list_reassign(archive_handle_t *archive_handle) FAST_FUNC;
+-char filter_accept_reject_list(archive_handle_t *archive_handle) FAST_FUNC;
+-
+-void unpack_ar_archive(archive_handle_t *ar_archive) FAST_FUNC;
+-
+-void data_skip(archive_handle_t *archive_handle) FAST_FUNC;
+-void data_extract_all(archive_handle_t *archive_handle) FAST_FUNC;
+-void data_extract_to_stdout(archive_handle_t *archive_handle) FAST_FUNC;
+-void data_extract_to_command(archive_handle_t *archive_handle) FAST_FUNC;
+-
+-void header_skip(const file_header_t *file_header) FAST_FUNC;
+-void header_list(const file_header_t *file_header) FAST_FUNC;
+-void header_verbose_list(const file_header_t *file_header) FAST_FUNC;
+-
+-char get_header_ar(archive_handle_t *archive_handle) FAST_FUNC;
+-char get_header_cpio(archive_handle_t *archive_handle) FAST_FUNC;
+-char get_header_tar(archive_handle_t *archive_handle) FAST_FUNC;
+-char get_header_tar_gz(archive_handle_t *archive_handle) FAST_FUNC;
+-char get_header_tar_bz2(archive_handle_t *archive_handle) FAST_FUNC;
+-char get_header_tar_lzma(archive_handle_t *archive_handle) FAST_FUNC;
+-
+-void seek_by_jump(int fd, off_t amount) FAST_FUNC;
+-void seek_by_read(int fd, off_t amount) FAST_FUNC;
+-
+-const char *strip_unsafe_prefix(const char *str) FAST_FUNC;
+-
+-void data_align(archive_handle_t *archive_handle, unsigned boundary) FAST_FUNC;
+-const llist_t *find_list_entry(const llist_t *list, const char *filename) FAST_FUNC;
+-const llist_t *find_list_entry2(const llist_t *list, const char *filename) FAST_FUNC;
+-
+-/* A bit of bunzip2 internals are exposed for compressed help support: */
+-typedef struct bunzip_data bunzip_data;
+-int start_bunzip(bunzip_data **bdp, int in_fd, const void *inbuf, int len) FAST_FUNC;
+-/* NB: read_bunzip returns < 0 on error, or the number of *unfilled* bytes
+- * in outbuf. IOW: on EOF returns len ("all bytes are not filled"), not 0: */
+-int read_bunzip(bunzip_data *bd, char *outbuf, int len) FAST_FUNC;
+-void dealloc_bunzip(bunzip_data *bd) FAST_FUNC;
+-
+-typedef struct inflate_unzip_result {
+-	off_t bytes_out;
+-	uint32_t crc;
+-} inflate_unzip_result;
+-
+-IF_DESKTOP(long long) int inflate_unzip(inflate_unzip_result *res, off_t compr_size, int src_fd, int dst_fd) FAST_FUNC;
+-/* xz unpacker takes .xz stream from offset 6 */
+-IF_DESKTOP(long long) int unpack_xz_stream(int src_fd, int dst_fd) FAST_FUNC;
+-/* lzma unpacker takes .lzma stream from offset 0 */
+-IF_DESKTOP(long long) int unpack_lzma_stream(int src_fd, int dst_fd) FAST_FUNC;
+-/* the rest wants 2 first bytes already skipped by the caller */
+-IF_DESKTOP(long long) int unpack_bz2_stream(int src_fd, int dst_fd) FAST_FUNC;
+-IF_DESKTOP(long long) int unpack_gz_stream(int src_fd, int dst_fd) FAST_FUNC;
+-IF_DESKTOP(long long) int unpack_gz_stream_with_info(int src_fd, int dst_fd, unpack_info_t *info) FAST_FUNC;
+-IF_DESKTOP(long long) int unpack_Z_stream(int src_fd, int dst_fd) FAST_FUNC;
+-/* wrapper which checks first two bytes to be "BZ" */
+-IF_DESKTOP(long long) int unpack_bz2_stream_prime(int src_fd, int dst_fd) FAST_FUNC;
+-
+-char* append_ext(char *filename, const char *expected_ext) FAST_FUNC;
+-int bbunpack(char **argv,
+-	    IF_DESKTOP(long long) int FAST_FUNC (*unpacker)(unpack_info_t *info),
+-	    char* FAST_FUNC (*make_new_name)(char *filename, const char *expected_ext),
+-	    const char *expected_ext
+-) FAST_FUNC;
+-
+-#if BB_MMU
+-void open_transformer(int fd,
+-	IF_DESKTOP(long long) int FAST_FUNC (*transformer)(int src_fd, int dst_fd)) FAST_FUNC;
+-#define open_transformer(fd, transformer, transform_prog) open_transformer(fd, transformer)
+-#else
+-void open_transformer(int src_fd, const char *transform_prog) FAST_FUNC;
+-#define open_transformer(fd, transformer, transform_prog) open_transformer(fd, transform_prog)
+-#endif
+-
+-POP_SAVED_FUNCTION_VISIBILITY
+-
+-#endif
+diff -Naur busybox-1.19.2//include/bb_archive.h busybox/include/bb_archive.h
+--- busybox-1.19.2//include/bb_archive.h	1970-01-01 01:00:00.000000000 +0100
++++ busybox/include/bb_archive.h	2011-08-22 03:57:49.000000000 +0100
+@@ -0,0 +1,241 @@
++/* vi: set sw=4 ts=4: */
++#ifndef UNARCHIVE_H
++#define UNARCHIVE_H 1
++
++PUSH_AND_SET_FUNCTION_VISIBILITY_TO_HIDDEN
++
++enum {
++#if BB_BIG_ENDIAN
++	COMPRESS_MAGIC = 0x1f9d,
++	GZIP_MAGIC  = 0x1f8b,
++	BZIP2_MAGIC = 256 * 'B' + 'Z',
++	/* .xz signature: 0xfd, '7', 'z', 'X', 'Z', 0x00 */
++	/* More info at: http://tukaani.org/xz/xz-file-format.txt */
++	XZ_MAGIC1   = 256 * 0xfd + '7',
++	XZ_MAGIC2   = 256 * (256 * (256 * 'z' + 'X') + 'Z') + 0,
++	/* Different form: 32 bits, then 16 bits: */
++	XZ_MAGIC1a  = 256 * (256 * (256 * 0xfd + '7') + 'z') + 'X',
++	XZ_MAGIC2a  = 256 * 'Z' + 0,
++#else
++	COMPRESS_MAGIC = 0x9d1f,
++	GZIP_MAGIC  = 0x8b1f,
++	BZIP2_MAGIC = 'B' + 'Z' * 256,
++	XZ_MAGIC1   = 0xfd + '7' * 256,
++	XZ_MAGIC2   = 'z' + ('X' + ('Z' + 0 * 256) * 256) * 256,
++	XZ_MAGIC1a  = 0xfd + ('7' + ('z' + 'X' * 256) * 256) * 256,
++	XZ_MAGIC2a  = 'Z' + 0 * 256,
++#endif
++};
++
++typedef struct file_header_t {
++	char *name;
++	char *link_target;
++#if ENABLE_FEATURE_TAR_UNAME_GNAME
++	char *tar__uname;
++	char *tar__gname;
++#endif
++	off_t size;
++	uid_t uid;
++	gid_t gid;
++	mode_t mode;
++	time_t mtime;
++	dev_t device;
++} file_header_t;
++
++struct hardlinks_t;
++
++typedef struct archive_handle_t {
++	/* Flags. 1st since it is most used member */
++	unsigned ah_flags;
++
++	/* The raw stream as read from disk or stdin */
++	int src_fd;
++
++	/* Define if the header and data component should be processed */
++	char FAST_FUNC (*filter)(struct archive_handle_t *);
++	/* List of files that have been accepted */
++	llist_t *accept;
++	/* List of files that have been rejected */
++	llist_t *reject;
++	/* List of files that have successfully been worked on */
++	llist_t *passed;
++
++	/* Currently processed file's header */
++	file_header_t *file_header;
++
++	/* Process the header component, e.g. tar -t */
++	void FAST_FUNC (*action_header)(const file_header_t *);
++
++	/* Process the data component, e.g. extract to filesystem */
++	void FAST_FUNC (*action_data)(struct archive_handle_t *);
++
++	/* Function that skips data */
++	void FAST_FUNC (*seek)(int fd, off_t amount);
++
++	/* Count processed bytes */
++	off_t offset;
++
++	/* Archiver specific. Can make it a union if it ever gets big */
++#if ENABLE_TAR || ENABLE_DPKG || ENABLE_DPKG_DEB
++	smallint tar__end;
++# if ENABLE_FEATURE_TAR_GNU_EXTENSIONS
++	char* tar__longname;
++	char* tar__linkname;
++# endif
++#if ENABLE_FEATURE_TAR_TO_COMMAND
++	char* tar__to_command;
++	const char* tar__to_command_shell;
++#endif
++# if ENABLE_FEATURE_TAR_SELINUX
++	char* tar__global_sctx;
++	char* tar__next_file_sctx;
++# endif
++#endif
++#if ENABLE_CPIO || ENABLE_RPM2CPIO || ENABLE_RPM
++	uoff_t cpio__blocks;
++	struct hardlinks_t *cpio__hardlinks_to_create;
++	struct hardlinks_t *cpio__created_hardlinks;
++#endif
++#if ENABLE_DPKG || ENABLE_DPKG_DEB
++	/* Temporary storage */
++	char *dpkg__buffer;
++	/* How to process any sub archive, e.g. get_header_tar_gz */
++	char FAST_FUNC (*dpkg__action_data_subarchive)(struct archive_handle_t *);
++	/* Contains the handle to a sub archive */
++	struct archive_handle_t *dpkg__sub_archive;
++#endif
++#if ENABLE_FEATURE_AR_CREATE
++	const char *ar__name;
++	struct archive_handle_t *ar__out;
++#endif
++} archive_handle_t;
++/* bits in ah_flags */
++#define ARCHIVE_RESTORE_DATE        (1 << 0)
++#define ARCHIVE_CREATE_LEADING_DIRS (1 << 1)
++#define ARCHIVE_UNLINK_OLD          (1 << 2)
++#define ARCHIVE_EXTRACT_QUIET       (1 << 3)
++#define ARCHIVE_EXTRACT_NEWER       (1 << 4)
++#define ARCHIVE_DONT_RESTORE_OWNER  (1 << 5)
++#define ARCHIVE_DONT_RESTORE_PERM   (1 << 6)
++#define ARCHIVE_NUMERIC_OWNER       (1 << 7)
++#define ARCHIVE_O_TRUNC             (1 << 8)
++
++
++/* POSIX tar Header Block, from POSIX 1003.1-1990  */
++#define TAR_BLOCK_SIZE 512
++#define NAME_SIZE      100
++#define NAME_SIZE_STR "100"
++typedef struct tar_header_t {     /* byte offset */
++	char name[NAME_SIZE];     /*   0-99 */
++	char mode[8];             /* 100-107 */
++	char uid[8];              /* 108-115 */
++	char gid[8];              /* 116-123 */
++	char size[12];            /* 124-135 */
++	char mtime[12];           /* 136-147 */
++	char chksum[8];           /* 148-155 */
++	char typeflag;            /* 156-156 */
++	char linkname[NAME_SIZE]; /* 157-256 */
++	/* POSIX:   "ustar" NUL "00" */
++	/* GNU tar: "ustar  " NUL */
++	/* Normally it's defined as magic[6] followed by
++	 * version[2], but we put them together to save code.
++	 */
++	char magic[8];            /* 257-264 */
++	char uname[32];           /* 265-296 */
++	char gname[32];           /* 297-328 */
++	char devmajor[8];         /* 329-336 */
++	char devminor[8];         /* 337-344 */
++	char prefix[155];         /* 345-499 */
++	char padding[12];         /* 500-512 (pad to exactly TAR_BLOCK_SIZE) */
++} tar_header_t;
++struct BUG_tar_header {
++	char c[sizeof(tar_header_t) == TAR_BLOCK_SIZE ? 1 : -1];
++};
++
++
++
++/* Info struct unpackers can fill out to inform users of thing like
++ * timestamps of unpacked files */
++typedef struct unpack_info_t {
++	time_t mtime;
++} unpack_info_t;
++
++archive_handle_t *init_handle(void) FAST_FUNC;
++
++char filter_accept_all(archive_handle_t *archive_handle) FAST_FUNC;
++char filter_accept_list(archive_handle_t *archive_handle) FAST_FUNC;
++char filter_accept_list_reassign(archive_handle_t *archive_handle) FAST_FUNC;
++char filter_accept_reject_list(archive_handle_t *archive_handle) FAST_FUNC;
++
++void unpack_ar_archive(archive_handle_t *ar_archive) FAST_FUNC;
++
++void data_skip(archive_handle_t *archive_handle) FAST_FUNC;
++void data_extract_all(archive_handle_t *archive_handle) FAST_FUNC;
++void data_extract_to_stdout(archive_handle_t *archive_handle) FAST_FUNC;
++void data_extract_to_command(archive_handle_t *archive_handle) FAST_FUNC;
++
++void header_skip(const file_header_t *file_header) FAST_FUNC;
++void header_list(const file_header_t *file_header) FAST_FUNC;
++void header_verbose_list(const file_header_t *file_header) FAST_FUNC;
++
++char get_header_ar(archive_handle_t *archive_handle) FAST_FUNC;
++char get_header_cpio(archive_handle_t *archive_handle) FAST_FUNC;
++char get_header_tar(archive_handle_t *archive_handle) FAST_FUNC;
++char get_header_tar_gz(archive_handle_t *archive_handle) FAST_FUNC;
++char get_header_tar_bz2(archive_handle_t *archive_handle) FAST_FUNC;
++char get_header_tar_lzma(archive_handle_t *archive_handle) FAST_FUNC;
++
++void seek_by_jump(int fd, off_t amount) FAST_FUNC;
++void seek_by_read(int fd, off_t amount) FAST_FUNC;
++
++const char *strip_unsafe_prefix(const char *str) FAST_FUNC;
++
++void data_align(archive_handle_t *archive_handle, unsigned boundary) FAST_FUNC;
++const llist_t *find_list_entry(const llist_t *list, const char *filename) FAST_FUNC;
++const llist_t *find_list_entry2(const llist_t *list, const char *filename) FAST_FUNC;
++
++/* A bit of bunzip2 internals are exposed for compressed help support: */
++typedef struct bunzip_data bunzip_data;
++int start_bunzip(bunzip_data **bdp, int in_fd, const void *inbuf, int len) FAST_FUNC;
++/* NB: read_bunzip returns < 0 on error, or the number of *unfilled* bytes
++ * in outbuf. IOW: on EOF returns len ("all bytes are not filled"), not 0: */
++int read_bunzip(bunzip_data *bd, char *outbuf, int len) FAST_FUNC;
++void dealloc_bunzip(bunzip_data *bd) FAST_FUNC;
++
++typedef struct inflate_unzip_result {
++	off_t bytes_out;
++	uint32_t crc;
++} inflate_unzip_result;
++
++IF_DESKTOP(long long) int inflate_unzip(inflate_unzip_result *res, off_t compr_size, int src_fd, int dst_fd) FAST_FUNC;
++/* xz unpacker takes .xz stream from offset 6 */
++IF_DESKTOP(long long) int unpack_xz_stream(int src_fd, int dst_fd) FAST_FUNC;
++/* lzma unpacker takes .lzma stream from offset 0 */
++IF_DESKTOP(long long) int unpack_lzma_stream(int src_fd, int dst_fd) FAST_FUNC;
++/* the rest wants 2 first bytes already skipped by the caller */
++IF_DESKTOP(long long) int unpack_bz2_stream(int src_fd, int dst_fd) FAST_FUNC;
++IF_DESKTOP(long long) int unpack_gz_stream(int src_fd, int dst_fd) FAST_FUNC;
++IF_DESKTOP(long long) int unpack_gz_stream_with_info(int src_fd, int dst_fd, unpack_info_t *info) FAST_FUNC;
++IF_DESKTOP(long long) int unpack_Z_stream(int src_fd, int dst_fd) FAST_FUNC;
++/* wrapper which checks first two bytes to be "BZ" */
++IF_DESKTOP(long long) int unpack_bz2_stream_prime(int src_fd, int dst_fd) FAST_FUNC;
++
++char* append_ext(char *filename, const char *expected_ext) FAST_FUNC;
++int bbunpack(char **argv,
++	    IF_DESKTOP(long long) int FAST_FUNC (*unpacker)(unpack_info_t *info),
++	    char* FAST_FUNC (*make_new_name)(char *filename, const char *expected_ext),
++	    const char *expected_ext
++) FAST_FUNC;
++
++#if BB_MMU
++void open_transformer(int fd,
++	IF_DESKTOP(long long) int FAST_FUNC (*transformer)(int src_fd, int dst_fd)) FAST_FUNC;
++#define open_transformer(fd, transformer, transform_prog) open_transformer(fd, transformer)
++#else
++void open_transformer(int src_fd, const char *transform_prog) FAST_FUNC;
++#define open_transformer(fd, transformer, transform_prog) open_transformer(fd, transform_prog)
++#endif
++
++POP_SAVED_FUNCTION_VISIBILITY
++
++#endif
+diff -Naur busybox-1.19.2//libbb/appletlib.c busybox/libbb/appletlib.c
+--- busybox-1.19.2//libbb/appletlib.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/libbb/appletlib.c	2011-09-25 10:27:25.000000000 +0100
+@@ -62,7 +62,7 @@
+ #if ENABLE_FEATURE_COMPRESS_USAGE
+ 
+ static const char packed_usage[] ALIGN1 = { PACKED_USAGE };
+-# include "archive.h"
++# include "bb_archive.h"
+ static const char *unpack_usage_messages(void)
+ {
+ 	char *outbuf = NULL;
+diff -Naur busybox-1.19.2//libbb/read_printf.c busybox/libbb/read_printf.c
+--- busybox-1.19.2//libbb/read_printf.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/libbb/read_printf.c	2011-09-25 10:27:25.000000000 +0100
+@@ -15,7 +15,7 @@
+ )
+ 
+ #if ZIPPED
+-# include "archive.h"
++# include "bb_archive.h"
+ #endif
+ 
+ 
+diff -Naur busybox-1.19.2//miscutils/bbconfig.c busybox/miscutils/bbconfig.c
+--- busybox-1.19.2//miscutils/bbconfig.c	2011-08-22 03:57:49.000000000 +0100
++++ busybox/miscutils/bbconfig.c	2011-09-25 10:27:25.000000000 +0100
+@@ -10,7 +10,7 @@
+ #include "libbb.h"
+ #include "bbconfigopts.h"
+ #if ENABLE_FEATURE_COMPRESS_BBCONFIG
+-# include "archive.h"
++# include "bb_archive.h"
+ # include "bbconfigopts_bz2.h"
+ #endif
+ 
+diff -Naur busybox-1.19.2//procps/smemcap.c busybox/procps/smemcap.c
+--- busybox-1.19.2//procps/smemcap.c	2011-08-22 03:57:50.000000000 +0100
++++ busybox/procps/smemcap.c	2011-09-25 10:27:25.000000000 +0100
+@@ -20,7 +20,7 @@
+ //config:	  a memory usage statistic tool.
+ 
+ #include "libbb.h"
+-#include "archive.h"
++#include "bb_archive.h"
+ 
+ struct fileblock {
+ 	struct fileblock *next;
