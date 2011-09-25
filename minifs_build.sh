@@ -34,7 +34,7 @@ COMMAND=$1
 COMMAND_PACKAGE=${COMMAND/_*}
 COMMAND_TARGET=${COMMAND/*_}
 
-echo MINIFS_BOARD $MINIFS_BOARD $COMMAND
+echo MINIFS_BOARD $MINIFS_BOARD $COMMAND_TARGET $COMMAND_PACKAGE
 
 BASE="$(pwd)"
 export MINIFS_BASE="$BASE"
@@ -99,7 +99,7 @@ TARGET_SHARED=0
 rm -f /tmp/pkg-config.log
 if [ "$COMMAND" == "tools" ]; then exit ;fi
 
-hset busybox version "1.19.0"
+hset busybox version "1.19.2"
 hset linux version "2.6.32.2"
 hset crosstools version "1.12.1"
 
@@ -421,15 +421,17 @@ install-generic-local() {
 	done
 	# Check to see if there are lame comfig scripts around
 	scr=$(hget $PACKAGE configscript)
-	for sc in "$STAGING_USR"/bin/$scr "$STAGING"/bin/$scr; do 
-		if [ -x "$sc" ]; then
-			sed -e "s|=/usr|=$STAGING_USR|g" \
-				-e "s|=\"/usr|=\"$STAGING_USR|g" "$sc" \
-					>"$STAGING_TOOLS"/bin/$scr && \
-				chmod +x "$STAGING_TOOLS"/bin/$scr
-			break;
-		fi
-	done
+	if [ "$scr" != "" ]; then
+		for sc in "$STAGING_USR"/bin/$scr "$STAGING"/bin/$scr; do 
+			if [ -x "$sc" ]; then
+				sed -e "s|=/usr|=$STAGING_USR|g" \
+					-e "s|=\"/usr|=\"$STAGING_USR|g" "$sc" \
+						>"$STAGING_TOOLS"/bin/$scr && \
+					chmod +x "$STAGING_TOOLS"/bin/$scr
+				break;
+			fi
+		done
+	fi
 	set +x
 }
 
