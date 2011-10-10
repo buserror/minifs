@@ -66,6 +66,5 @@ install-nvidia() {
 
 deploy-nvidia() {
 	mkdir -p "$ROOTFS"/etc/X11
-	deploy cp $(get_installed_binaries) \
-		"$ROOTFS"/usr/bin/
+	deploy deploy_binaries
 }

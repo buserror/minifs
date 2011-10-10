@@ -50,5 +50,5 @@ hset mdnsd destdir "$STAGING_USR"
 hset mdnsd depends "busybox"
 
 deploy-mdnsd() {
-	deploy cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
+	deploy deploy_binaries
 }

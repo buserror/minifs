@@ -11,6 +11,10 @@ configure-dbus() {
 		--enable-doxygen-docs=no
 }
 
+deploy-dbus() {
+	cp deploy_binaries
+}
+
 PACKAGES+=" bluez"
 hset bluez url "http://www.kernel.org/pub/linux/bluetooth/bluez-4.81.tar.gz"
 hset bluez depends "dbus libiconv libgettext libglib"
@@ -43,7 +47,7 @@ configure-bluez() {
 }
 
 deploy-bluez-local() {
-	cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
+	deploy_binaries
 	deploy_staging_path "/etc/bluetooth"
 }
 
@@ -66,7 +70,7 @@ configure-btscanner() {
 }
 
 deploy-btscanner() {
-	deploy cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
+	deploy deploy_binaries
 }
 
 
@@ -81,7 +85,7 @@ configure-cwiid() {
 }
 
 deploy-cwiid() {
-        deploy cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
+	deploy deploy_binaries
 	deploy_staging_path "/etc/cwiid"
 }
 

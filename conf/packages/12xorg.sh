@@ -140,7 +140,7 @@ configure-xkbcomp() {
 	export LDFLAGS="$LDFLAGS_BASE"	
 }
 deploy-xkbcomp() {
-	deploy cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
+	deploy deploy_binaries
 }
 
 # http://cgit.freedesktop.org/mesa/drm
@@ -217,8 +217,7 @@ configure-xorgserver() {
 }
 
 deploy-xorgserver-local() {
-	cp 	$(get_installed_binaries) \
-		"$ROOTFS"/usr/bin/
+	cp 	deploy_binaries
 	ln -fs Xorg "$ROOTFS"/usr/bin/X 
 	rsync -av \
 		"$STAGING_USR"/share/X11 \

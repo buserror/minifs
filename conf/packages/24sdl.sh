@@ -57,7 +57,7 @@ configure-sdlplasma() {
 	export LDFLAGS="$LDFLAGS_BASE"
 }
 deploy-sdlplasma() {
-        deploy cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
+        deploy deploy_binaries
 }
 
 PACKAGES+=" sdlvoxel"
@@ -71,7 +71,7 @@ configure-sdlvoxel() {
 }
 
 deploy-sdlvoxel() {
-        deploy cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
+        deploy deploy_binaries
 }
 
 PACKAGES+=" kobodeluxe"
@@ -95,7 +95,7 @@ configure-kobodeluxe() {
 }
 
 deploy-kobodeluxe() {
-	deploy cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
+	deploy deploy_binaries
 	cp -rf "$STAGING_USR"/com "$ROOTFS"/usr/
 	cp -rf "$STAGING_USR"/share/kobo-deluxe "$ROOTFS"/usr/share/
 	

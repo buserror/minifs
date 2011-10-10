@@ -28,5 +28,5 @@ configure-alsautils() {
 }
 
 deploy-alsautils() {
-	deploy cp $(get_installed_binaries) "$ROOTFS"/bin/
+	deploy deploy_binaries
 }

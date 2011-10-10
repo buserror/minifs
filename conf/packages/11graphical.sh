@@ -65,12 +65,11 @@ compile-libfontconfig() {
 }
 
 deploy-libfontconfig-local() {
-	cp "$STAGING_USR"/bin/fc-* \
-		"$ROOTFS"/usr/bin/
-	rsync -av \
-		"$STAGING_USR"/etc/fonts \
-		"$ROOTFS"/etc/ \
-			&>> "$LOGFILE" 
+	deploy_binaries
+#	rsync -av \
+#		"$STAGING_USR"/etc/fonts \
+#		"$ROOTFS"/etc/ \
+#			&>> "$LOGFILE" 
 }
 
 deploy-libfontconfig() {

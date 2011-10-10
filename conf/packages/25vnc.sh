@@ -65,5 +65,5 @@ configure-x11vnc() {
 }
 
 deploy-x11vnc() {
-	deploy cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
+	deploy deploy_binaries
 }

@@ -34,7 +34,7 @@ hset tmux url "http://downloads.sourceforge.net/project/tmux/tmux/tmux-1.4/tmux-
 hset tmux depends " libevent libncurses"
 
 deploy-tmux() {
-	deploy cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
+	deploy deploy_binaries
 }
 
 # 110906 No changes
