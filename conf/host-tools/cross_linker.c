@@ -1,4 +1,3 @@
-// gcc -O -g -std=gnu99 -lelf
 /*
 	cross_linker.c
 
@@ -234,16 +233,19 @@ so_file_t * elf_read_dynamic(const char * file)
 	int fd; // File Descriptor
 
 	if ((fd = open(file, O_RDONLY)) == -1) {
+		perror(file);
 		close(fd);
 		return NULL;
 	}
 
 	elf = elf_begin(fd, ELF_C_READ, NULL);
 	if (!elf) {
+		printf("%s: %s NOT an ELF file\n", __func__, file);
 		close(fd);
 		return NULL;
 	}
 	if (gelf_getehdr(elf, &elf_header) == 0) {
+		printf("%s: %s no ELF header\n", __func__, file);
 		close(fd);
 		return NULL;
 	}
@@ -261,7 +263,7 @@ so_file_t * elf_read_dynamic(const char * file)
 
 		if (shdr.sh_type == SHT_STRTAB) {
 			if (!name) {
-				printf("%s: HAS NO STRING TABLE\n", file);
+				printf("%s %s: HAS NO STRING TABLE\n", __func__, file);
 				exit(1);
 			}
 			if (strcmp(name, ".dynstr"))
@@ -309,6 +311,8 @@ so_file_t * elf_read_dynamic(const char * file)
 	close(fd);
 
 	if (!res->so_name && !res->so_needed) {
+		printf("%s %s: so_name %p, so_needed %p !!\n", __func__, file, res->so_name, res->so_needed);
+		
 		free(res);
 		res = NULL;
 	}
@@ -347,10 +351,11 @@ so_dir_t * elf_scandir(so_dir_t * base, const char * dirname, int flags)
 					sprintf(path, "%s/%s", dirname, e->d_name);
 					so_file_t * elf = elf_read_dynamic(path);
 					if (elf) {
+					//	printf("File %s is loaded as ELF\n", path);
 						elf->name = strdup(e->d_name);
 						elf->hash = crc16_string(elf->name);
 						res->loaded = so_filelist_add(res->loaded, elf);
-					}
+					} 
 				}
 			}	break;
 			case DT_LNK: {	// keep track of all links too
@@ -531,7 +536,7 @@ int file_simplify_neededs(so_file_t *f)
 			//	printf("SIM %s:     %s look for %s\n", f->name, n->s, nn->s);
 				
 				if (file_depends_on(n->link, nn)) {
-					printf("SIM %s: %s already links to %s\n", f->name, n->s, nn->s);
+				//	printf("SIM %s: %s already links to %s\n", f->name, n->s, nn->s);
 					so_filelist_remove(nn->link->used, f);
 				//	printf("SIM %s: Remove %s as dependency\n", f->name, nn->s);
 					if (last)
