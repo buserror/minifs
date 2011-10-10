@@ -83,7 +83,7 @@ mkdir -p /tmp/installwatch
 rm -rf "$ROOTFS"/*
 
 TARGET_INITRD=${TARGET_INITRD:-0}
-TARGET_FS_SQUASH=1
+TARGET_FS_SQUASH=${TARGET_FS_SQUASH:-0}
 TARGET_FS_EXT=${TARGET_FS_EXT:-1}
 # only set this if you /know/ the parameters for your NAND
 # TARGET_FS_JFFS2="-q -l -p -e 0x20000 -s 0x800"
@@ -300,7 +300,7 @@ for package in $TARGET_PACKAGES; do
 						rm -rf "$BUILD/$package"
 				fi
 			;;
-			*) $WGET "$fil" -O "$loc" || exit 1 ;;
+			*) $WGET "$fil" -O "$loc" || { rm -f "$loc"; exit 1; } ;;
 		esac
 	fi
 	baseroot=$package
@@ -373,10 +373,15 @@ done
 #######################################################################
 configure-generic-local() {
 	local ret=0 ; set -x
+	local sysconf=$(hget $PACKAGE sysconf)
+	sysconf=${sysconf:-/etc}
 	if [ ! -f configure ]; then
 		if [ -f autogen.sh ]; then
 			./autogen.sh \
-				--prefix="$PACKAGE_PREFIX"
+				--build=$(uname -m) \
+				--host=$TARGET_FULL_ARCH \
+				--prefix="$PACKAGE_PREFIX" \
+				--sysconfdir=$sysconf
 		elif [ -f configure.ac -o -f configure.in ]; then
 			autoreconf --force #;libtoolize;automake --add-missing
 		fi
@@ -386,6 +391,7 @@ configure-generic-local() {
 			--build=$(uname -m) \
 			--host=$TARGET_FULL_ARCH \
 			--prefix="$PACKAGE_PREFIX" \
+			--sysconfdir=$sysconf \
 			"$@" || ret=1
 	else
 		echo Nothing to configure 
@@ -399,7 +405,8 @@ configure-generic() {
 }
 
 compile-generic() {
-	compile $MAKE $MAKE_ARGUMENTS $MAKE_CLEAN "$@"
+	local extra=$(hget $PACKAGE compile)
+	compile $MAKE $MAKE_ARGUMENTS $MAKE_CLEAN $extra "$@"
 }
 
 #######################################################################
