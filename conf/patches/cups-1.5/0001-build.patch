@@ -1,0 +1,24 @@
+diff -pru cups-1.5.0//config-scripts/cups-common.m4 cups/config-scripts/cups-common.m4
+--- cups-1.5.0//config-scripts/cups-common.m4	2011-07-25 21:24:24.000000000 +0100
++++ cups/config-scripts/cups-common.m4	2011-10-05 21:22:41.000000000 +0100
+@@ -406,7 +406,7 @@ AC_ARG_WITH(components, [  --with-compon
+ 
+ case "$COMPONENTS" in
+ 	all)
+-		BUILDDIRS="filter backend berkeley cgi-bin driver monitor notifier ppdc scheduler systemv conf data desktop locale man doc examples templates"
++		BUILDDIRS="filter backend berkeley cgi-bin driver monitor notifier ppdc scheduler systemv conf data desktop locale doc templates"
+ 		;;
+ 
+ 	core)
+diff -pru cups-1.5.0//ppdc/Makefile cups/ppdc/Makefile
+--- cups-1.5.0//ppdc/Makefile	2011-01-06 22:20:15.000000000 +0000
++++ cups/ppdc/Makefile	2011-10-05 21:21:56.000000000 +0100
+@@ -244,7 +244,7 @@ genstrings:		genstrings.o libcupsppdc.a
+ 		libcupsppdc.a ../cups/$(LIBCUPSSTATIC) $(LIBGSSAPI) $(SSLLIBS) \
+ 		$(DNSSDLIBS) $(COMMONLIBS) $(LIBZ)
+ 	echo Generating localization strings...
+-	./genstrings >sample.c
++#	./genstrings >sample.c
+ 
+ 
+ #
