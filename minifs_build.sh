@@ -362,7 +362,7 @@ if [ "$COMMAND" == "unpack" ]; then exit ; fi
 #######################################################################
 ## Create base rootfs tree
 #######################################################################
-for pd in "$CONF_BASE/rootfs-base" "$CONFIG/rootfs" $(minifs_path_split "rootfs"); do
+for pd in "$CONF_BASE/rootfs-base"; do
 	if [ -d "$pd" ]; then
 		rsync -a "$pd/" "$ROOTFS/"
 	fi

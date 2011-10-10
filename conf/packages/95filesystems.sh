@@ -93,6 +93,14 @@ deploy-filesystem-prepack() {
 	echo "minifs-$MINIFS_BOARD-" | \
 		awk '{ print $0 strftime("%Y%m%d%H%M"); }' \
 			>$ROOTFS/etc/minifs.tag
+			
+	## Add rootfs overrides for boards
+	for pd in "$CONFIG/rootfs" $(minifs_path_split "rootfs"); do
+		if [ -d "$pd" ]; then
+			echo "### Overriding root $pd"
+			rsync -av "$pd/" "$ROOTFS/"
+		fi
+	done
 
 	$MINIFS_STRIP "$ROOTFS"/bin/* "$ROOTFS"/sbin/* "$ROOTFS"/usr/bin/* \
 		2>/dev/null
@@ -102,7 +110,9 @@ deploy-filesystem-prepack() {
 				--strip-unneeded {} \; 
 		fi
 	done
-	) >>"$LOGFILE" 2>&1
+	) >>"$LOGFILE" 2>&1 || {
+		echo "FAILED"; exit 1
+	}
 	echo "Done"
 }
 
