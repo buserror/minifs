@@ -116,6 +116,35 @@ install-crosstools() {
 }
 
 
+PACKAGES+=" libtool"
+hset libtool url "http://ftp.gnu.org/gnu/libtool/libtool-2.4.tar.gz"
+hset libtool destdir "$STAGING_TOOLS"
+
+setup-libtool() {
+	export LIBTOOL="$TARGET_FULL_ARCH"-libtool
+}
+
+configure-libtool() {
+	(
+		unset CC CXX GCC LD CFLAGS CXXFLAGS CPPFLAGS LDFLAGS ACLOCAL ; 
+		unset PKG_CONFIG_PATH PKG_CONFIG_LIBDIR LD_LIBRARY_PATH ;
+#		reset-crossrools-env
+#			--build=$(gcc -dumpmachine) 
+#			--host=$TARGET_FULL_ARCH 
+#			--prefix="$STAGING_TOOLS" 
+		configure ./configure \
+			--prefix=/ \
+			--build=$(gcc -dumpmachine) \
+			--host=$TARGET_FULL_ARCH \
+			--program-prefix="$TARGET_FULL_ARCH"- CC=$TARGET_FULL_ARCH-gcc
+	) || exit 1
+}
+install-libtool() {
+	install-generic 
+	ln -f -s "$TARGET_FULL_ARCH"-libtool "$STAGING_TOOLS"/bin/libtool
+	ln -f -s "$TARGET_FULL_ARCH"-libtoolize "$STAGING_TOOLS"/bin/libtoolize
+}
+
 PACKAGES+=" gdbserver"
 hset gdbserver url "none"
 hset gdbserver dir "."
