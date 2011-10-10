@@ -1,9 +1,14 @@
 
 PACKAGES+=" uboot"
+# uboot URL is set by each board, not here
 #hset uboot url "git!git://repo.or.cz/u-boot-openmoko/parrot-frames.git#uboot-df3120-git.tar.bz2"
 
 configure-uboot() {
-	configure make "$MINIFS_BOARD"_config
+	local arch=$MINIFS_BOARD_UBOOT
+	if [ "$arch" = "" ];then
+		arch=$MINIFS_BOARD
+	fi
+	configure make "$arch"_config
 }
 
 compile-uboot() {
