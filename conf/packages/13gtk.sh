@@ -164,6 +164,13 @@ PACKAGES+=" libatk"
 #hset libatk url "http://ftp.gnome.org/pub/gnome/sources/atk/1.33/atk-1.33.6.tar.bz2"
 hset libatk url "http://ftp.gnome.org/pub/gnome/sources/atk/1.33/atk-1.33.6.tar.bz2"
 
+configure-libatk() {
+	# 1.33.6: prevents glib faling because of atk using G_CONST_RETURN
+	sed -i -e '/G_DISABLE_DEPRECATED/d' atk/Makefile.am
+	sed -i -e '/G_DISABLE_DEPRECATED/d' tests/Makefile.am
+	rm -f configure
+	configure-generic
+}
 PACKAGES+=" libgdkpixbuf"
 hset libgdkpixbuf url "http://ftp.gnome.org/pub/gnome/sources/gdk-pixbuf/2.23/gdk-pixbuf-2.23.1.tar.bz2"
 

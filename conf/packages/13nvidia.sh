@@ -1,9 +1,9 @@
 
-NVIDIA_VERSION=275.09.07
-NVIDIA_VERSION=280.13
+# ftp://download.nvidia.com/XFree86/
+NVIDIA_VERSION=285.05.09
 NVIDIA_NAME="NVIDIA-Linux-$TARGET_ARCH-${NVIDIA_VERSION}"
 PACKAGES+=" nvidia"
-hset nvidia url "http://us.download.nvidia.com/XFree86/Linux-$TARGET_ARCH/$NVIDIA_VERSION/$NVIDIA_NAME.run"
+hset nvidia url "ftp://download.nvidia.com/XFree86/Linux-$TARGET_ARCH/$NVIDIA_VERSION/$NVIDIA_NAME.run"
 hset nvidia depends "xorgserver linux-modules"
 
 setup-nvidia() {

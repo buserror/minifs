@@ -17,7 +17,7 @@ deploy-sdldoom-local() {
 	mkdir -p "$ROOTFS"/usr/share/
 	gzip -dc "$BASE"/download/doom1.wad.gz \
 		>"$ROOTFS"/usr/share/doom1.wad
-    cp $(get_installed_binaries) "$ROOTFS"/usr/bin/
+    cp deploy_binaries
 	set +x
 }
 

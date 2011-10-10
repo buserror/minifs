@@ -148,10 +148,16 @@ PACKAGES+=" libmesadrm"
 #hset libmesadrm url "git!git://anongit.freedesktop.org/git/mesa/drm#libmesadrm-git.tar.bz2"
 hset libmesadrm url "http://cgit.freedesktop.org/mesa/drm/snapshot/drm-2.4.24.tar.gz"
 
-configure-libmesadrm() {
-	configure-generic \
+configure-libmesadrm-local() {
+	set -x
+	#aclocal && libtoolize --copy --force --automake #&& automake --add-missing && autoreconf --force
+	autoreconf --install --force
+	configure-generic-local \
 		--enable-nouveau-experimental-api \
 		--with-kernel-source ../linux/
+}
+configure-libmesadrm() {
+	configure configure-libmesadrm-local
 }
 
 # http://cgit.freedesktop.org/mesa/mesa/

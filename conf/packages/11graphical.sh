@@ -9,6 +9,10 @@ hset libpng url "ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng-1.4.7.tar
 hset libpng depends "zlib"
 hset libpng configscript "libpng-config"
 
+# http://www.ijg.org/
+PACKAGES+=" libtiff"
+hset libtiff url "ftp://ftp.remotesensing.org/pub/libtiff/tiff-3.9.5.tar.gz"
+
 PACKAGES+=" libfreetype"
 #hset libfreetype url "http://download.savannah.gnu.org/releases/freetype/freetype-2.3.12.tar.bz2"
 hset libfreetype url "http://download.savannah.gnu.org/releases/freetype/freetype-2.4.4.tar.bz2"
@@ -39,13 +43,13 @@ hset libfontconfig depends "libexpat libfreetype"
 
 configure-libfontconfig-local() {
 	export LDFLAGS="$LDFLAGS_RLINK"
-	autoreconf;libtoolize;automake --add-missing
+#	autoreconf;libtoolize;automake --add-missing
 	configure-generic-local \
 		--with-arch=$TARGET_FULL_ARCH \
 		--disable-docs  \
 		--with-freetype-config="$STAGING_USR/bin/freetype-config"
 	# fixes cross compilation
-	sed -i -e 's:^CFLAGS = -.*$:CFLAGS =:g' \
+	sed -i -e "s:^CFLAGS = -.*$:CFLAGS = :g" \
 		fc-case/Makefile \
 		fc-cache/Makefile \
 		fc-lang/Makefile \
@@ -60,7 +64,7 @@ configure-libfontconfig() {
 
 compile-libfontconfig() {
 	export LDFLAGS="$LDFLAGS_RLINK -lfreetype -lz -lexpat"
-	compile-generic V=1
+	compile-generic V=1 
 	export LDFLAGS="$LDFLAGS_BASE"
 }
 

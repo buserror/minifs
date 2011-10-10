@@ -183,6 +183,8 @@ configure-gnutls() {
 # 110906 Updated 1.0.0e
 PACKAGES+=" openssl"
 hset openssl url "http://www.openssl.org/source/openssl-1.0.0e.tar.gz"
+hset openssl targets "openssl openssl-bin"
+hset openssl deploy 0
 
 configure-openssl() {
 	configure ./config --prefix=/usr --install_prefix="$STAGING" no-asm shared
@@ -191,6 +193,11 @@ compile-openssl() {
 	compile make \
 		CC=$GCC AR="${CROSS}-ar r" RANLIB=${CROSS}-ranlib \
 		CFLAG="$TARGET_CFLAGS"
+}
+deploy-openssl() {
+	if [ $(hget openssl deploy) -ne 0 ]; then
+		deploy deploy_binaries
+	fi
 }
 
 #######################################################################
@@ -315,6 +322,18 @@ hset libattr url "ftp://oss.sgi.com/projects/xfs/cmd_tars/attr_2.4.43-1.tar.gz"
 hset libattr depends "busybox"
 hset libattr prefix "/"
 
+configure-libattr-local() {
+#	autoreconf --install --force
+	sed -i \
+		-e 's|) --mode=compile|) --tag=CC --mode=compile|' \
+		-e 's|) --mode=link|) --tag=CC --mode=link|' \
+			include/buildmacros
+	configure-generic-local
+}
+configure-libattr() {
+	configure configure-libattr-local
+}
+
 install-libattr() {
 	export DIST_ROOT="$STAGING_USR"
 	install-generic
@@ -340,7 +359,7 @@ install-libcap() {
 	install-generic RAISE_SETFCAP=no 
 }
 deploy-libcap() {
-	deploy cp $(get_installed_binaries) "$ROOTFS"/sbin/
+	deploy deploy_binaries
 }
 
 # http://www.net-snmp.org/download.html
