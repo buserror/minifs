@@ -10,8 +10,36 @@ hset bird depends "libreadline busybox"
 # Secure Shell (bigger version than dropbear)
 #
 PACKAGES+=" openssh"
-hset openssh url "ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-5.6p1.tar.gz"
+hset openssh url "ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-5.9p1.tar.gz"
 hset openssh depends "openssl"
+hset openssh sysconf "/etc/ssh"
+
+setup-openssh() {
+	hset openssl deploy 1
+}
+configure-openssh() {
+	configure-generic LD="ccfix $TARGET_FULL_ARCH-gcc" \
+		--sysconfdir=/etc/ssh \
+		--libexecdir=/usr/lib/libexec
+}
+deploy-openssh() {
+	deploy deploy_binaries
+	cat >>"$ROOTFS"/etc/passwd <<-END
+	sshd:x:1001:1001:sshd:/home:/bin/false
+	END
+	cat >>"$ROOTFS"/etc/group <<-END
+	sshd:x:1001:
+	END
+	cat >>"$ROOTFS"/etc/init.d/rcS <<-EOF
+	echo "* Starting sshd..."
+	/usr/sbin/sshd
+	EOF
+	if [ ! -f $CONFIG/ssh_host_rsa_key ]; then
+		echo "  ## Generating new host keys for OpenSSH"
+		ssh-keygen -P "" -t rsa -f  $CONFIG/ssh_host_rsa_key
+	fi
+	mkdir -p $ROOTFS/etc/ssh/ && cp $CONFIG/ssh_host_* $ROOTFS/etc/ssh/
+}
 
 #
 # tinc tunelling - http://www.tinc-vpn.org/
