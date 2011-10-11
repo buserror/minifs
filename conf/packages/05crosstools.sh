@@ -118,7 +118,7 @@ install-crosstools() {
 
 PACKAGES+=" libtool"
 hset libtool url "http://ftp.gnu.org/gnu/libtool/libtool-2.4.tar.gz"
-hset libtool destdir "$STAGING_TOOLS"
+hset libtool destdir "/"
 
 setup-libtool() {
 	export LIBTOOL="$TARGET_FULL_ARCH"-libtool
@@ -127,13 +127,14 @@ setup-libtool() {
 configure-libtool() {
 	(
 		unset CC CXX GCC LD CFLAGS CXXFLAGS CPPFLAGS LDFLAGS ACLOCAL ; 
-		unset PKG_CONFIG_PATH PKG_CONFIG_LIBDIR LD_LIBRARY_PATH ;
+		unset PKG_CONFIG_PATH PKG_CONFIG_LIBDIR LD_LIBRARY_PATH INSTALL;
+		export INSTALL=/usr/bin/install
 #		reset-crossrools-env
 #			--build=$(gcc -dumpmachine) 
 #			--host=$TARGET_FULL_ARCH 
 #			--prefix="$STAGING_TOOLS" 
 		configure ./configure \
-			--prefix=/ \
+			--prefix=$STAGING_TOOLS \
 			--build=$(gcc -dumpmachine) \
 			--host=$TARGET_FULL_ARCH \
 			--program-prefix="$TARGET_FULL_ARCH"- CC=$TARGET_FULL_ARCH-gcc
@@ -187,4 +188,12 @@ configure-strace() {
 deploy-strace() {
 	mkdir -p "$ROOTFS"/usr/bin
 	deploy cp "$STAGING_USR"/bin/strace "$ROOTFS"/usr/bin/
+}
+
+PACKAGES+=" gdb"
+hset gdb url "http://ftp.gnu.org/gnu/gdb/gdb-7.3.1.tar.bz2"
+hset gdb depends "libtool libncurses"
+
+deploy-gdb() {
+	deploy deploy_binaries
 }
