@@ -69,6 +69,7 @@ int main(int argc, char * argv[])
 	const char * dc = NULL;
 	const char * march = NULL;
 	const char * pack = getenv("MINIFS_PACKAGE");
+	const char * conftest = NULL;
 	
 	for (i = 2; i < argc; i++)
 		if (!strncmp(argv[i], "/usr/lib", 8) || !strncmp(argv[i], "/lib", 4)) {
@@ -90,10 +91,13 @@ int main(int argc, char * argv[])
 		} else if (!strcmp(argv[i], "-rpath") || !strcmp(argv[i], "-version-info")) {
 			T("[FIXING libtool lost options %s] ", argv[0], pack, argv[i]);
 			argv[i++] = NULL; argv[i] = NULL;
+		} else if (!conftest && argv[i][0] != '/' && strstr(argv[i], "conftest.c")) {
+			conftest = argv[i];
 		}
 	if (dc) {
-		if (!march)
+		if (!march && !conftest) {
 			T("[WARN missing -march=] ");
+		}
 	}
 	for (i = 2, di = 2; i < argc; i++) {
 		if (argv[i])
