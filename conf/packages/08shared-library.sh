@@ -41,11 +41,6 @@ deploy-sharedlibs-local() {
 		ln -s -f lib "$ROOTFS"/usr/lib64 
 	fi
 	optional $MINIFS_BOARD-sharedlibs-cleanup
-	export CROSS_LINKER_INVOKE="/tmp/cross_linker_run.sh"
-	cross_linker --purge || {
-		echo "### cross_linker error, debug with $CROSS_LINKER_INVOKE"
-		exit 1
-	}
 	set +x
 }
 

@@ -77,7 +77,7 @@ MINIFS_STRIP=sstrip
 
 deploy-filesystem-prepack() {
 	deploy echo Copying
-	echo -n "     Stripping binaries... "
+	echo -n "     Packing filesystem... "
 	(
 	mkdir -p "$ROOTFS"/proc/ "$ROOTFS"/dev/ "$ROOTFS"/sys/ \
 		"$ROOTFS"/tmp/ "$ROOTFS"/var/run "$ROOTFS"/var/log
@@ -102,7 +102,14 @@ deploy-filesystem-prepack() {
 		fi
 	done
 
-	$MINIFS_STRIP "$ROOTFS"/bin/* "$ROOTFS"/sbin/* "$ROOTFS"/usr/bin/* \
+	export CROSS_LINKER_INVOKE="/tmp/cross_linker_run.sh"
+	cross_linker --purge || {
+		echo "### cross_linker error, debug with $CROSS_LINKER_INVOKE"
+		exit 1
+	}
+
+	$MINIFS_STRIP "$ROOTFS"/bin/* "$ROOTFS"/sbin/* \
+		"$ROOTFS"/usr/bin/* "$ROOTFS"/usr/sbin/* \
 		2>/dev/null
 	for lib in "$ROOTFS"/lib "$ROOTFS"/usr/lib; do
 		if [ -d "$lib" ]; then
