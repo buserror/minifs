@@ -38,6 +38,10 @@ PACKAGES+=" screen"
 hset screen url "http://ftp.gnu.org/gnu/screen/screen-4.0.3.tar.gz"
 hset screen depends "busybox"
 
+patch-screen() {
+	rm -f configure
+}
+
 #######################################################################
 ## i2c-tools - http://www.lm-sensors.org/wiki/I2CTools
 #######################################################################

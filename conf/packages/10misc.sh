@@ -24,13 +24,13 @@ deploy-libncurses() {
 	mkdir -p "$ROOTFS"/usr/share/
 	deploy cp -ra "$STAGING_USR"/share/terminfo "$ROOTFS"/usr/share/
 }
-# 110906 Updated 2.0.13 http://www.monkey.org/~provos/libevent/
+# 111010 Updated 2.0.14 http://www.monkey.org/~provos/libevent/
 PACKAGES+=" libevent"
-hset libevent url "http://www.monkey.org/~provos/libevent-2.0.13-stable.tar.gz"
+hset libevent url "http://www.monkey.org/~provos/libevent-2.0.14-stable.tar.gz"
 
 # 110906 Updated 1.5 http://tmux.sourceforge.net/
 PACKAGES+=" tmux"
-hset tmux url "http://downloads.sourceforge.net/project/tmux/tmux/tmux-1.4/tmux-1.5.tar.gz"
+hset tmux url "http://downloads.sourceforge.net/project/tmux/tmux/tmux-1.5/tmux-1.5.tar.gz"
 hset tmux depends " libevent libncurses"
 
 deploy-tmux() {
