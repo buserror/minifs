@@ -4,7 +4,7 @@ hset openslp url "http://downloads.sourceforge.net/project/openslp/OpenSLP/1.2.1
 
 PACKAGES+=" cups"
 hset cups url "http://ftp.easysw.com/pub/cups/1.5.0/cups-1.5.0-source.tar.bz2"
-hset cups depends "busybox openssl libpng libjpeg libtiff libusb openslp mDNSResponder"
+hset cups depends "busybox openssl libpng libjpeg libtiff mDNSResponder"
 hset cups configscript "cups-config"
 
 configure-cups-local() {
@@ -25,9 +25,9 @@ configure-cups-local() {
 		--disable-largefile \
 		--disable-relro \
 		--disable-unit_tests \
-		--enable-libusb \
+		--disable-libusb \
 		--enable-dnssd \
-		--enable-slp \
+		--disable-slp \
 		--with-pdftops=gs \
 		--disable-libtool-unsupported
 	export LDFLAGS=$LDFLAGS_BASE
@@ -52,7 +52,6 @@ deploy-cups-local() {
 	set -x
 	deploy_staging_path /usr/share/cups "/" 
 	deploy_staging_path /usr/share/doc/cups "/"
-	#deploy_staging_path /etc/cups
 	deploy_binaries
 	mkdir -p \
 		$ROOTFS/var/cache/cups/rss \
@@ -66,37 +65,70 @@ deploy-cups() {
 	deploy deploy-cups-local
 }
 
+PACKAGES+=" libjbig2dec"
+hset libjbig2dec url "http://ghostscript.com/~giles/jbig2/jbig2dec/jbig2dec-0.11.tar.gz"
+hset libjbig2dec depends "libpng"
+
+configure-libjbig2dec-local() {
+	autoreconf --force; libtoolize --force; automake --force --add-missing
+	configure-generic-local
+}
+configure-libjbig2dec() {
+	configure configure-libjbig2dec-local
+}
+
 PACKAGES+=" lcms"
 hset lcms url "http://downloads.sourceforge.net/project/lcms/lcms/2.2/lcms2-2.2.tar.gz"
 
+PACKAGES+=" libopenjpeg"
+hset libopenjpeg url "http://openjpeg.googlecode.com/files/openjpeg_v1_4_sources_r697.tgz"
+hset libopenjpeg depends "lcms"
+
+configure-libopenjpeg-local() {
+	sed -i -e "s|-std=c99$|-std=c99 $CFLAGS|" libopenjpeg/Makefile.am
+	autoreconf --force; libtoolize --force; automake --force --add-missing
+	configure-generic-local --enable-shared
+}
+configure-libopenjpeg() {
+	configure configure-libopenjpeg-local
+}
+compile-libopenjpeg() {
+	# can't use concurent make with this
+	compile $MAKE  INSTALL=/usr/bin/install
+}
+
 PACKAGES+=" ghostscript"
-hset ghostscript url "http://downloads.ghostscript.com/public/ghostscript-9.04.tar.gz"
+#hset ghostscript url "http://downloads.ghostscript.com/public/ghostscript-9.04.tar.gz"
+hset ghostscript url "git!git://git.ghostscript.com/ghostpdl.git#ghostscript-git.tar.bz2"
 hset ghostscript depends "cups libjpeg libpng libtiff libexpat lcms zlib libfontconfig"
+hset ghostscript dir "ghostscript/gs"
 
 configure-ghostscript-local() {
 	if [ -f ./lcms2/include/icc34.h ];then
 		cp ./lcms2/include/icc34.h base/
 	fi
-	rm -rf expat jasper lcms jpeg libpng tiff zlib freetype lcms2
-	export LDFLAGS="$LDFLAGS_RLINK"
+	rm -rf expat jasper jpeg libpng tiff zlib freetype lcms2
+	rm -rf jbig2dec
+#	rm -rf lcms
+#      -e 's|WHICH_CMS=lcms$|WHICH_CMS=lcms2|' 
+#      -e 's|SHARE_LCMS=0|SHARE_LCMS=1|' 
+   	export LDFLAGS="$LDFLAGS_RLINK"
 	configure-generic-local \
 		--with-system-libtiff \
 		--without-jbig2dec \
 		--without-jasper \
 		--with-install-cups \
-		--disable-compile-inits CCAUX=gcc
+		--disable-compile-inits CCAUX=gcc || return 1
 	sed -i  -e 's|SHARE_LCMS2=0|SHARE_LCMS2=1|' \
         -e "s|LCMS2SRCDIR=.*$|LCMS2SRCDIR=$BUILD/lcms|" \
         -e 's|=imdi|&\n\n# Use system expat library\n\nSHARE_EXPAT=1|' \
         -e 's|SHARE_FT=0|SHARE_FT=1|' \
         -e 's|SHARE_LIBTIFF=$|SHARE_LIBTIFF=1|' \
         -e 's|CCAUX=.*$|CCAUX=gcc|' \
-        -e 's|WHICH_CMS=lcms$|WHICH_CMS=lcms2|' \
-        -e 's|SHARE_LCMS=0|SHARE_LCMS=1|' \
         -e "s|CUPSSERVERBIN=$STAGING|CUPSSERVERBIN=|" \
         -e "s|CUPSDATA=$STAGING|CUPSDATA=|" \
         -e "s|CUPSSERVERROOT=$STAGING_USR|CUPSSERVERROOT=|" \
-        Makefile
+        Makefile  || return 1
     LDFLAGS="$LDFLAGS_BASE"
 	mkdir -p obj/aux
 }
@@ -181,7 +213,13 @@ patch-cups-splix() {
 	sed -i -e 's|g++|$(CXX)|g' rules.mk
 	awk -v arg="$LDFLAGS_RLINK -L../libjbig/libjbig" '/_LDFLAGS/ { $0=$0 " " arg; }{print;}' \
 		module.mk >module.mk.new && mv module.mk.new module.mk
-	sed -i -e 's|/\* Filter|Filter|' -e 's|pstoqpdl.*$|pstoqpdl|' ppd/filter.defs
+#	sed -i \
+#		-e '/rastertoqpdl/d' \
+#		-e 's|/\* Filter|Filter|' -e 's|[0-9+] pstoqpdl.*$|0 pstoqpdl|' \
+#		ppd/filter.defs
+	# remove locales
+	rm -f ppd/*.ppd
+	sed -i -e 's|LANGUAGES[ \t]*:=.*$|LANGUAGES :=|' ppd/Makefile
 }
 compile-cups-splix() {
 	# if cups get reinstalled, we need to reinstall too
