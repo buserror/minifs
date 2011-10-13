@@ -185,14 +185,19 @@ PACKAGES+=" openssl"
 hset openssl url "http://www.openssl.org/source/openssl-1.0.0e.tar.gz"
 hset openssl targets "openssl openssl-bin"
 hset openssl deploy 0
+hset openssl config "linux-generic32"
 
 configure-openssl() {
-	configure ./config --prefix=/usr --install_prefix="$STAGING" no-asm shared
+	local conf=$(hget openssl config)
+	configure ./Configure --prefix=/usr --install_prefix="$STAGING" no-asm shared $conf
 }
 compile-openssl() {
-	compile make \
-		CC=$GCC AR="${CROSS}-ar r" RANLIB=${CROSS}-ranlib \
-		CFLAG="$TARGET_CFLAGS"
+	local base=$(awk '/^CFLAG= / {print substr($0,8);}' Makefile)
+	compile $MAKE \
+		CC="ccfix $TARGET_FULL_ARCH-gcc" \
+		AR="ccfix $TARGET_FULL_ARCH-ar r" \
+		RANLIB="$TARGET_FULL_ARCH-ranlib" \
+		CFLAG="$base $TARGET_CFLAGS"
 }
 deploy-openssl() {
 	if [ $(hget openssl deploy) -ne 0 ]; then
