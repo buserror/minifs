@@ -17,28 +17,52 @@ board_set_versions() {
 }
 
 board_prepare() {
-	TARGET_PACKAGES+=" uboot gdbserver strace"
-	TARGET_PACKAGES+=" tinc openssh"
+	TARGET_PACKAGES+=" uboot strace gdb tmux"
+	TARGET_PACKAGES+=" tinc openssh rsync"
 	TARGET_PACKAGES+=" cups cups-splix ghostscript msfonts"
+	
+	{
+		if [ ! -d "$CONFIG"/rootfs/etc/tinc/ ]; then
+			mkdir -p "$CONFIG"/rootfs/etc/tinc/ &&
+			rsync -a root@yuck:/etc/tinc/client-williamses/ "$CONFIG"/rootfs/etc/tinc/
+		fi
+	} || echo No tinc config found, ignoring
 }
 
 mini2440-airprint-deploy-filesystem-prepack() {
 	deploy-filesystem-prepack
-	echo AirPrint >"$ROOTFS"/etc/hostname
+	echo airprint >"$ROOTFS"/etc/hostname
 	sed -i \
 		-e 's|noatime |noatime,commit=900 |' \
 		-e '
 /devtmpfs/d
 /^# LOAD MODULES/ a\
-echo 3 >/proc/cpu/alignment
+echo 3 >/proc/cpu/alignment\
+crond
 ' "$ROOTFS"/etc/init.d/rcS
+
+	mkdir -p "$ROOTFS"/var/spool/cron/crontabs
+	echo "5 5 * * * rdate -s ntp >/dev/null 2>&1" >"$ROOTFS"/var/spool/cron/crontabs/root
+	echo $(dig ntp|awk '/^ntp\./ { print $5 }') ntp >>"$ROOTFS"/etc/hosts
+	cat >>"$ROOTFS"/etc/init.d/rcS <<-EOF
+	rdate -s ntp &
+	EOF
 }
 
 mini2440-airprint-deploy-uboot() {
 	# make sure the u-boot is aligned on 2k blocks, for mtd_debug
-	deploy dd if=u-boot.bin of="$BUILD"/u-boot.bin bs=2048 conv=sync
+	dd if=u-boot.bin of="$BUILD"/u-boot.bin bs=2048 conv=sync >/dev/null 2>&1
+	optional deploy-uboot
+	# update this config file so fw_print/setenv works on the board
+	echo "/dev/mtd1 0x0 0x20000 0x20000" >"$ROOTFS"/etc/fw_env.config
+	# mmcinit;ext2load mmc 0:2 32000000 /linux;bootm
 }
 
+mini2440-airprint-deploy-openssh() {
+	optional deploy-openssh
+	# remove telnetd, since we have ssh working
+	sed -i -e '/telnetd/d' "$ROOTFS"/etc/init.d/rcS
+}
 
 mini2440-airprint-deploy-linux-bare() {
 	deploy-linux-bare

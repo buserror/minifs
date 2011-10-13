@@ -35,12 +35,15 @@ board_prepare() {
 	
 	TARGET_PACKAGES+=" fbgrab"	
 		
-	TARGET_PACKAGES+=" targettools"	
+	TARGET_PACKAGES+=" targettools libarchive"	
 	
 	TARGET_PACKAGES+=" firmware-rtl"
+	
+	hset openssl config "linux-x86_64"
 }
 
 atom-deploy-libgtk() {
 	deploy-libgtk
+	mkdir -p "$ROOTFS"/etc/gtk-2.0/
 	cp "$CONFIG"/gdk-pixbuf.loaders "$ROOTFS"/etc/gtk-2.0/
 }
