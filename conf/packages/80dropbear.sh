@@ -20,9 +20,9 @@ configure-dropbear() {
 
 compile-dropbear() {
 	if [ "$TARGET_SHARED" -eq 0 ]; then
-		compile $MAKE -j8 PROGRAMS="dropbear dropbearkey scp" STATIC=1 SCPPROGRESS=1
+		compile $MAKE -j8 PROGRAMS="dropbear dropbearkey scp dbclient" STATIC=1 SCPPROGRESS=1
 	else
-		compile $MAKE -j8 PROGRAMS="dropbear dropbearkey scp" SCPPROGRESS=1
+		compile $MAKE -j8 PROGRAMS="dropbear dropbearkey scp dbclient" SCPPROGRESS=1
 	fi
 }
 
@@ -30,16 +30,21 @@ install-dropbear() {
 	install echo Done
 }
 
-deploy-dropbear() {
-	deploy cp dropbear dropbearkey scp \
+deploy-dropbear-local() {
+	cp dropbear dropbearkey scp dbclient \
 		"$ROOTFS"/bin/
 	mkdir -p "$ROOTFS/etc/dropbear"
-	if [ $TARGET_ARCH = "i386" ]; then	
-		if [ ! -f "$BUILD"/dropbear_dss_host_key ]; then
-			( echo "#### generating new dropbear keys" ; \
-			./dropbearkey -t dss -f "$BUILD"/dropbear_dss_host_key ; \
-			./dropbearkey -t rsa -f "$BUILD"/dropbear_rsa_host_key ) >>"$LOGFILE"
-		fi
+	if [ ! -f "$BUILD"/dropbear_dss_host_key ]; then
+		echo "#### generating new dropbear keys"
+		qemu-$TARGET_ARCH -L $ROOTFS ./dropbearkey -t dss -f "$BUILD"/dropbear_dss_host_key
+		qemu-$TARGET_ARCH -L $ROOTFS ./dropbearkey -t rsa -f "$BUILD"/dropbear_rsa_host_key
 	fi
-	cp "$BUILD"/dropbear_*_host_key "$ROOTFS"/etc/dropbear/	
+
+	cp "$BUILD"/dropbear_*_host_key "$ROOTFS"/etc/dropbear/
+	mkdir -p "$ROOTFS"/var/log &&
+		touch "$ROOTFS"/var/log/lastlog "$ROOTFS"/var/log/wtmp
+}
+
+deploy-dropbear() {
+	deploy 	deploy-dropbear-local
 }
