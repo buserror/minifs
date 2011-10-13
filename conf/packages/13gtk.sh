@@ -152,8 +152,8 @@ deploy-libpango-local() {
 	mkdir -p "$ROOTFS"/etc/	# in case it was there already
 	cp 	"$STAGING_USR"/bin/pango-querymodules \
 		"$ROOTFS"/bin/
-	cp -r "$STAGING_USR"/etc/pango/* \
-		"$ROOTFS"/etc/pango/
+#	cp -r "$STAGING_USR"/etc/pango/* \
+#		"$ROOTFS"/etc/pango/
 }
 
 deploy-libpango() {
@@ -243,7 +243,7 @@ configure-libgtk() {
 }
 
 deploy-libgtk-local() {
-	cp -r "$STAGING_USR"/etc/gtk-2.0 "$ROOTFS"/etc
+#	cp -r "$STAGING_USR"/etc/gtk-2.0 "$ROOTFS"/etc
 	rsync -av \
 		"$STAGING_USR/share/icons" \
 		"$STAGING_USR/share/themes" \
