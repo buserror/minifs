@@ -11,13 +11,25 @@ configure-uboot() {
 	configure make "$arch"_config
 }
 
+compile-uboot-local() {
+	$MAKE $MAKE_ARGUMENTS  CROSS_COMPILE="$CROSS-" &&
+		$MAKE CROSS_COMPILE="$CROSS-" \
+			TOPDIR=../.. \
+			CPPFLAGS="$CFLAGS -DUSE_HOSTCC -static -I../../include" \
+			-C tools/env
+}
+
 compile-uboot() {
-	compile make CROSS_COMPILE="$CROSS-"
+	compile compile-uboot-local
 }
 
 install-uboot-local() {
 	if [ -x tools/mkimage ]; then
 		cp tools/mkimage "$STAGING_TOOLS"/bin/
+	fi
+	if [ -x tools/env/fw_printenv ]; then
+		cp tools/env/fw_printenv "$STAGING_USR"/bin/
+		cp tools/env/fw_env.config "$STAGING"/etc/
 	fi
 }
 
@@ -25,3 +37,9 @@ install-uboot() {
 	log_install install-uboot-local
 }
 
+deploy-uboot() {
+	mkdir -p "$ROOTFS"/bin/
+	if [ -x "$STAGING_USR"/bin/fw_printenv ]; then
+		deploy cp "$STAGING_USR"/bin/fw_printenv "$ROOTFS"/bin/
+	fi	
+}
