@@ -37,8 +37,11 @@ deploy-openssh() {
 	if [ ! -f $CONFIG/ssh_host_rsa_key ]; then
 		echo "  ## Generating new host keys for OpenSSH"
 		ssh-keygen -P "" -t rsa -f  $CONFIG/ssh_host_rsa_key
+		ssh-keygen -P "" -t dsa -f  $CONFIG/ssh_host_dsa_key
 	fi
-	mkdir -p $ROOTFS/etc/ssh/ && cp $CONFIG/ssh_host_* $ROOTFS/etc/ssh/
+	mkdir -p "$ROOTFS"/var/log &&
+		touch "$ROOTFS"/var/log/lastlog
+	mkdir -p $ROOTFS/etc/ssh/ $ROOTFS/var/empty/ && cp $CONFIG/ssh_host_* $ROOTFS/etc/ssh/
 }
 
 #
