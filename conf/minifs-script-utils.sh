@@ -174,8 +174,10 @@ function remove_package() {
 # and return all pathnames that contains $1 as a regexp, while
 # removing any occurance of $2 from them, if present
 function get_installed_stuff() {
-	if [ -f "$BUILD/$pack/._dist_$PACKAGE.log" ]; then
-		cat "$BUILD/$pack/._dist_$PACKAGE.log" | \
+	local dir=$(hget $pack dir)
+	dir=${dir:-$pack}
+	if [ -f "$BUILD/$dir/._dist_$PACKAGE.log" ]; then
+		cat "$BUILD/$dir/._dist_$PACKAGE.log" | \
 		awk -v pp="$1" -v ss="$2" \
 '
 function ppr(s) {
