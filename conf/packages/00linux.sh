@@ -98,7 +98,8 @@ install-linux-modules() {
 }
 deploy-linux-modules() {
 	deploy rsync -a --exclude source --exclude build "$KERNEL"/lib "$ROOTFS/"
-	find "$ROOTFS"/lib/modules/ -name \*.ko | xargs "${CROSS}-strip" -R .note -R .comment --strip-unneeded
+	find "$ROOTFS"/lib/modules/ -name \*.ko | \
+		xargs "${CROSS}-strip" -R .note -R .comment --strip-unneeded
 }
 
 #######################################################################

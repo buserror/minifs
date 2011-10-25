@@ -18,7 +18,6 @@ sharedlibs-rsync() {
 		--exclude pkgconfig \
 		$*
 }
-
 deploy-sharedlibs-local() {
 	set -x
 	mkdir -p "$ROOTFS/lib/" "$ROOTFS/usr/lib/"
@@ -43,7 +42,6 @@ deploy-sharedlibs-local() {
 	optional $MINIFS_BOARD-sharedlibs-cleanup
 	set +x
 }
-
 deploy-sharedlibs() {
 	echo "    Nearly there, Installing shared libraries"
 	touch "._install_$PACKAGE"

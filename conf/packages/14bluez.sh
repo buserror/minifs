@@ -12,7 +12,7 @@ configure-dbus() {
 }
 
 deploy-dbus() {
-	cp deploy_binaries
+	deploy deploy_binaries
 }
 
 PACKAGES+=" bluez"
@@ -46,13 +46,8 @@ configure-bluez() {
 		--disable-usb
 }
 
-deploy-bluez-local() {
-	deploy_binaries
-	deploy_staging_path "/etc/bluetooth"
-}
-
 deploy-bluez() {
-	deploy deploy-bluez-local
+	deploy deploy_binaries
 }
 
 PACKAGES+=" btscanner"
@@ -86,6 +81,6 @@ configure-cwiid() {
 
 deploy-cwiid() {
 	deploy deploy_binaries
-	deploy_staging_path "/etc/cwiid"
+#	deploy_staging_path "/etc/cwiid"
 }
 
