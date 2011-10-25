@@ -27,6 +27,7 @@ board_prepare() {
 	TARGET_PACKAGES+=" sdldoom"
 	TARGET_PACKAGES+=" fbvncslave"
 	TARGET_PACKAGES+=" plftool"
+	hset dbus deploy false
 }
 
 df3120-deploy-linux-bare() {

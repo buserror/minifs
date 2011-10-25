@@ -18,7 +18,7 @@ board_set_versions() {
 
 board_prepare() {
 	TARGET_PACKAGES+=" uboot strace gdb tmux"
-	TARGET_PACKAGES+=" tinc openssh rsync"
+	TARGET_PACKAGES+=" tinc openssh rsync iptables dnsmasq"
 	TARGET_PACKAGES+=" cups cups-splix ghostscript msfonts"
 	
 	{
