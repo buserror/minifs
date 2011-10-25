@@ -137,16 +137,18 @@ function deploy() {
 	local turd="._deploy_$PACKAGE"
 	LOGFILE="$turd.log"
 	if [ -f "._install_$PACKAGE" ]; then
+		local deployme=$(hget $PACKAGE deploy)
+		if ! ${deployme:=true} ; then return 0; fi
 		echo "     Deploying $PACKAGE"
-		rm -f $turd
-		echo "$@" >$LOGFILE
-		if "$@" >>$LOGFILE 2>&1 ; then
-			touch $turd
-		else
+		{
+			rm -f $turd
+			echo "$@" >$LOGFILE
+			"$@" && touch $turd 
+		} >>$LOGFILE 2>&1 || {
 			echo "#### ** ERROR ** Deploying $PACKAGE"
 			echo "     Check $BUILD/$PACKAGE/$LOGFILE"
 			exit 1
-		fi
+		}
 	fi
 }
 
