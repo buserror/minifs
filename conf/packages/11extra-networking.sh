@@ -1,4 +1,16 @@
 
+# iptables http://www.netfilter.org/projects/iptables/downloads.html
+PACKAGES+=" iptables"
+hset iptables url "http://www.netfilter.org/projects/iptables/files/iptables-1.4.12.1.tar.bz2"
+
+configure-iptables() {
+	configure-generic --disable-ipv6
+}
+deploy-iptables() {
+	ROOTFS_PLUGINS+="$ROOTFS/lib/xtables:"
+	deploy deploy_binaries
+}
+
 #
 # Internet routing daemon
 #
@@ -41,7 +53,8 @@ deploy-openssh() {
 	fi
 	mkdir -p "$ROOTFS"/var/log &&
 		touch "$ROOTFS"/var/log/lastlog
-	mkdir -p $ROOTFS/etc/ssh/ $ROOTFS/var/empty/ && cp $CONFIG/ssh_host_* $ROOTFS/etc/ssh/
+	mkdir -p $ROOTFS/etc/ssh/ $ROOTFS/var/empty/ && \
+		cp $CONFIG/ssh_host_* $ROOTFS/etc/ssh/
 }
 
 #
@@ -81,5 +94,30 @@ hset mdnsd destdir "$STAGING_USR"
 hset mdnsd depends "busybox"
 
 deploy-mdnsd() {
+	deploy deploy_binaries
+}
+
+#
+# dns/dhcp server/forwarder
+#
+PACKAGES+=" dnsmasq"
+hset dnsmasq url "http://www.thekelleys.org.uk/dnsmasq/dnsmasq-2.59.tar.gz"
+hset dnsmasq optional "dbus"
+
+configure-dnsmasq-local() {
+	sed -i -e 's/\/usr\/local/\/usr/' Makefile
+	sed -i \
+		-e '/#undef HAVE_IPV6/d' \
+		-e '/struct all_addr {/i\
+#undef HAVE_IPV6
+' src/dnsmasq.h
+}
+configure-dnsmasq() {
+	configure  configure-dnsmasq-local
+}
+compile-dnsmasq() {
+	compile-generic CC="ccfix $TARGET_FULL_ARCH-gcc" CFLAGS="$CFLAGS"
+}
+deploy-dnsmasq() {
 	deploy deploy_binaries
 }
