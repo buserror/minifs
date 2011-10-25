@@ -190,6 +190,7 @@ function ppr(s) {
 {
 	if ($2=="open" && match($3,pp)) l[$3]=$3;
 	if ($2=="rename" && match($4,pp)) { delete l[$3]; l[$4]=$4; }
+	if ($2=="symlink" && match($4,pp)) { l[$4]=$4; }
 }
 END { for (p in l) ppr(p); }
 ' 
@@ -210,9 +211,11 @@ function get_installed_etc() {
 deploy_binaries() {
 	local tmpf="/tmp/minifs-$MINIFS_BOARD/install-$PACKAGE.lst"
 	{
+		set -x
 		mkdir -p /tmp/minifs-$MINIFS_BOARD/
 		get_installed_short_binaries >$tmpf
 		(cd $STAGING; rsync -av --files-from=$tmpf ./ $ROOTFS/ ) >"$tmpf.log"
+		set +x
 	} || {
 		echo $0 $PACKAGE failed; exit 1
 	}
