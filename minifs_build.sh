@@ -477,7 +477,7 @@ for pack in $PACKAGES; do
 	dobuild=0
 	if env_contains BUILD_PACKAGES $pack; then
 		PROCESS_PACKAGES+=" $pack"
-		DEPLIST+=" $pack($(hget $pack depends))"
+		DEPLIST+=" $pack($(hget $pack depends) $(hget $pack optional))"
 	fi
 done
 
