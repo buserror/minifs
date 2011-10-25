@@ -99,8 +99,9 @@ compile-libopenjpeg() {
 
 PACKAGES+=" ghostscript"
 #hset ghostscript url "http://downloads.ghostscript.com/public/ghostscript-9.04.tar.gz"
+# no longer need lcms with the git version
 hset ghostscript url "git!git://git.ghostscript.com/ghostpdl.git#ghostscript-git.tar.bz2"
-hset ghostscript depends "cups libjpeg libpng libtiff libexpat lcms zlib libfontconfig"
+hset ghostscript depends "cups libjpeg libpng libtiff libexpat zlib libfontconfig"
 hset ghostscript dir "ghostscript/gs"
 
 configure-ghostscript-local() {
@@ -132,11 +133,9 @@ configure-ghostscript-local() {
     LDFLAGS="$LDFLAGS_BASE"
 	mkdir -p obj/aux
 }
-
 configure-ghostscript() {
 	configure configure-ghostscript-local
 }
-
 compile-ghostscript-local() {
 	set -x
 	{ 	
@@ -156,11 +155,9 @@ compile-ghostscript-local() {
 	}
 	set +x
 }
-
 compile-ghostscript() {
 	compile compile-ghostscript-local
 }
-
 install-ghostscript() {
 	# if cups get reinstalled, we need to reinstall too
 	if [ ._install_$PACKAGE -ot ../cups/._install_cups ]; then
@@ -168,7 +165,6 @@ install-ghostscript() {
 	fi
 	install-generic
 }
-
 deploy-ghostscript-local() {
 	set -x
 	ROOTFS_PLUGINS+="$ROOTFS/lib/engines:"
@@ -196,7 +192,7 @@ hset cups-splix url "splix-svn.tar.bz2"
 hset cups-splix depends "cups libjbig"
 
 hostcheck-cups-splix() {
-	hostcheck_commands recode # needed to make the drivers
+	hostcheck_commands recode ppdc # needed to make the drivers
 }
 download-cups-splix() {
 	pushd "$DOWNLOAD"
@@ -208,15 +204,11 @@ download-cups-splix() {
 	fi
 	popd
 }
-
 patch-cups-splix() {
 	sed -i -e 's|g++|$(CXX)|g' rules.mk
-	awk -v arg="$LDFLAGS_RLINK -L../libjbig/libjbig" '/_LDFLAGS/ { $0=$0 " " arg; }{print;}' \
+	awk -v arg="$LDFLAGS_RLINK -L../libjbig/libjbig" \
+		'/_LDFLAGS/ { $0=$0 " " arg; }{print;}' \
 		module.mk >module.mk.new && mv module.mk.new module.mk
-#	sed -i \
-#		-e '/rastertoqpdl/d' \
-#		-e 's|/\* Filter|Filter|' -e 's|[0-9+] pstoqpdl.*$|0 pstoqpdl|' \
-#		ppd/filter.defs
 	# remove locales
 	rm -f ppd/*.ppd
 	sed -i -e 's|LANGUAGES[ \t]*:=.*$|LANGUAGES :=|' ppd/Makefile
