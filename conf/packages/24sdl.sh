@@ -80,6 +80,8 @@ hset kobodeluxe depends "libsdlimage"
 
 configure-kobodeluxe-local() {
 	set -x
+	# conflicts with uclibc pipe2() function
+	sed -i -e 's|pipe2|pipe_2|g' enemies.h enemy.cpp
 	export SDL_CONFIG="$STAGING_TOOLS"/bin/sdl-config
 	export LDFLAGS="$LDFLAGS_RLINK"
 	libtoolize && $ACLOCAL && autoheader && automake --force-missing --foreign -a -c && autoconf
