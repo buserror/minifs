@@ -7,15 +7,28 @@ fi
 hset sharedlibs url "none"
 hset sharedlibs dir "."
 hset sharedlibs phases "deploy"
+hset sharedlibs exclude "ldscripts:"
 
 sharedlibs-rsync() {
+	local excl=$(hget sharedlibs exclude)
+	local extras=""
+	
+	for pd in $(echo "$excl"| tr ":" "\n") ; do
+		if [ "$pd" != "" ]; then
+			extras+="--exclude=$pd "
+		fi
+	done
+	echo EXTRAS rsync $extras
 	rsync -av \
 		--chmod=u=rwX \
+		--exclude=ldscripts \
+		--exclude=._\* \
 		--exclude=\*.o \
 		--exclude=\*.map \
 		--exclude=\*.h \
 		--exclude=\*.a --exclude=\*.la --exclude=\*.lai \
 		--exclude pkgconfig \
+		$extras \
 		$*
 }
 deploy-sharedlibs-local() {
