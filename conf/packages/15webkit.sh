@@ -157,9 +157,9 @@ PACKAGES+=" flashplugin"
 # 64 bits player 11 beta 2
 #hset flashplugin url "http://download.macromedia.com/pub/labs/flashplatformruntimes/flashplayer11/flashplayer11_b2_install_lin_64_080811.tar.gz#flashplugin-11b2-$TARGET_ARCH.tarb"
 # 64 bits player 11 RC
-hset flashplugin url "http://download.macromedia.com/pub/labs/flashplatformruntimes/flashplayer11/flashplayer11_rc1_install_lin_64_090611.tar.gz#flashplugin-11rc1-$TARGET_ARCH.tarb"
+#hset flashplugin url "http://download.macromedia.com/pub/labs/flashplatformruntimes/flashplayer11/flashplayer11_rc1_install_lin_64_090611.tar.gz#flashplugin-11rc1-$TARGET_ARCH.tarb"
 # 11 final
-#hset flashplugin url "http://fpdownload.macromedia.com/get/flashplayer/current/install_flash_player_11_linux.tar.gz#flashplugin-10.3-$TARGET_ARCH.tarb"
+hset flashplugin url "http://fpdownload.macromedia.com/get/flashplayer/current/install_flash_player_11_linux.$TARGET_ARCH.tar.gz#flashplugin-11.0-$TARGET_ARCH.tarb"
 hset flashplugin phases "deploy"
 hset flashplugin depends "gnutls libcurl libnss msfonts libwebkit"
 
