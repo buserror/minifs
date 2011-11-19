@@ -184,7 +184,7 @@ configure-gnutls() {
 PACKAGES+=" openssl"
 hset openssl url "http://www.openssl.org/source/openssl-1.0.0e.tar.gz"
 hset openssl targets "openssl openssl-bin"
-hset openssl deploy 0
+hset openssl deploy false
 hset openssl config "linux-generic32"
 
 configure-openssl() {
@@ -200,9 +200,7 @@ compile-openssl() {
 		CFLAG="$base $TARGET_CFLAGS"
 }
 deploy-openssl() {
-	if [ $(hget openssl deploy) -ne 0 ]; then
-		deploy deploy_binaries
-	fi
+	deploy deploy_binaries
 }
 
 #######################################################################
