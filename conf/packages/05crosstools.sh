@@ -61,6 +61,7 @@ configure-crosstools() {
 	if [ "$COMMAND_PACKAGE" = "crosstools" ] ; then
 		set -x
 		pushd "$TOOLCHAIN_BUILD"
+			reset-crossrools-env
 			rm -f config_crosstools.conf config_uclibc.conf .config
 			if [ -f "$CONFIG"/config_crosstools.conf ]; then
 				cp "$CONFIG"/config_crosstools.conf \
@@ -117,7 +118,7 @@ install-crosstools() {
 
 
 PACKAGES+=" libtool"
-hset libtool url "http://ftp.gnu.org/gnu/libtool/libtool-2.4.tar.gz"
+hset libtool url "http://ftp.gnu.org/gnu/libtool/libtool-2.4.2.tar.gz"
 hset libtool destdir "/"
 
 setup-libtool() {
