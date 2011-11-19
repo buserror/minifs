@@ -27,12 +27,19 @@ hset openssh depends "openssl"
 hset openssh sysconf "/etc/ssh"
 
 setup-openssh() {
-	hset openssl deploy 1
+	hset openssl deploy true
 }
-configure-openssh() {
-	configure-generic LD="ccfix $TARGET_FULL_ARCH-gcc" \
+configure-openssh-local() {
+	configure-generic-local LD="ccfix $TARGET_FULL_ARCH-gcc" \
 		--sysconfdir=/etc/ssh \
 		--libexecdir=/usr/lib/libexec
+	sed -i \
+		-e 's|#define HAVE_ADDR_V6_IN_UTMP 1|#undef HAVE_ADDR_V6_IN_UTMP|g' \
+		-e 's|#define HAVE_ADDR_V6_IN_UTMPX 1|#undef HAVE_ADDR_V6_IN_UTMPX|g' \
+		config.h
+}
+configure-openssh() {
+	configure configure-openssh-local
 }
 deploy-openssh() {
 	deploy deploy_binaries
