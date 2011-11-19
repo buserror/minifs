@@ -39,6 +39,12 @@ hostcheck-libglib() {
 	fi
 }
 
+setup-libglib() {
+	# dont deploy python garbage
+	local exc=$(hget sharedlibs exclude)
+	hset sharedlibs exclude "$exc:gdbus-2.0"
+}
+
 configure-libglib-local() {
 	printf "glib_cv_stack_grows=no
 ac_cv_func_posix_getpwuid_r=yes
