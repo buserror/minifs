@@ -21,6 +21,12 @@ set +o posix #needed for dashes in function names
 set -m # enable job control
 
 MINIFS_BOARD=${MINIFS_BOARD:-"atom"}
+
+MINIFS_BOARD_COMP=""
+for pd in $(echo "$MINIFS_BOARD"| tr "-" "\n") ; do
+	MINIFS_BOARD_COMP="$pd:$MINIFS_BOARD_COMP"
+done
+
 # MINIFS_PATH contains collumn separated directories with extra
 # package directories
 # MINIFS_PACKAGES contains a list of space separated packaged to add
@@ -32,7 +38,8 @@ MINIFS_BOARD=${MINIFS_BOARD:-"atom"}
 
 COMMAND=$1
 COMMAND_PACKAGE=${COMMAND/_*}
-COMMAND_TARGET=${COMMAND/*_}
+COMMAND_TARGET=$2
+COMMAND_TARGET=${COMMAND_TARGET:-${COMMAND/*_}}
 
 echo MINIFS_BOARD $MINIFS_BOARD $COMMAND_TARGET $COMMAND_PACKAGE
 
@@ -101,7 +108,7 @@ if [ "$COMMAND" == "tools" ]; then exit ;fi
 
 hset busybox version "1.19.2"
 hset linux version "2.6.32.2"
-hset crosstools version "1.12.1"
+hset crosstools version "1.13.0"
 
 # PATH needs sbin (for depmod), the host tools, and the cross toolchain
 export BASE_PATH="$PATH"
@@ -383,6 +390,7 @@ configure-generic-local() {
 				--prefix="$PACKAGE_PREFIX" \
 				--sysconfdir=$sysconf
 		elif [ -f configure.ac -o -f configure.in ]; then
+			aclocal && libtoolize --copy --force --automake 
 			autoreconf --force #;libtoolize;automake --add-missing
 		fi
 	fi
