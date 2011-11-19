@@ -35,7 +35,7 @@ hset filesystem-prepack url "none"
 
 PACKAGES+=" filesystems"
 hset filesystems url "none"
-hset filesystems depends "busybox sharedlibs filesystem-prepack"
+hset filesystems depends "busybox sharedlibs filesystem-populate filesystem-prepack"
 FILESYSTEMS=""
 
 if [ $TARGET_FS_SQUASH -eq 1 ]; then
@@ -79,29 +79,6 @@ deploy-filesystem-prepack() {
 	deploy echo Copying
 	echo -n "     Packing filesystem... "
 	(
-	mkdir -p "$ROOTFS"/proc/ "$ROOTFS"/dev/ "$ROOTFS"/sys/ \
-		"$ROOTFS"/tmp/ "$ROOTFS"/var/run "$ROOTFS"/var/log
-	rsync -av \
-		"$STAGING/etc/" \
-		"$STAGING_USR/etc/" \
-		"$ROOTFS/etc/"
-	mv "$ROOTFS"/usr/etc/* "$ROOTFS"/etc/ 
-	rm -rf "$ROOTFS"/usr/etc/ "$ROOTFS"/usr/var/
-	ln -s ../etc $ROOTFS/usr/etc
-	ln -s ../var $ROOTFS/usr/var
-	echo minifs-$MINIFS_BOARD >$ROOTFS/etc/hostname
-	echo "minifs-$MINIFS_BOARD-" | \
-		awk '{ print $0 strftime("%Y%m%d%H%M"); }' \
-			>$ROOTFS/etc/minifs.tag
-			
-	## Add rootfs overrides for boards
-	for pd in "$CONFIG/rootfs" $(minifs_path_split "rootfs"); do
-		if [ -d "$pd" ]; then
-			echo "### Overriding root $pd"
-			rsync -av "$pd/" "$ROOTFS/"
-		fi
-	done
-
 	export CROSS_LINKER_INVOKE="/tmp/cross_linker_run.sh"
 	cross_linker --purge || {
 		echo "### cross_linker error, debug with $CROSS_LINKER_INVOKE"
