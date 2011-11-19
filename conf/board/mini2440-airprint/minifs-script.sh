@@ -1,10 +1,7 @@
 #!/bin/bash
 
-TARGET_ARCH=arm
-TARGET_FULL_ARCH=$TARGET_ARCH-v4t-linux-uclibcgnueabi
-TARGET_KERNEL_NAME=uImage
-TARGET_LIBC_CFLAGS="-g -Os -march=armv4t -mtune=arm920t -mthumb-interwork -mthumb -fPIC"
-TARGET_CFLAGS="$TARGET_LIBC_CFLAGS -fPIC"
+. "$CONF_BASE"/arch/armv4.sh
+
 MINIFS_BOARD_UBOOT=mini2440
 
 board_set_versions() {
@@ -17,7 +14,7 @@ board_set_versions() {
 }
 
 board_prepare() {
-	TARGET_PACKAGES+=" uboot strace gdb tmux"
+	TARGET_PACKAGES+=" uboot strace gdb "
 	TARGET_PACKAGES+=" tinc openssh rsync iptables dnsmasq"
 	TARGET_PACKAGES+=" cups cups-splix ghostscript msfonts"
 	

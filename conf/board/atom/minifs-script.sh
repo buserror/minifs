@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#. "$CONF_BASE"/arch/x86_64.sh
+
 TARGET_ARCH=x86_64
 TARGET_FULL_ARCH=$TARGET_ARCH-atom-linux-gnu
 TARGET_KERNEL_NAME=bzImage

@@ -2,12 +2,7 @@
 
 # Xvnc :99 -ac -geometry 320x240 -depth 16 -AlwaysShared -SecurityTypes None
 
-TARGET_ARCH=arm
-TARGET_FULL_ARCH=$TARGET_ARCH-v4t-linux-uclibcgnueabi
-TARGET_KERNEL_NAME=uImage
-
-# target has tiny memory, use thumb, it's smaller
-TARGET_CFLAGS="-Os -march=armv4t -mtune=arm920t -mthumb-interwork -mthumb "
+. "$CONF_BASE"/arch/armv4t.sh
 
 board_set_versions() {
 	hset linux version "2.6.36.3"
