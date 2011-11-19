@@ -150,7 +150,7 @@ hset libmesadrm url "http://cgit.freedesktop.org/mesa/drm/snapshot/drm-2.4.24.ta
 
 configure-libmesadrm-local() {
 	set -x
-	#aclocal && libtoolize --copy --force --automake #&& automake --add-missing && autoreconf --force
+	aclocal && libtoolize --copy --force --automake #&& automake --add-missing && autoreconf --force
 	autoreconf --install --force
 	configure-generic-local \
 		--enable-nouveau-experimental-api \
@@ -223,7 +223,7 @@ configure-xorgserver() {
 }
 
 deploy-xorgserver-local() {
-	cp 	deploy_binaries
+	deploy_binaries
 	ln -fs Xorg "$ROOTFS"/usr/bin/X 
 	rsync -av \
 		"$STAGING_USR"/share/X11 \
