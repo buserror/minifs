@@ -1,6 +1,6 @@
 
 # ftp://download.nvidia.com/XFree86/
-NVIDIA_VERSION=285.05.09
+NVIDIA_VERSION=290.10
 NVIDIA_NAME="NVIDIA-Linux-$TARGET_ARCH-${NVIDIA_VERSION}"
 PACKAGES+=" nvidia"
 hset nvidia url "ftp://download.nvidia.com/XFree86/Linux-$TARGET_ARCH/$NVIDIA_VERSION/$NVIDIA_NAME.run"
