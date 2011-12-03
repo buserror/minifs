@@ -2,9 +2,10 @@
 
 
 PACKAGES+=" libvncserver"
-hset libvncserver url "http://downloads.sourceforge.net/project/libvncserver/libvncserver/0.9.7/LibVNCServer-0.9.7.tar.gz"
+hset libvncserver url "http://downloads.sourceforge.net/project/libvncserver/libvncserver/0.9.8.2/LibVNCServer-0.9.8.2.tar.gz"
 hset libvncserver depends "zlib libjpeg"
 hset libvncserver configscript "libvncserver-config"
+hset libvncserver optional "libsdl xorglibX11"
 
 configure-libvncserver-local() {
 	set -x
@@ -28,7 +29,9 @@ configure-libvncserver-local() {
 				configure.ac
 	fi
 	libtoolize && $ACLOCAL && autoheader && automake --force-missing --foreign -a -c && autoconf
-	configure-generic-local $extras
+	configure-generic-local --without-gcrypt $extras
+	# 0.9.8.2 uses some crap windows file because of /* #undef LIBVNCSERVER_HAVE_GETTIMEOFDAY */
+	sed -i -e 's|/\* #undef LIBVNCSERVER_HAVE_GETTIMEOFDAY \*/|#define LIBVNCSERVER_HAVE_GETTIMEOFDAY 1|' rfb/rfbconfig.h
 	set +x
 }
 
