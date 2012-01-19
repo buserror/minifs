@@ -16,60 +16,6 @@ configure-libxslt() {
 		--with-libxml-prefix="$STAGING_USR"
 }
 
-# for gst-plugins-base etc
-PACKAGES+=" liboil"
-hset liboil url "http://liboil.freedesktop.org/download/liboil-0.3.17.tar.gz"
-
-configure-liboil-local() {
-	# fix 64 bits build
-	sed -i -e 's/64|/64*|/g' m4/as-unaligned-access.m4
-	rm -f configure
-	configure-generic-local
-}
-
-configure-liboil() {
-	configure configure-liboil-local
-}
-
-PACKAGES+=" libogg"
-hset libogg url "http://downloads.xiph.org/releases/ogg/libogg-1.1.4.tar.gz"
-
-PACKAGES+=" libvorbis"
-hset libvorbis url "http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.2.tar.gz"
-
-configure-libvorbis() {
-	export LDFLAGS="$LDFLAGS_RLINK"
-	configure-generic
-	export LDFLAGS="$LDFLAGS_BASE"
-}
-
-# http://gstreamer.freedesktop.org/
-CONFIG_GSTREAMER_VERSION=0.10.35
-
-PACKAGES+=" gstreamer gst-plugins-base"
-hset gstreamer url "http://gstreamer.freedesktop.org/src/gstreamer/gstreamer-$CONFIG_GSTREAMER_VERSION.tar.bz2"
-hset gst-plugins-base url "http://gstreamer.freedesktop.org/src/gst-plugins-base/gst-plugins-base-$CONFIG_GSTREAMER_VERSION.tar.bz2"
-hset gst-plugins-base depends "liboil libalsa libogg libvorbis"
-hset gstreamer targets "gstreamer gst-plugins-base"
-
-setup-gstreamer() {
-	ROOTFS_PLUGINS+="$ROOTFS/usr/lib/gstreamer-0.10:"
-}
-
-configure-gstreamer() {
-	export LDFLAGS="$LDFLAGS_RLINK"
-	configure-generic --libexecdir="$STAGING_USR"/lib
-	export LDFLAGS="$LDFLAGS_BASE"
-}
-
-configure-gst-plugins-base() {
-	export LDFLAGS="$LDFLAGS_RLINK"
-	if [[ $TARGET_X11 ]]; then
-		export LDFLAGS="$LDFLAGS -lxcb"
-	fi
-	configure-generic --without-x --without-gudev --disable-nls
-	export LDFLAGS="$LDFLAGS_BASE"
-}
 
 # http://site.icu-project.org/
 PACKAGES+=" libicu"
@@ -109,7 +55,7 @@ configure-libicu() {
 PACKAGES+=" libwebkit"
 #hset libwebkit url "git!git://git.webkit.org/WebKit.git#libwebkit-git.tar.bz2"
 hset libwebkit url "git!git://gitorious.org/webkit/webkit.git#libwebkit-git.tar.bz2"
-hset libwebkit depends "libicu libenchant libsoup sqlite3 libxslt libgail libgtk gstreamer gst-plugins-base"
+hset libwebkit depends "libicu libenchant libsoup sqlite3 libxslt libgail libgtk gstreamer"
 
 hostcheck-libwebkit() {
 	hostcheck_commands gperf
@@ -152,6 +98,8 @@ deploy-msfonts() {
 }
 
 PACKAGES+=" flashplugin"
+hset flashplugin phases "deploy"
+hset flashplugin depends "gnutls libcurl libnss msfonts libwebkit"
 # get the stable release -- 10.3.181.14 as of 18/05/12
 #hset flashplugin url "http://fpdownload.macromedia.com/get/flashplayer/current/install_flash_player_10_linux.tar.gz#flashplugin-10.3-$TARGET_ARCH.tarb"
 # 64 bits player 11 beta 2
@@ -159,9 +107,9 @@ PACKAGES+=" flashplugin"
 # 64 bits player 11 RC
 #hset flashplugin url "http://download.macromedia.com/pub/labs/flashplatformruntimes/flashplayer11/flashplayer11_rc1_install_lin_64_090611.tar.gz#flashplugin-11rc1-$TARGET_ARCH.tarb"
 # 11 final 11.1.102.55
-hset flashplugin url "http://fpdownload.macromedia.com/get/flashplayer/pdc/11.1.102.55/install_flash_player_11_linux.$TARGET_ARCH.tar.gz#flashplugin-11.1.102.55-$TARGET_ARCH.tarb"
-hset flashplugin phases "deploy"
-hset flashplugin depends "gnutls libcurl libnss msfonts libwebkit"
+#hset flashplugin url "http://fpdownload.macromedia.com/get/flashplayer/pdc/11.1.102.55/install_flash_player_11_linux.$TARGET_ARCH.tar.gz#flashplugin-11.1.102.55-$TARGET_ARCH.tarb"
+# 11.2 beta with multithread decoder
+hset flashplugin url "http://download.macromedia.com/pub/labs/flashplatformruntimes/flashplayer11-2/flashplayer11-2_p2_install_lin_64_112211.tar.gz"
 
 deploy-flashplugin-local() {
 	mkdir -p "$ROOTFS"/usr/lib/mozilla/plugins/
