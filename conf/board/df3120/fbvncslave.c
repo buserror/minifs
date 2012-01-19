@@ -1,3 +1,26 @@
+/*
+ * fbvncslave.c
+ * 
+ * (c) Michel Pollet <buserror@gmail.com>
+ * 
+ * A log file in /tmp keeps trace of all the fixes and warnings, for
+ * the brave who wants to go and fix the packages themselves
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, write to the
+ * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
+ * Boston, MA  02110-1301, USA.
+ */
 
 #include <sys/ioctl.h>
 #include <sys/mman.h>
@@ -18,7 +41,8 @@ struct fb_fix_screeninfo finfo;
 long int screensize;
 uint8_t * fbp;
 
-int openfb()
+int
+openfb()
 {
 	int vt = 2;
 	int tty = open("/dev/tty0", O_WRONLY);
@@ -98,7 +122,9 @@ int openfb()
 	return 0;
 }
 
-static rfbBool allocate(rfbClient* client)
+static rfbBool 
+allocate(
+		rfbClient* client)
 {
 	client->width = 320;
 	client->height = 240;
@@ -106,14 +132,20 @@ static rfbBool allocate(rfbClient* client)
 	return TRUE;
 }
 
-int main(int argc, char ** argv)
+int 
+main(
+		int argc, 
+		char ** argv)
 {
 	rfbClient* cl;
 
-	printf("Starting\n");
-	openfb();
+	if (openfb()) {
+		fprintf(stderr, "%s: could not open frame buffer console\n", argv[0]);
+		exit(1);
+	}
+	printf("%s: Starting\n", argv[0]);
 
-	cl=rfbGetClient(5,3,2);
+	cl = rfbGetClient(5,3,2);
 	cl->MallocFrameBuffer=allocate;
 	cl->canHandleNewFBSize = FALSE;
 
@@ -130,14 +162,12 @@ int main(int argc, char ** argv)
 		return 1;
 
 	while(1) {
-		{
-			int i = WaitForMessage(cl, 500);
-			if (i < 0)
+		int i = WaitForMessage(cl, 500);
+		if (i < 0)
+			return 0;
+		if (i)
+	    	if (!HandleRFBServerMessage(cl))
 				return 0;
-			if (i)
-		    	if(!HandleRFBServerMessage(cl))
-					return 0;
-		}
 	}
 
 	return 0;
