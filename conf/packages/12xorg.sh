@@ -67,6 +67,13 @@ hostcheck-libxcb() {
 	hostcheck_commands xsltproc
 }
 
+PACKAGES+=" xcb-util xcb-util-keysyms xcb-util-image"
+hset xcb-util url "http://xcb.freedesktop.org/dist/xcb-util-0.3.8.tar.bz2"
+hset xcb-util-image url "http://xcb.freedesktop.org/dist/xcb-util-image-0.3.8.tar.bz2"
+hset xcb-util-image depends "xcb-util"
+hset xcb-util-keysyms url "http://xcb.freedesktop.org/dist/xcb-util-keysyms-0.3.8.tar.bz2"
+hset xcb-util-keysyms depends "xcb-util"
+
 PACKAGES+=" xtrans" 
 hset xtrans url $(xorg_module_geturl "lib" "xtrans")
 
