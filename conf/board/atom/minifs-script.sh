@@ -35,7 +35,10 @@ board_prepare() {
 	TARGET_PACKAGES+=" libwebkit"
 	TARGET_PACKAGES+=" flashplugin alsautils"
 	
-	TARGET_PACKAGES+=" fbgrab"	
+#	TARGET_PACKAGES+=" fbgrab"	
+	TARGET_PACKAGES+=" libva-vdpau ffmpeg"
+	TARGET_PACKAGES+=" gst-plugins-base gst-plugins-good gst-plugins-ugly"	
+	TARGET_PACKAGES+=" vlc"	
 		
 	TARGET_PACKAGES+=" targettools libarchive"	
 	

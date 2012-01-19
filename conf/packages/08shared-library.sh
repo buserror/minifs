@@ -27,6 +27,7 @@ sharedlibs-rsync() {
 		--exclude=\*.map \
 		--exclude=\*.h \
 		--exclude=\*.a --exclude=\*.la --exclude=\*.lai \
+		--exclude=\*T \
 		--exclude pkgconfig \
 		$extras \
 		$*

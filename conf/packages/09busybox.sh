@@ -40,7 +40,7 @@ hset filesystem-populate depends "busybox"
 
 deploy-filesystem-populate() {
 	deploy echo Copying
-	echo -n "     Populating filesystem... "
+	echo -n "    Populating filesystem... "
 	(
 	mkdir -p "$ROOTFS"/proc/ "$ROOTFS"/dev/ "$ROOTFS"/sys/ \
 		"$ROOTFS"/tmp/ "$ROOTFS"/var/run "$ROOTFS"/var/log
