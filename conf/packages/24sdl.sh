@@ -31,12 +31,17 @@ install-libsdl() {
 PACKAGES+=" libsdlimage"
 hset libsdlimage url "http://www.libsdl.org/projects/SDL_image/release/SDL_image-1.2.10.tar.gz"
 hset libsdlimage depends "libsdl libpng"
+hset libsdlimage optional "libjpeg"
 
 setup-libsdlimage() {
 	# SDL_image manualy load shared libs, they are not (GGRRRRR!) in ELF 
 	ROOTFS_KEEPERS+="libpng14.so:libjpeg.so:"
 }
-	
+
+PACKAGES+=" libsdlttf"
+hset libsdlttf url "http://www.libsdl.org/projects/SDL_ttf/release/SDL_ttf-2.0.11.tar.gz"
+hset libsdlttf depends "libsdl libfreetype"
+
 PACKAGES+=" sdlquake"
 hset sdlquake url "http://www.libsdl.org/projects/quake/src/sdlquake-1.0.9.tar.gz"
 hset sdlquake depends "libsdl"
