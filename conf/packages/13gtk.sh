@@ -31,12 +31,11 @@ hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.29/glib-2.29.18.
 hset libglib depends "libffi"
 
 hostcheck-libglib() {
-	local genm=$(which glib-genmarshal)
-	if [ ! -x "$genm" ]; then
+	hostcheck_commands glib-genmarshal glib-compile-schemas || {
 		echo "### Stupid libglib needs part of itself () to compile."
-		echo "    please install glib-genmarshal (libglib2.0-dev on debian)"
-		HOSTCHECK_FAILED=1
-	fi
+		echo "    please install libglib2.0-dev and/or gtk-doc"
+		exit 1
+	}
 }
 
 setup-libglib() {
