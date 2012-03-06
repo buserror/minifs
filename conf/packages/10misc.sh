@@ -367,7 +367,7 @@ deploy-libcap() {
 
 # http://www.net-snmp.org/download.html
 PACKAGES+=" libnetsnmp"
-hset libnetsnmp url "http://downloads.sourceforge.net/project/net-snmp/net-snmp/5.5/net-snmp-5.5.tar.gz#netsnmp-5.5.tgz"
+hset libnetsnmp url "http://downloads.sourceforge.net/project/net-snmp/net-snmp/5.5.1/net-snmp-5.5.1.tar.gz#netsnmp-5.5.1.tgz"
 hset libnetsnmp depends "openssl"
 hset libnetsnmp configscript "net-snmp-config"
 
