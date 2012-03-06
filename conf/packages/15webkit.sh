@@ -109,7 +109,7 @@ hset flashplugin depends "gnutls libcurl libnss msfonts libwebkit"
 # 11 final 11.1.102.55
 #hset flashplugin url "http://fpdownload.macromedia.com/get/flashplayer/pdc/11.1.102.55/install_flash_player_11_linux.$TARGET_ARCH.tar.gz#flashplugin-11.1.102.55-$TARGET_ARCH.tarb"
 # 11.2 beta with multithread decoder
-hset flashplugin url "http://download.macromedia.com/pub/labs/flashplatformruntimes/flashplayer11-2/flashplayer11-2_p2_install_lin_64_112211.tar.gz"
+hset flashplugin url "http://download.macromedia.com/pub/labs/flashplatformruntimes/flashplayer11-2/flashplayer11-2_p5_install_lin_64_013112.tar.gz"
 
 deploy-flashplugin-local() {
 	mkdir -p "$ROOTFS"/usr/lib/mozilla/plugins/
