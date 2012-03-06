@@ -22,6 +22,9 @@ set -m # enable job control
 
 MINIFS_BOARD=${MINIFS_BOARD:-"atom"}
 
+# get a default number of concurent jobs
+MINIFS_JOBS=${MINIFS_JOBS:-$(cat /proc/cpuinfo |grep '^processor'|wc -l)}
+
 MINIFS_BOARD_COMP=""
 for pd in $(echo "$MINIFS_BOARD"| tr "-" "\n") ; do
 	MINIFS_BOARD_COMP="$pd:$MINIFS_BOARD_COMP"
@@ -78,8 +81,8 @@ GCC="${CROSS}-gcc"
 
 WGET=wget
 MAKE=make
-MAKE_ARGUMENTS="-j10"
-CROSSTOOL_JOBS=".8"
+MAKE_ARGUMENTS="-j$MINIFS_JOBS"
+CROSSTOOL_JOBS=".$MINIFS_JOBS"
 
 mkdir -p "$STAGING_TOOLS"/bin
 mkdir -p download "$KERNEL" "$ROOTFS" "$STAGING_USR" "$TOOLCHAIN"
@@ -139,7 +142,7 @@ if [ "$CONFIG_KERNEL_LZO" != "" ]; then
 	NEEDED_HOST_COMMANDS+=" lzop"
 fi
 # Modern crosstools needs all these too!
-NEEDED_HOST_COMMANDS+=" svn cvs svn lzma"
+NEEDED_HOST_COMMANDS+=" curl svn cvs svn lzma"
 
 #######################################################################
 # PACKAGES is the entire list of possible packages, as filled by the 
@@ -271,6 +274,8 @@ for package in $TARGET_PACKAGES; do
 	url=${fil/\#*}
 	loc=${base/*#/}
 	vers=$(echo $base|sed -r 's|.*([-_](v?[0-9]+[a-z]?[\._]?)+)\..*|\1|')
+	host=${url/*:\/\/}
+	host=${host/\/*}
 	#echo "base=$base typ=$typ loc=$loc vers=$vers"
 	 
 	# maybe the package has a magic downloader ?
@@ -307,7 +312,23 @@ for package in $TARGET_PACKAGES; do
 						rm -rf "$BUILD/$package"
 				fi
 			;;
-			*) $WGET "$fil" -O "$loc" || { rm -f "$loc"; exit 1; } ;;
+			*) $WGET "$url" -O "$loc" || { rm -f "$loc"; exit 1; } ;;
+		esac
+	elif [ "$COMMAND_PACKAGE" = "download" ]; then 
+		echo -n Verifying $package URL
+		case "$proto" in
+			git|svn) echo " skipped ($proto)" ;;
+			*) case "$host" in
+					*.googlecode.com) echo " skipped (borken googlecode)" ;;
+					*) $WGET \
+							-q --spider --tries=5 "$url" || { 
+							echo; echo "ERROR: $url" ;
+							exit 1;
+						} 
+						echo " done"
+					;;
+				esac
+			;;
 		esac
 	fi
 	baseroot=$package
@@ -364,7 +385,9 @@ done
 unset PACKAGE
 popd >/dev/null
 
-if [ "$COMMAND" == "unpack" ]; then exit ; fi
+if [ "$COMMAND" == "unpack" -o "$COMMAND" == "download" ]; then
+	echo "$COMMAND done." ; exit;
+fi
 
 #######################################################################
 ## Create base rootfs tree
