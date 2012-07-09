@@ -22,21 +22,26 @@ compile-uboot() {
 }
 install-uboot-local() {
 	if [ -x tools/mkimage ]; then
-		mkdir -p "$STAGING_TOOLS"/bin/
+        # Reggie added, need to add "$ROOTFS"/sbin to the made dirs otherwise
+        #fw_printenv fails to get copied across to the rootfs!!
+		mkdir -p "$STAGING_TOOLS"/bin/ "$ROOTFS"/sbin/
 		cp tools/mkimage "$STAGING_TOOLS"/bin/
 	fi
 	if [ -x tools/env/fw_printenv ]; then
 		mkdir -p "$STAGING_USR"/bin/ "$STAGING"/etc/
 		cp tools/env/fw_printenv "$STAGING_USR"/bin/
 		cp tools/env/fw_env.config "$STAGING"/etc/
+        #Reggie added, not sure why but have to shoehorn fw_printenv
+        #onto the rootfs from here, it fails to deploy in the deploy stage!
+        cp tools/env/fw_printenv "$ROOTFS"/sbin/
 	fi
 }
 install-uboot() {
 	log_install install-uboot-local
 }
 deploy-uboot() {
-	mkdir -p "$ROOTFS"/bin/
-	if [ -x "$STAGING_USR"/bin/fw_printenv ]; then
-		deploy cp "$STAGING_USR"/bin/fw_printenv "$ROOTFS"/bin/
-	fi	
+    # Reggie changed, not sure why but this test fails.
+	#if [ -x "$STAGING_USR"/bin/fw_printenv ]; then
+		deploy cp "$STAGING"/usr/bin/fw_printenv "$ROOTFS"/bin/
+	#fi	
 }
