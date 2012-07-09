@@ -5,7 +5,7 @@ hset libjpeg url "http://www.ijg.org/files/jpegsrc.v8b.tar.gz"
 
 # http://www.libpng.org/pub/png/libpng.html
 PACKAGES+=" libpng"
-hset libpng url "ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng-1.4.8.tar.bz2"
+hset libpng url "ftp://ftp.simplesystems.org/pub/libpng/png/src/history/libpng14/libpng-1.4.9.tar.gz"
 hset libpng depends "zlib"
 hset libpng configscript "libpng-config"
 
