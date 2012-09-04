@@ -2,7 +2,8 @@
 ## contains the 4 main phases of compiling the kernel
 #######################################################################
 
-hset linux url "http://www.kernel.org/pub/linux/kernel/v$(hget linux version | awk -F. '{print $1 "." $2;}')/linux-$(hget linux version).tar.bz2"
+LINUX_BASE_VERSION=${LINUX_BASE_VERSION:-"v2.6"}
+hset linux url "http://www.kernel.org/pub/linux/kernel/$LINUX_BASE_VERSION/linux-$(hget linux version).tar.bz2"
 hset linux targets "linux-headers linux-modules linux-bare linux-initrd"
 
 hset linux-headers dir "linux"
@@ -32,7 +33,6 @@ setup-linux-headers() {
 	fi
 	if [ ! -f "$BUILD/linux-obj/.config-bare" -o \
 		"$CONFIG/config_kernel.conf" -nt "$BUILD/linux-obj/.config-bare" ]; then
-		echo setup-linux-headers
 		sed -e "s/CONFIG_INITRAMFS_SOURCE=.*/CONFIG_INITRAMFS_SOURCE=\"\"/" \
 			"$CONFIG/config_kernel.conf" \
 			>"$BUILD"/linux-obj/.config-bare
@@ -132,6 +132,9 @@ deploy-linux-bare() {
 		deploy dd if="$BUILD"/linux-obj/arch/arm/boot/uImage \
 			of="$BUILD"/kernel.ub \
 			bs=128k conv=sync
+	elif [ -f "$BUILD"/linux-obj/$TARGET_KERNEL_NAME ]; then
+		deploy cp "$BUILD"/linux-obj/$TARGET_KERNEL_NAME \
+			"$BUILD"/$TARGET_KERNEL_NAME-bare.bin
 	fi
 }
 
@@ -189,6 +192,9 @@ deploy-linux-initrd() {
 		deploy dd if="$BUILD"/linux-obj/arch/arm/boot/uImage \
 			of="$BUILD"/kernel-initrd.ub \
 			bs=128k conv=sync 
+	elif [ -f "$BUILD"/linux-obj/$TARGET_KERNEL_NAME ]; then
+		deploy cp "$BUILD"/linux-obj/$TARGET_KERNEL_NAME \
+			"$BUILD"/$TARGET_KERNEL_NAME-full.bin
 	fi
 }
 
