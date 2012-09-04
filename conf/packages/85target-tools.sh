@@ -25,25 +25,36 @@ PACKAGES+=" targettools"
 hset targettools url "none"
 hset targettools dir "."
 hset targettools destdir "$STAGING_USR"
+#hset targettools tools ""
 hset targettools depends "syslinux"
 
 configure-targettools() {
 	configure echo Done
 }
 compile-targettools() {
+	local tools=$(hget targettools tools)
+	if [ "$tools" != "" ]; then
+		tools="TOOLS=$tools"
+	fi
 	compile-generic \
 		-C $CONF_BASE/target-tools \
 		STAGING="$STAGING_USR" \
-		LDFLAGS="$LDFLAGS_BASE"
+		LDFLAGS="$LDFLAGS_BASE" \
+		"$tools"
 }
 install-targettools() {
 	log_install echo Done
 }
 deploy-targettools() {
+	local tools=$(hget targettools tools)
+	if [ "$tools" != "" ]; then
+		tools="TOOLS=$tools"
+	fi
 	deploy make \
 		-C $CONF_BASE/target-tools \
 		STAGING="$STAGING_USR" \
 		ROOT="$ROOTFS" \
+		"$tools" \
 		deploy
 }
 
