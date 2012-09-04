@@ -3,11 +3,11 @@
 #######################################################################
 PACKAGES+=" dropbear"
 
-V="0.53.1"
+V="2012.55"
 hset dropbear version $V
 hset dropbear url "http://matt.ucc.asn.au/dropbear/releases/dropbear-$V.tar.bz2"
 hset dropbear prefix "/"
-hset dropbear depends "busybox"
+hset dropbear depends "busybox zlib"
 
 configure-dropbear() {
 	if [ "$TARGET_SHARED" -eq 0 ]; then
@@ -35,12 +35,17 @@ deploy-dropbear-local() {
 		"$ROOTFS"/bin/
 	mkdir -p "$ROOTFS/etc/dropbear"
 	if [ ! -f "$BUILD"/dropbear_dss_host_key ]; then
-		echo "#### generating new dropbear keys"
-		qemu-$TARGET_ARCH -L $ROOTFS ./dropbearkey -t dss -f "$BUILD"/dropbear_dss_host_key
-		qemu-$TARGET_ARCH -L $ROOTFS ./dropbearkey -t rsa -f "$BUILD"/dropbear_rsa_host_key
+		echo -n "#### generating new dropbear keys : "
+		{
+			qemu-$TARGET_ARCH -L $ROOTFS ./dropbearkey -t dss -f "$BUILD"/dropbear_dss_host_key
+			qemu-$TARGET_ARCH -L $ROOTFS ./dropbearkey -t rsa -f "$BUILD"/dropbear_rsa_host_key
+			echo " done"
+		} || echo " FAILED"
 	fi
 
-	cp "$BUILD"/dropbear_*_host_key "$ROOTFS"/etc/dropbear/
+	if [ -f "$BUILD"/dropbear_dss_host_key ]; then
+		cp "$BUILD"/dropbear_*_host_key "$ROOTFS"/etc/dropbear/
+	fi
 	mkdir -p "$ROOTFS"/var/log &&
 		touch "$ROOTFS"/var/log/lastlog "$ROOTFS"/var/log/wtmp
 }
