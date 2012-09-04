@@ -90,8 +90,8 @@ configure-crosstools() {
 				-e "s|MINIFS_TOOLCHAIN|$TOOLCHAIN|g" \
 				-e "s|MINIFS_ROOT|$BASE|g" \
 				-e "s|MINIFS_STAGING|$STAGING|g" \
-				-e "s|MINIFS_KERNEL|$KERNEL|g" \
-				-e "s|MINIFS_CFLAGS|$LIBC_CFLAGS|g" \
+				-e "s|MINIFS_KERNEL|$BUILD/linux|g" \
+				-e "s|MINIFS_CFLAGS|$TARGET_LIBC_CFLAGS|g" \
 				 >"$TOOLCHAIN_BUILD"/$dst
 		done
 
@@ -177,13 +177,14 @@ deploy-catchsegv() {
 }
 
 PACKAGES+=" strace"
-hset strace url "http://kent.dl.sourceforge.net/project/strace/strace/4.5.19/strace-4.5.19.tar.bz2"
+#hset strace url "http://kent.dl.sourceforge.net/project/strace/strace/4.5.19/strace-4.5.19.tar.bz2"
+hset strace url "http://downloads.sourceforge.net/project/strace/strace/4.7/strace-4.7.tar.xz"
 hset strace depends "busybox"
 
 configure-strace() {
 	sed -i -e 's|#undef HAVE_LINUX_NETLINK_H|#define HAVE_LINUX_NETLINK_H 1|' \
 		config.h.in
-	configure-generic
+	configure-generic # --enable-static --disable-shared LDFLAGS=-static 
 }
 
 deploy-strace() {
