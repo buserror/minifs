@@ -3,7 +3,7 @@
 ## zlib - http://www.zlib.net/
 #######################################################################
 PACKAGES+=" zlib"
-hset zlib url "http://www.zlib.net/zlib-1.2.6.tar.gz"
+hset zlib url "http://www.zlib.net/zlib-1.2.7.tar.gz"
 
 configure-zlib() {
 	configure ./configure \
@@ -53,7 +53,7 @@ configure-i2c() {
 	configure echo Done
 }
 compile-i2c() {
-	compile $MAKE CC=$GCC LDFLAGS="$LDFLAGS -static"
+	compile $MAKE CC=$GCC LDFLAGS="$LDFLAGS"
 }
 install() {
 	log_install echo Done
