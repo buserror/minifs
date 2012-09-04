@@ -386,3 +386,19 @@ configure-libnetsnmp() {
 		--without-python-modules
 }
 
+PACKAGES+=" evtest"
+hset evtest url "http://cgit.freedesktop.org/evtest/snapshot/evtest-1.29.tar.gz"
+
+deploy-evtest(){
+	deploy deploy_binaries
+}
+
+PACKAGES+=" e2fsprogs"
+hset e2fsprogs url "http://switch.dl.sourceforge.net/project/e2fsprogs/e2fsprogs/1.42/e2fsprogs-1.42.tar.gz"
+
+configure-e2fsprogs(){
+	export LDFLAGS="$LDFLAGS_RLINK -lm"
+	configure-generic --disable-defrag
+	export LDFLAGS="$LDFLAGS_BASE"
+}
+
