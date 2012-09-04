@@ -109,9 +109,9 @@ TARGET_SHARED=0
 rm -f /tmp/pkg-config.log
 if [ "$COMMAND" == "tools" ]; then exit ;fi
 
-hset busybox version "1.19.2"
+hset busybox version "1.20.2"
 hset linux version "2.6.32.2"
-hset crosstools version "1.13.0"
+hset crosstools version "1.15.3"
 
 # PATH needs sbin (for depmod), the host tools, and the cross toolchain
 export BASE_PATH="$PATH"
@@ -350,6 +350,7 @@ for package in $TARGET_PACKAGES; do
 		echo "$vers" >"$BUILD/$baseroot/._version"
 		case "$typ" in
 			bz2)	tar jx --exclude=.git -C "$BUILD/$baseroot" --strip 1 -f "$loc"	;;
+			xz)		tar Jx --exclude=.git -C "$BUILD/$baseroot" --strip 1 -f "$loc"	;;
 			gz|tgz)	tar zx --exclude=.git -C "$BUILD/$baseroot" --strip 1 -f "$loc"	;;
 			tarb)	tar zx --exclude=.git -C "$BUILD/$baseroot" -f "$loc" ;;
 			run)	pushd "$BUILD/$baseroot"
