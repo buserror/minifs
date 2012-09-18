@@ -30,14 +30,16 @@ for pd in $(echo "$MINIFS_BOARD"| tr "-" "\n") ; do
 	MINIFS_BOARD_COMP="$pd:$MINIFS_BOARD_COMP"
 done
 
+#######################################################################
 # MINIFS_PATH contains collumn separated directories with extra
 # package directories
 # MINIFS_PACKAGES contains a list of space separated packaged to add
-
+#
 # if you want a .dot and .pdf file with all the .elf dependencies
 # in your build folder, add this to your environment, you'll need
 # GraphViz obviously 
 # export CROSS_LINKER_DEPS=1
+#######################################################################
 
 COMMAND=$1
 COMMAND_PACKAGE=${COMMAND/_*}
@@ -46,12 +48,19 @@ COMMAND_TARGET=${COMMAND_TARGET:-${COMMAND/*_}}
 
 echo MINIFS_BOARD $MINIFS_BOARD $COMMAND_TARGET $COMMAND_PACKAGE
 
+#######################################################################
+# bare minimum commands we need
+# the packages themselves can add some, and they are all checked
+# before anything is built to prevent wasting time and have the
+# build fail in the middle
+#######################################################################
+NEEDED_HOST_COMMANDS="make tar rsync installwatch wget git"
+
 BASE="$(pwd)"
 export MINIFS_BASE="$BASE"
 
-NEEDED_HOST_COMMANDS="make tar rsync installwatch wget git"
-
 export BUILD="$BASE/build-${MINIFS_BOARD}"
+
 CONF_BASE="$BASE/conf"
 PATCHES="$CONF_BASE"/patches
 
@@ -62,9 +71,24 @@ export ROOTFS_PLUGINS=""
 export ROOTFS_KEEPERS="libnss_dns.so.2:libnss_dns-2.10.2.so:"
 export STAGING_TOOLS="$BUILD"/staging-tools
 KERNEL="$BUILD/kernel"
-CONFIG="$CONF_BASE/board/$MINIFS_BOARD"
- 
+
 source "$CONF_BASE"/minifs-script-utils.sh
+
+#######################################################################
+# Look for the board/XXX location in either the extra configuration
+# directory or the main conf/board/XXX one
+#######################################################################
+CONFIG=""
+for pd in $(minifs_path_split "board/$MINIFS_BOARD") "$CONF_BASE/board/$MINIFS_BOARD"; do
+	if [ -d "$pd" ]; then
+		CONFIG="$pd"
+	fi
+done
+if [ "$CONFIG" == "" ]; then
+	echo Unable to find board $MINIFS_BOARD
+	exit 1
+fi
+
 source "$CONFIG"/minifs-script.sh
 
 # remove any package, and it's installed dirs
@@ -162,18 +186,25 @@ export BUILD_PACKAGES=""
 optional board_set_versions
 
 #######################################################################
-## Load all the package scripts
+## Load all the package scripts and sort them by name
 #######################################################################
-
 package_files=""
 for pd in "$CONF_BASE/packages" "$CONFIG/packages" $(minifs_path_split "packages"); do
 	if [ -d "$pd" ]; then
 		package_files+="$(echo $pd/*.sh) "
 	fi
 done
+# filename_sort is in conf/host-tools
 package_files=$(filename_sort $package_files)
-#echo $package_files
+# echo $package_files
 
+#######################################################################
+## Source all the package files in order. 
+## Attempts at setting them in 'groups' that is set via the
+## XXfilename.sh numerical order
+##
+## This is not used for the moment
+#######################################################################
 fid=0
 for p in $package_files; do 
 	name=$(basename $p)
@@ -187,6 +218,7 @@ done
 
 # Add the list of external packages
 TARGET_PACKAGES+=" $MINIFS_PACKAGES"
+# filesystems id always the last one
 TARGET_PACKAGES+=" filesystems"
 
 optional board_prepare
@@ -194,12 +226,16 @@ optional board_prepare
 # verify we have all the commands we need to build on the host
 check_host_commands
 
+#######################################################################
 # if a local config file is found, run it, it allows quick
 # testing of packages without changing the real board file etc
-for sh in .config .config-$(hostname -s) .config-$MINIFS_BOARD; do
-	if [ -f $sh ]; then
-		source $sh
-	fi
+#######################################################################
+for fil in .config .config-$(hostname -s) .config-$MINIFS_BOARD; do
+	for dir in "./" $(minifs_path_split "packages"); do
+		if [ -f "$dir/$sh" ]; then
+			source "$dir/$sh"
+		fi
+	done
 done
 
 if [ "$TARGET_SHARED" -eq 0 ]; then
@@ -546,25 +582,27 @@ for pack in $PROCESS_PACKAGES; do
 	dir=$(hget $pack dir)
 	dir=${dir:-$pack}
 	# echo PACK $pack dir $dir
-	if [ -d "$BUILD/$dir" ]; then
-		package $pack $dir
-			phases=$(hget $pack phases)
-			phases=${phases:-$DEFAULT_PHASES}
-
-			if [ "$COMMAND_PACKAGE" = "$PACKAGE" ]; then
-				ph=$COMMAND_TARGET
-				case "$ph" in
-					shell|rebuild|clean)
-						optional_one_of \
-							$MINIFS_BOARD-$ph-$pack \
-							$ph-$pack \
-							$ph-generic || break
-						;;
-				esac
-			fi
-			process_one_package $pack "$phases"
-		end_package
+	if [ ! -d "$BUILD/$dir" ]; then
+	#	echo "$BUILD/$dir" will not be built
+		continue
 	fi
+	package $pack $dir
+		phases=$(hget $pack phases)
+		phases=${phases:-$DEFAULT_PHASES}
+
+		if [ "$COMMAND_PACKAGE" = "$PACKAGE" ]; then
+			ph=$COMMAND_TARGET
+			case "$ph" in
+				shell|rebuild|clean)
+					optional_one_of \
+						$MINIFS_BOARD-$ph-$pack \
+						$ph-$pack \
+						$ph-generic || break
+					;;
+			esac
+		fi
+		process_one_package $pack "$phases"
+	end_package
 done
 
 # Wait for every jobs to have finished
