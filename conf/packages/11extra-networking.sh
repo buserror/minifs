@@ -1,10 +1,12 @@
 
 # iptables http://www.netfilter.org/projects/iptables/downloads.html
 PACKAGES+=" iptables"
-hset iptables url "http://www.netfilter.org/projects/iptables/files/iptables-1.4.12.1.tar.bz2"
+#hset iptables url "http://www.netfilter.org/projects/iptables/files/iptables-1.4.12.1.tar.bz2"
+hset iptables url "http://ftp.de.debian.org/debian/pool/main/i/iptables/iptables_1.4.14.orig.tar.bz2"
 
 configure-iptables() {
-	configure-generic --disable-ipv6
+	configure-generic 
+	#--disable-ipv6
 }
 deploy-iptables() {
 	ROOTFS_PLUGINS+="$ROOTFS/lib/xtables:"
@@ -128,3 +130,12 @@ compile-dnsmasq() {
 deploy-dnsmasq() {
 	deploy deploy_binaries
 }
+
+
+PACKAGES+=" ethtool"
+hset ethtool url "http://ftp.kernel.org/pub/software/network/ethtool/ethtool-3.1.tar.bz2"
+
+deploy-ethtool() {
+	deploy deploy_binaries
+}
+
