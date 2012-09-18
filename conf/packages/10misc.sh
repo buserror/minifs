@@ -20,6 +20,11 @@ PACKAGES+=" libncurses"
 hset libncurses url "http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.9.tar.gz"
 hset libncurses configscript "ncurses5-config"
 
+configure-libncurses() {
+	configure-generic \
+		--without-ada --without-progs \
+		--without-tests --enable-pc-files
+}
 deploy-libncurses() {
 	mkdir -p "$ROOTFS"/usr/share/
 	deploy cp -ra "$STAGING_USR"/share/terminfo "$ROOTFS"/usr/share/
