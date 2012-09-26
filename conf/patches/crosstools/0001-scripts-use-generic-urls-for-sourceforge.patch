@@ -1,0 +1,53 @@
+
+# HG changeset patch
+# User Bryan Hundven <bryanhundven@gmail.com>
+# Date 1345363780 25200
+# Node ID de4120991433b59b58289124bbe6335b15213049
+# Parent  0e9c50d37d29aad1aba1ae2fd39519bc23e06917
+scripts: use generic urls for sourceforge
+
+For expat, duma, and strace, use the generic url and 302 to the mirror
+instead of trying to download a file from a downed mirror and
+failing.
+
+Signed-off-by: Bryan Hundven <bryanhundven@gmail.com>
+Message-Id: <b69ebeb72fef93c04c84.1345364051@flambe.is-a-geek.org>
+(transplanted from cb75966698d7e44bc76445d7b249eba89bdf1d8a)
+
+diff -r 0e9c50d37d29 -r de4120991433 scripts/build/debug/200-duma.sh
+--- a/scripts/build/debug/200-duma.sh	Tue Aug 07 14:03:03 2012 +0800
++++ b/scripts/build/debug/200-duma.sh	Sun Aug 19 01:09:40 2012 -0700
+@@ -3,7 +3,7 @@
+ do_debug_duma_get() {
+     local dl_base
+ 
+-    dl_base="http://dfn.dl.sourceforge.net/project/duma/duma"
++    dl_base="http://downloads.sourceforge.net/project/duma/duma"
+     dl_base+="/${CT_DUMA_VERSION//_/.}"
+ 
+     # Downloading an non-existing file from sourceforge will give you an
+diff -r 0e9c50d37d29 -r de4120991433 scripts/build/debug/300-gdb.sh
+--- a/scripts/build/debug/300-gdb.sh	Tue Aug 07 14:03:03 2012 +0800
++++ b/scripts/build/debug/300-gdb.sh	Sun Aug 19 01:09:40 2012 -0700
+@@ -62,7 +62,7 @@
+ 
+     if [ "${do_expat}" = "y" ]; then
+         CT_GetFile "expat-${CT_DEBUG_GDB_EXPAT_VERSION}" .tar.gz    \
+-                   http://kent.dl.sourceforge.net/project/expat/expat/${CT_DEBUG_GDB_EXPAT_VERSION}
++                   http://downloads.sourceforge.net/project/expat/expat/${CT_DEBUG_GDB_EXPAT_VERSION}
+     fi
+ }
+ 
+diff -r 0e9c50d37d29 -r de4120991433 scripts/build/debug/500-strace.sh
+--- a/scripts/build/debug/500-strace.sh	Tue Aug 07 14:03:03 2012 +0800
++++ b/scripts/build/debug/500-strace.sh	Sun Aug 19 01:09:40 2012 -0700
+@@ -1,7 +1,7 @@
+ # Build script for strace
+ 
+ do_debug_strace_get() {
+-    local base_url="http://kent.dl.sourceforge.net/project/strace/strace"
++    local base_url="http://downloads.sourceforge.net/project/strace/strace"
+     CT_GetFile "strace-${CT_STRACE_VERSION}" "${base_url}/${CT_STRACE_VERSION}"
+     # Downloading from sourceforge leaves garbage, cleanup
+     CT_DoExecLog ALL rm -f "${CT_TARBALLS_DIR}/showfiles.php"*
+

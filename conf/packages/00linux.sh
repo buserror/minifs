@@ -2,8 +2,14 @@
 ## contains the 4 main phases of compiling the kernel
 #######################################################################
 
-LINUX_BASE_VERSION=${LINUX_BASE_VERSION:-"v2.6"}
-hset linux url "http://www.kernel.org/pub/linux/kernel/$LINUX_BASE_VERSION/linux-$(hget linux version).tar.bz2"
+LINUX_VERSION=$(hget linux version)
+LINUX_URL=$(echo $LINUX_VERSION| awk -F[.-] -e '{
+printf("http://www.kernel.org/pub/linux/kernel/v%s%s/linux-%s.tar.xz\n",
+       $1 == "3" ? "3.x" : ($1 "." $2),
+       $NF ~ /^[0-9]+/ ? "" : "/testing",
+       $0); }')
+hset linux url $LINUX_URL
+
 hset linux targets "linux-headers linux-modules linux-bare linux-initrd"
 
 hset linux-headers dir "linux"

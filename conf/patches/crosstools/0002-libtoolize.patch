@@ -1,0 +1,27 @@
+From 0414dcfcfd4158a1a81895d04888ec5092237783 Mon Sep 17 00:00:00 2001
+From: Murat Kilivan <murat@tamara.com.tr>
+Date: Mon, 17 Sep 2012 15:37:13 +0300
+Subject: [PATCH] libtoolize
+
+---
+ scripts/build/companion_libs/cloog.sh |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/scripts/build/companion_libs/cloog.sh b/scripts/build/companion_libs/cloog.sh
+index 6408782..595cd8a 100644
+--- a/scripts/build/companion_libs/cloog.sh
++++ b/scripts/build/companion_libs/cloog.sh
+@@ -35,6 +35,10 @@ do_cloog_extract() {
+         CT_DoExecLog CFG ./autogen.sh
+         CT_Popd
+     fi
++
++    CT_Pushd "${CT_SRC_DIR}/cloog-ppl-${CT_CLOOG_VERSION}"
++    CT_DoExecLog CFG libtoolize -c
++    CT_Popd
+ }
+ 
+ # Build CLooG/PPL for running on build
+-- 
+1.7.10.4
+
