@@ -3,7 +3,7 @@
 #######################################################################
 
 LINUX_VERSION=$(hget linux version)
-LINUX_URL=$(echo $LINUX_VERSION| awk -F[.-] -e '{
+LINUX_URL=$(echo $LINUX_VERSION| awk -F[.-] --source '{
 printf("http://www.kernel.org/pub/linux/kernel/v%s%s/linux-%s.tar.xz\n",
        $1 == "3" ? "3.x" : ($1 "." $2),
        $NF ~ /^[0-9]+/ ? "" : "/testing",
