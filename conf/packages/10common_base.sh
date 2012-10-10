@@ -117,8 +117,11 @@ configure-util-linux() {
 ## mtd_utils
 #######################################################################
 PACKAGES+=" mtd_utils"
-hset mtd_utils url "http://git.infradead.org/mtd-utils.git/snapshot/a67747b7a314e685085b62e8239442ea54959dbc.tar.gz#mtd_utils.tgz"
-hset mtd_utils depends "zlib lzo e2fsprogs"
+#hset mtd_utils url "http://git.infradead.org/mtd-utils.git/snapshot/a67747b7a314e685085b62e8239442ea54959dbc.tar.gz#mtd_utils.tgz"
+hset mtd_utils url "http://ftp.de.debian.org/debian/pool/main/m/mtd-utils/mtd-utils_1.5.0.orig.tar.gz"
+# util-linux is only for libuuid
+hset mtd_utils depends "zlib lzo util-linux"
+hset mtd_utils deploy-list "nandwrite mtd_debug"
 
 configure-mtd_utils() {
 	configure echo Done
@@ -126,13 +129,15 @@ configure-mtd_utils() {
 compile-mtd_utils() {
 	compile $MAKE CC=$GCC \
 		CFLAGS="$TARGET_CFLAGS -I$STAGING/include -DWITHOUT_XATTR" \
-		LDFLAGS="$LDFLAGS -static"
+		LDFLAGS="$LDFLAGS"
 }
 install-mtd_utils() {
 	log_install echo Done
 }
 deploy-mtd_utils() {
-	deploy cp nandwrite mtd_debug  "$ROOTFS/bin/"
+	deploy cp $(hget mtd_utils deploy-list) "$ROOTFS/bin/"
+}
+
 }
 
 #######################################################################
