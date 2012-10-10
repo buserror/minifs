@@ -138,6 +138,27 @@ deploy-mtd_utils() {
 	deploy cp $(hget mtd_utils deploy-list) "$ROOTFS/bin/"
 }
 
+#######################################################################
+## logfsprogs - seems to crash the kernel when mounting 4/10/2012
+#######################################################################
+
+PACKAGES+=" logfsprogs"
+hset logfsprogs url "git!https://github.com/prasad-joshi/logfsprogs.git#logfsprogs.tar.bz2"
+hset logfsprogs depends "zlib"
+
+compile-logfsprogs() {
+	compile $MAKE CC=$GCC \
+		CFLAGS="$TARGET_CFLAGS -I$STAGING_USR/include -D_FILE_OFFSET_BITS -std=gnu99" \
+		LDFLAGS="$LDFLAGS -lz"
+}
+configure-logfsprogs() {
+	configure sed -i -e 's/\$@ \$^$/\$@ \$^ $(LDFLAGS)/g' Makefile
+}
+install-logfsprogs() {
+	log_install echo Done
+}
+deploy-logfsprogs() {
+	deploy cp mklogfs "$ROOTFS/bin/"
 }
 
 #######################################################################
