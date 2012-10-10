@@ -403,7 +403,7 @@ hset e2fsprogs url "http://switch.dl.sourceforge.net/project/e2fsprogs/e2fsprogs
 
 configure-e2fsprogs(){
 	export LDFLAGS="$LDFLAGS_RLINK -lm"
-	configure-generic --disable-defrag
+	configure-generic --disable-defrag --disable-tls
 	export LDFLAGS="$LDFLAGS_BASE"
 }
 
