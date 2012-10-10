@@ -101,6 +101,18 @@ configure-libftdi() {
 	# --with-async-mode # removed at 0.17
 }
 
+PACKAGES+=" util-linux"
+hset util-linux url "http://ftp.de.debian.org/debian/pool/main/u/util-linux/util-linux_2.17.2.orig.tar.gz"
+
+configure-util-linux() {
+	configure-generic \
+		--disable-tls \
+		--disable-libblkid \
+		--disable-fsck \
+		--disable-mount \
+		--without-ncurses
+}
+
 #######################################################################
 ## mtd_utils
 #######################################################################
