@@ -13,6 +13,7 @@ long long unsigned base = 0;
 long long unsigned value = 0;
 int set = 0, has_base = 0, has_value = 0;
 int size = 0; // int
+const char * device = "/dev/mem";
 
 static void doarg(const char * arg)
 {
@@ -53,15 +54,23 @@ static void doarg(const char * arg)
 
 
 int main(int argc, const char * argv[])
-{
+{	 
+	int verbose = 0;
 	
 	for (int i = 1; i < argc; i++) {
-		doarg(argv[i]);
+		if ((!strcmp(argv[i], "-d") || !strcmp(argv[i], "--device")) &&
+				i < argc - 1)
+			device = argv[++i];
+		else if (!strcmp(argv[i], "-v"))
+			verbose++;
+		else
+			doarg(argv[i]);
 	}
-	printf("base=0x%llx value=0x%llx size=%d set=%d has_base=%d has_value=%d\n",
-		base, value, size, set, has_base, has_value);
+	if (verbose)
+		printf("base=0x%llx value=0x%llx size=%d set=%d has_base=%d has_value=%d\n",
+			base, value, size, set, has_base, has_value);
 	if (!has_base || (has_base && set && !has_value)) {
-		fprintf(stderr, "kmem [-<n>|-b|-s|-l|-ll] [0x]<base address> [= [0x]<value>]\n");
+		fprintf(stderr, "kmem [[-d|--device] /dev/xxx] [-v] [-<n>|-b|-s|-l|-ll] [0x]<base address> [= [0x]<value>]\n");
 		exit(1);
 	}
 	
@@ -71,17 +80,18 @@ int main(int argc, const char * argv[])
 	uint64_t map_end = (base + size + pagesize) & ~(pagesize-1);
 	int map_size = map_end - map_start;
 
-	printf("map_start=%llx offset=%d map_size=%d\n",
-		map_start, offset, map_size);
-	int fd = open("/dev/mem", set ? O_RDWR : O_RDONLY);
+	if (verbose)
+		printf("map_start=%llx offset=%d map_size=%d\n",
+			map_start, offset, map_size);
+	int fd = open(device, set ? O_RDWR : O_RDONLY);
 	if (fd == -1) {
-		perror("/dev/mem");
+		perror(device);
 		exit(1);
 	}
 	
 	void *map_bb = mmap(NULL, map_size, 
 			PROT_READ + (set ? PROT_WRITE : 0),
-			PROT_READ,
+			MAP_SHARED,
 			fd, map_start);
 	if (map_bb == MAP_FAILED) {
 		perror("mmap");
@@ -110,7 +120,7 @@ int main(int argc, const char * argv[])
 				exit(1);
 		}
 	} else {
-		printf("%p: ", ((void*)base));
+		printf("%x: ", base));
 		switch (size) {
 			case 0:
 				printf("%x", *((int*)bb));
