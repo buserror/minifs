@@ -103,7 +103,7 @@ deploy-filesystem-prepack() {
 deploy-filesystem-squash() {
 	local out="$BUILD"/minifs-full-squashfs.img
 	echo -n "     Building $out "
-	if mksquashfs "$ROOTFS" "$out" \
+	if mksquashfs "$ROOTFS" "$out" $(hget filesystem-squash options) \
 		-all-root \
 		-pf "$STAGING_TOOLS"/special_file_table.txt \
 			>>"$BUILD/._filesystem.log" 2>&1 ; then
