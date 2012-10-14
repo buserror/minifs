@@ -1,0 +1,25 @@
+#!/bin/hush
+
+echo "* Mounting filesystems..."
+mount -t proc /proc /proc
+echo 2 >/proc/cpu/alignment
+mount -t sysfs none /sys
+mkdir -p /dev/pts dev/shm
+mount -t devpts devpts /dev/pts
+mount -t tmpfs none /dev/shm
+mount / / -o remount,noatime,commit=20 >/dev/null 2>&1
+
+# echo "* Starting system loggers..."
+syslogd -C16
+klogd
+
+# LOAD MODULES -- do not delete this line
+echo "* Creating devices..."
+/sbin/mdev -s
+
+echo "* Network usb0 172.16.61.1/24"
+ifconfig lo 127.0.0.1 up
+ifconfig usb0 172.16.61.1 netmask 255.255.255.0 up
+
+echo "* Starting telnetd..."
+telnetd -l /bin/sh
