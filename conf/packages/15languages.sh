@@ -27,3 +27,12 @@ compile-toluapp() {
 install-toluapp() {
 	install-generic 
 }
+
+
+PACKAGES+=" slang"
+hset slang url "http://ftp.de.debian.org/debian/pool/main/s/slang2/slang2_2.2.4.orig.tar.bz2"
+
+compile-slang() {
+	compile $MAKE # no jobs
+}
+
