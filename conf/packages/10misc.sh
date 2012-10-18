@@ -333,6 +333,7 @@ configure-e2fsprogs(){
 
 PACKAGES+=" libargp"
 hset libargp url "http://www.auto.tuwien.ac.at/~mkoegler/eib/argp-standalone-1.3.tar.gz"
+
 # Requires 'argp.h' that is not in uclibc
 PACKAGES+=" elfutils"
 hset elfutils url "https://fedorahosted.org/releases/e/l/elfutils/0.155/elfutils-0.155.tar.bz2"
@@ -359,3 +360,46 @@ configure-elfutils() {
 	configure configure-elfutils-local
 }
 
+PACKAGES+=" procps"
+hset procps url "http://ftp.de.debian.org/debian/pool/main/p/procps/procps_3.3.3.orig.tar.xz"
+hset procps deploy "vmstat"
+#hset procps compile "vmstat"
+#ij        m4_esyscmd([misc/git-version-gen .tarball-version]),
+
+configure-procps() {
+	# prevents errors with rpl_malloc
+	export ac_cv_func_malloc_0_nonnull=yes
+	export ac_cv_func_realloc_0_nonnull=yes
+	
+	sed -i -e '/AC_FUNC_MALLOC|AC_FUNC_REALLOC/d' \
+		-e "s|misc/git-version-gen .tarball-version|echo stable\|tr -d '\\n'|" \
+		configure.ac
+	sed -i -e '/update-potfiles/d' autogen.sh
+	rm -f configure
+	configure-generic --disable-nls --without-ncurses
+	unset ac_cv_func_malloc_0_nonnull
+	unset ac_cv_func_realloc_0_nonnull
+}
+
+deploy-procps-local() {
+	local lst=$(hget procps deploy)
+	if [ "$lst" != "" ]; then
+		mkdir -p "$ROOTFS"/usr/bin/
+		for l in $lst; do
+			for src in $STAGING_USR/usr/bin/$l \
+				$STAGING_USR/usr/usr/bin/$l \
+				$STAGING_USR/usr/sbin/$l; do
+				if [ -x $src ]; then
+					echo deploying $src
+					cp $src "$ROOTFS"/usr/bin/
+				fi
+			done
+		done
+	else
+		deploy_binaries
+	fi
+}
+
+deploy-procps() {
+	deploy deploy-procps-local
+}
