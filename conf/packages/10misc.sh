@@ -331,3 +331,5 @@ configure-e2fsprogs(){
 	export LDFLAGS="$LDFLAGS_BASE"
 }
 
+PACKAGES+=" libargp"
+hset libargp url "http://www.auto.tuwien.ac.at/~mkoegler/eib/argp-standalone-1.3.tar.gz"
