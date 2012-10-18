@@ -333,3 +333,29 @@ configure-e2fsprogs(){
 
 PACKAGES+=" libargp"
 hset libargp url "http://www.auto.tuwien.ac.at/~mkoegler/eib/argp-standalone-1.3.tar.gz"
+# Requires 'argp.h' that is not in uclibc
+PACKAGES+=" elfutils"
+hset elfutils url "https://fedorahosted.org/releases/e/l/elfutils/0.155/elfutils-0.155.tar.bz2"
+hset elfutils depends "libargp"
+hset elfutils optional "lzma"
+
+configure-elfutils-local() {
+	cat <<-END >libintl.h
+	#ifndef _LIBINTL_H 
+	#define _LIBINTL_H      1 
+	#define gettext(a)              (a) 
+	#define dgettext(a,b)           (b) 
+	#define setlocale(a, b)         ; 
+	#define bindtextdomain(a, b)    ; 
+	#define textdomain(a)           ; 
+	#endif
+	END
+	rm -f configure
+	sed -i -e '/no_Werror/d' config/eu.am
+	configure-generic-local --disable-nls --disable-tls
+}
+
+configure-elfutils() {
+	configure configure-elfutils-local
+}
+
