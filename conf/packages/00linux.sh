@@ -93,7 +93,7 @@ configure-linux-modules() {
 compile-linux-modules() {
 	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE="${CROSS}-" \
-			modules -j4
+			modules -j$MINIFS_JOBS
 }
 
 install-linux-modules() {
@@ -121,7 +121,7 @@ configure-linux-bare() {
 compile-linux-bare() {
 	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE="${CROSS}-" \
-			$TARGET_KERNEL_NAME -j4
+			$TARGET_KERNEL_NAME -j$MINIFS_JOBS
 }
 install-linux-bare() {
 	log_install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
@@ -176,7 +176,7 @@ compile-linux-initrd() {
 	rm -f "$BUILD/linux-obj"/usr/initramfs_data.*
 	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE="${CROSS}-" \
-			$TARGET_KERNEL_NAME -j4
+			$TARGET_KERNEL_NAME -j$MINIFS_JOBS
 }
 install-linux-initrd() {
 	log_install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
