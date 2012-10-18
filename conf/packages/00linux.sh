@@ -209,6 +209,30 @@ hset linux-firmware url "git!git://git.kernel.org/pub/scm/linux/kernel/git/romie
 hset linux-firmware depends "linux-modules"
 hset linux-firmware phases "none"
 
+#
+# linux-perf is the perf tool that is present in th kernel tree. Unfortunately
+# it requires a much recent/different libelf than what is compiled by crosstool-ng
+# and 'elftools' are a royal pain in the proverbial to cross-compile.
+# So, this is work in progress
+#
+PACKAGES+=" linux-perf"
+hset linux-perf dir "linux/tools/perf"
+hset linux-perf depends "busybox linux-bare libnewt"
+
+configure-linux-perf() {
+	configure sed -i -e 's|"../../include|"../../../include|' ./util/evsel.c
+}
+
+compile-linux-perf() {
+	compile $MAKE EXTRA_CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
+		CROSS_COMPILE="${CROSS}-" V=1 \
+		WERROR=0 NO_GTK2=1 NO_LIBPERL=1 NO_LIBPYTHON=1 
+}
+
+deploy-linux-perf() {
+	deploy deploy_binaries
+}
+
 PACKAGES+=" firmware-rtl"
 hset firmware-rtl depends "linux-firmware"
 hset firmware-rtl dir "linux-firmware"
