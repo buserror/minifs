@@ -12,6 +12,9 @@ TOOLS_BIN = ${patsubst %, $(STAGING)/bin/%, ${TOOLS}}
 
 all:	$(STAGING)/bin $(TOOLS_BIN)
 
+waitfor_uevent: $(STAGING)/bin/waitfor_uevent
+	
+
 $(STAGING)/bin:
 	mkdir -p $@
 
