@@ -356,12 +356,16 @@ for package in $TARGET_PACKAGES; do
 			git|svn) echo " skipped ($proto)" ;;
 			*) case "$host" in
 					*.googlecode.com) echo " skipped (borken googlecode)" ;;
-					*) $WGET \
-							-q --spider --tries=5 "$url" || { 
-							echo; echo "ERROR: $url" ;
-							exit 1;
-						} 
-						echo " done"
+					*) if ! declare -F "download-$package" >/dev/null ; then
+							$WGET \
+								-q --spider --tries=5 "$url" || { 
+								echo; echo "ERROR: $url" ;
+								exit 1;
+							}
+							echo " done"
+						else
+							echo " skipped (custom download)"
+						fi
 					;;
 				esac
 			;;
