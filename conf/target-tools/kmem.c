@@ -120,7 +120,7 @@ int main(int argc, const char * argv[])
 				exit(1);
 		}
 	} else {
-		printf("%x: ", base));
+		printf("%x: ", base);
 		switch (size) {
 			case 0:
 				printf("%x", *((int*)bb));
