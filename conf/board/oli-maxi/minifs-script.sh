@@ -10,7 +10,7 @@ TARGET_CFLAGS="$TARGET_LIBC_CFLAGS -fPIC"
 
 
 board_set_versions() {
-	hset linux version "3.6.6"
+	hset linux version "3.7-rc4"
 	TARGET_FS_SQUASH=0
 	TARGET_FS_EXT2=1
 	TARGET_SHARED=1 
