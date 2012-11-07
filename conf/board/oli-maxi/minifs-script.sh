@@ -5,9 +5,9 @@ TARGET_META_ARCH=armv5
 TARGET_ARCH=arm
 TARGET_FULL_ARCH=$TARGET_ARCH-v5-linux-uclibcgnueabi
 TARGET_KERNEL_NAME=zImage
+TARGET_KERNEL_DTB=imx23-olinuxino.dtb
 TARGET_LIBC_CFLAGS="-g -O2 -mcpu=arm926ej-s -fPIC"
 TARGET_CFLAGS="$TARGET_LIBC_CFLAGS -fPIC"
-
 
 board_set_versions() {
 	hset linux version "3.7-rc4"
@@ -25,5 +25,7 @@ board_prepare() {
 	TARGET_PACKAGES+=" curl"
 
 	TARGET_PACKAGES+=" targettools "	
+	
+	TARGET_PACKAGES+=" linux-dtb"
 }
 
