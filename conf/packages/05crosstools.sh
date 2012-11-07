@@ -6,13 +6,13 @@ if [ ! -f "$GCC" -o "$COMMAND_PACKAGE" == "crosstools" ]; then
 	TARGET_PACKAGES+=" crosstools"
 fi
 hset crosstools url "http://ymorin.is-a-geek.org/download/crosstool-ng/crosstool-ng-$(hget crosstools version).tar.bz2"
-hset crosstools depends "linux-headers"
+hset crosstools depends "linux-headers "
 
 # ${HOME}/x-tools/${CT_TARGET}
 # MINIFS_TOOLCHAIN/${CT_TARGET}
 
 hostcheck-crosstools() {
-	for cmd in gawk bison flex ; do
+	for cmd in gawk bison flex gperf libtool autoconf automake; do
 		local p=$(which $cmd)
 		if [ ! -x "$p" ]; then
 			echo "### ERROR: Package $PACKAGE needs command $cmd"
