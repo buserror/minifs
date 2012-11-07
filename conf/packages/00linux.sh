@@ -10,12 +10,13 @@ printf("http://www.kernel.org/pub/linux/kernel/v%s%s/linux-%s.tar.xz\n",
        $0); }')
 hset linux url $LINUX_URL
 
-hset linux targets "linux-headers linux-modules linux-bare linux-initrd"
+hset linux targets "linux-headers linux-modules linux-bare linux-initrd linux-dtb"
 
 hset linux-headers dir "linux"
 hset linux-modules dir "linux"
 hset linux-bare dir "linux"
 hset linux-initrd dir "linux"
+hset linux-dtb dir "linux"
 
 # the headers gets installed first, the other phases are later
 PACKAGES+=" linux-headers"
@@ -202,6 +203,39 @@ deploy-linux-initrd() {
 		deploy cp "$BUILD"/linux-obj/$TARGET_KERNEL_NAME \
 			"$BUILD"/$TARGET_KERNEL_NAME-full.bin
 	fi
+}
+
+#######################################################################
+## linux-dtb
+#######################################################################
+if [ "$TARGET_KERNEL_DTB" != "" ]; then
+	PACKAGES+=" linux-dtb"
+fi
+hset linux-dtb depends "linux-bare linux-initrd"
+
+configure-linux-dtb() {
+	configure echo Done
+}
+
+compile-linux-dtb() {
+	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
+		CROSS_COMPILE="${CROSS}-" \
+			$TARGET_KERNEL_DTB
+}
+
+install-linux-dtb() {
+	log_install echo Done 
+}
+deploy-linux-dtb-local() {
+	local dtb="$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/$TARGET_KERNEL_DTB
+	rm -f "$BUILD"/vmlinuz-bare.dtb
+	if [ -f "$BUILD"/vmlinuz-bare.bin -a -f "$dtb" ]; then
+		cat "$BUILD"/vmlinuz-bare.bin "$dtb" >"$BUILD"/vmlinuz-bare.dtb
+		hset linux-dtb filename "$BUILD"/vmlinuz-bare.dtb
+	fi
+}
+deploy-linux-dtb() {
+	deploy deploy-linux-dtb-local
 }
 
 PACKAGES+=" linux-firmware"
