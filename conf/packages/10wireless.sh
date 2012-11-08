@@ -49,15 +49,18 @@ install-libnl-tiny() {
 PACKAGES+=" wpa-supplicant"
 hset wpa-supplicant url "http://hostap.epitest.fi/releases/wpa_supplicant-0.7.3.tar.gz"
 hset wpa-supplicant dir "wpa-supplicant/wpa_supplicant"
-hset wpa-supplicant depends "libreadline libncurses libnl-tiny"
+hset wpa-supplicant depends "libreadline libncurses libnl-tiny openssl"
+
+setup-wpa-supplicant() {
+	if [ ! -f "$CONFIG"/config_wpa-supplicant.conf ]; then
+		echo "### Target needs a $CONFIG/config_wpa-supplicant.conf"
+		echo "### Make one using the 'defconfig' file in $(pwd)"
+		exit 1
+	fi
+}
 
 configure-wpa-supplicant-local() {
 	if [ ! -f .config ]; then rm ._* ; fi
-	if [ ! -f "$CONFIG"/config_wpa-supplicant.conf ]; then
-		echo "### Target needs a config_wpa-supplicant.conf"
-		echo "### Make one using the 'defconfig' file in the archive"
-		exit 1
-	fi
 	cp "$CONFIG"/config_wpa-supplicant.conf \
 		.config
 }
