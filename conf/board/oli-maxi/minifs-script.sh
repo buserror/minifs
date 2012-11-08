@@ -16,7 +16,7 @@ board_set_versions() {
 	TARGET_SHARED=1 
 #	TARGET_X11=1
 	#TARGET_INITRD=1
-	NEEDED_HOST_COMMANDS+=" mkimage"
+#	NEEDED_HOST_COMMANDS+=" mkimage"
 }
 
 board_prepare() {

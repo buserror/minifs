@@ -319,7 +319,8 @@ for package in $TARGET_PACKAGES; do
 
 	if [ ! -f "$loc" ]; then
 		case "$proto" in
-			git)	if [ ! -d "$package.git" ]; then
+			git)
+				if [ ! -d "$package.git" ]; then
 					echo "#### git clone $url $package.git"
 					git clone "$url" "$package.git"
 				fi
@@ -370,6 +371,24 @@ for package in $TARGET_PACKAGES; do
 				esac
 			;;
 		esac
+	elif [ "$COMMAND_PACKAGE" = "$package" -a "$COMMAND_TARGET" = "pull" ]; then
+		case "$proto" in
+			git)
+				echo Trying to pull $package tree
+				rm -rf "$package.git"
+				tar jxf "$loc" && (
+					cd "$package.git"
+					git pull
+				) &&
+				tar jcf "$loc" "$package.git" &&
+				rm -rf "$package.git" &&
+				remove_package $package &&
+				echo $package tree updated, ready to rebuild
+				;;
+			*)
+				echo "$package doesn't support 'pull'"
+		esac
+		exit 0
 	fi
 	baseroot=$package
 	PACKAGE=$baseroot
