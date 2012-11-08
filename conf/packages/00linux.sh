@@ -283,3 +283,13 @@ deploy-firmware-rtl() {
 	fi
 	deploy deploy-firmware-rtl-local
 }
+
+PACKAGES+=" kexec-tools"
+hset kexec-tools url "http://kernel.org/pub/linux/utils/kernel/kexec/kexec-tools-2.0.3.tar.xz"
+hset kexec-tools depeds "busybox"
+
+deploy-kexec-tools() {
+	mkdir -p "$ROOTFS"/sbin/
+	deploy cp "$STAGING_USR"/sbin/kexec "$ROOTFS"/sbin/
+}
+
