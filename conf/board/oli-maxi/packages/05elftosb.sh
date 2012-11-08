@@ -1,7 +1,21 @@
 
 PACKAGES+=" elftosb"
-hset url elftosb "http://repository.timesys.com/buildsources/e/elftosb/elftosb-10.12.01/elftosb-10.12.01.tar.gz"
+hset elftosb url "git!git://github.com/buserror-uk/Olinuxino-Micro-Bootlets.git#Olinuxino-Bootlets.tar.bz2"
+hset elftosb depends "linux-dtb"
+hset elftosb phases "deploy"
 
-compile-elftosb() {
-	make CC=gcc
+deploy-elftosb-local() {
+	ln -sf $(hget linux-dtb filename) zImage
+	rm -f mv sd_mmc_bootstream.raw
+	$MAKE \
+		CROSS_COMPILE="${CROSS}-" && \
+		mv sd_mmc_bootstream.raw ..
+}
+
+deploy-elftosb() {
+	# make sure we deploy after linux-dtb
+	if [ -f "$BUILD"/linux/._deploy_linux-dtb ]; then
+		touch ._install_$PACKAGE
+	fi
+	deploy deploy-elftosb-local
 }

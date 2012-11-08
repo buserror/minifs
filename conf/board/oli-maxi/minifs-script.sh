@@ -26,6 +26,6 @@ board_prepare() {
 
 	TARGET_PACKAGES+=" targettools "	
 	
-	TARGET_PACKAGES+=" linux-dtb"
+	TARGET_PACKAGES+=" linux-dtb elftosb"
 }
 
