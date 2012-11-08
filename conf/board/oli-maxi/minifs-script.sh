@@ -22,9 +22,10 @@ board_set_versions() {
 board_prepare() {
 	TARGET_PACKAGES+=" gdbserver strace"
 #	TARGET_PACKAGES+=" libusb "
-	TARGET_PACKAGES+=" curl"
+	TARGET_PACKAGES+=" curl wpa-supplicant wireless-tools"
 
-	TARGET_PACKAGES+=" targettools "	
+	TARGET_PACKAGES+=" targettools"
+	TARGET_PACKAGES+=" kexec-tools"
 	
 	TARGET_PACKAGES+=" linux-dtb elftosb"
 }
