@@ -1,0 +1,113 @@
+diff -ruN linux-3.7-rc4/arch/arm/boot/dts/imx23-olinuxino.dts linux/arch/arm/boot/dts/imx23-olinuxino.dts
+--- linux-3.7-rc4/arch/arm/boot/dts/imx23-olinuxino.dts	2012-11-04 19:07:39.000000000 +0000
++++ linux/arch/arm/boot/dts/imx23-olinuxino.dts	2012-11-09 15:12:50.344020246 +0000
+@@ -24,6 +24,41 @@
+ 
+ 	apb@80000000 {
+ 		apbh@80000000 {
++			ssp1: ssp@80034000 {
++				compatible = "fsl,imx23-spi";
++				clock-frequency = <160000000>;
++				bus-num = <0>;
++				pinctrl-names = "default";
++				pinctrl-0 = <&spi1_control_pins &spi1_cs_pins>;
++				status = "okay";
++
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				device@0 {
++					compatible = "spidev";
++					reg = <0>;
++					spi-max-frequency = <1000000>;
++				};
++			};
++			pinctrl@80018000 {
++				spi1_control_pins: spi1_control_pins {
++					reg = <0>;
++					fsl,pinmux-ids = <
++						0x0182 /* MX23_PAD_GPMI_WRN__SSP2_SCK */
++						0x0142 /* MX23_PAD_GPMI_RDY1__SSP2_CMD aka MOSI */
++						0x0002 /* MX23_PAD_GPMI_D00__SSP2_DATA0 aka MISO */
++					>;
++				};
++				spi1_cs_pins: spi1_cs_pins {
++					reg = <0>;
++					fsl,pinmux-ids = <
++						0x1033 /* MX23_PAD_LCD_D03__GPIO_1_3 */
++					>;
++					fsl,pull-up = <1>;
++				};
++			};
++			
+ 			ssp0: ssp@80010000 {
+ 				compatible = "fsl,imx23-mmc";
+ 				pinctrl-names = "default";
+@@ -89,6 +124,18 @@
+ 		};
+ 	};
+ 
++	/*
++	 * maxi declares the i2c by default as software -- so instanciate a linux driver
++	 * for it
++	 */
++	i2c@0 {
++		compatible = "i2c-gpio";
++		gpios = <&gpio2 27 0 /* sda */
++			 &gpio2 28 0 /* scl */
++			>;
++		i2c-gpio,delay-us = <2>;	/* ~100 kHz */
++	};
++
+ 	leds {
+ 		compatible = "gpio-leds";
+ 
+diff -ruN linux-3.7-rc4/drivers/spi/spidev.c linux/drivers/spi/spidev.c
+--- linux-3.7-rc4/drivers/spi/spidev.c	2012-11-04 19:07:39.000000000 +0000
++++ linux/drivers/spi/spidev.c	2012-11-09 14:51:01.036015721 +0000
+@@ -642,10 +642,16 @@
+ 	return 0;
+ }
+ 
++static const struct of_device_id spidev_of_id[] = {
++	{ .compatible = "spidev", },
++	{ /* sentinel */ }
++};
++
+ static struct spi_driver spidev_spi_driver = {
+ 	.driver = {
+ 		.name =		"spidev",
+ 		.owner =	THIS_MODULE,
++		.of_match_table = spidev_of_id,
+ 	},
+ 	.probe =	spidev_probe,
+ 	.remove =	__devexit_p(spidev_remove),
+diff -ruN linux-3.7-rc4/drivers/spi/spi-mxs.c linux/drivers/spi/spi-mxs.c
+--- linux-3.7-rc4/drivers/spi/spi-mxs.c	2012-11-04 19:07:39.000000000 +0000
++++ linux/drivers/spi/spi-mxs.c	2012-11-09 15:13:40.512020419 +0000
+@@ -524,6 +524,7 @@
+ 	int devid, dma_channel, clk_freq;
+ 	int ret = 0, irq_err, irq_dma;
+ 	dma_cap_mask_t mask;
++	int bus_num = -1;
+ 
+ 	/*
+ 	 * Default clock speed for the SPI core. 160MHz seems to
+@@ -568,6 +569,8 @@
+ 					   &clk_freq);
+ 		if (ret)
+ 			clk_freq = clk_freq_default;
++		if (of_property_read_u32(np, "bus-num", &bus_num))
++			bus_num = -1;
+ 	} else {
+ 		dmares = platform_get_resource(pdev, IORESOURCE_DMA, 0);
+ 		if (!dmares)
+@@ -580,7 +583,7 @@
+ 	master = spi_alloc_master(&pdev->dev, sizeof(*spi));
+ 	if (!master)
+ 		return -ENOMEM;
+-
++	master->bus_num = bus_num;
+ 	master->transfer_one_message = mxs_spi_transfer_one;
+ 	master->setup = mxs_spi_setup;
+ 	master->mode_bits = SPI_CPOL | SPI_CPHA;

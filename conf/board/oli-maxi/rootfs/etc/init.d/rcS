@@ -1,0 +1,45 @@
+#!/bin/hush
+
+echo "* Mounting filesystems..."
+mount -t proc /proc /proc
+mount -t sysfs none /sys
+mkdir -p /dev/pts /dev/shm
+mount -t devpts devpts /dev/pts
+mount -t tmpfs none /dev/shm
+# MOUNT FS -- do not delete this line
+mount / / -o remount,noatime >/dev/null 2>&1
+
+echo "* Starting system loggers..."
+syslogd -C16
+klogd
+
+echo /sbin/mdev >/proc/sys/kernel/hotplug
+# LOAD MODULES -- do not delete this line
+echo "* Creating devices..."
+/sbin/mdev -s
+
+echo -n "* Setting hostname: "
+hostname $(cat /etc/hostname) && hostname
+
+echo "* Configuring loopback interface..."
+ifconfig lo 127.0.0.1 up
+
+up=$(ifconfig eth0|grep addr:)
+if [ "$up" != "" ]; then
+	echo "* eth0:$up"
+else
+	echo "* Configuring network with DHCP..."
+	# pr1me computer MAC
+	ifconfig eth0 hw ether 08:00:2f:01:00:01
+	ifconfig eth0 up
+	udhcpc -b -T 1
+fi
+
+# LAUNCH APPS -- do not delete this line
+if [ -f /etc/dropbear/dropbear_dss_host_key ]; then
+	echo "* Starting dropbear..."
+	dropbear
+else
+	echo "* Starting telnetd..."
+	telnetd -l /bin/sh
+fi

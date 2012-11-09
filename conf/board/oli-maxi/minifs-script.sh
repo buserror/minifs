@@ -30,3 +30,8 @@ board_prepare() {
 	TARGET_PACKAGES+=" linux-dtb elftosb"
 }
 
+local() {
+tftp -g -r linux -l /linux 192.168.2.129 &&
+        kexec --append="$(cat /proc/cmdline)" --force \
+        /linux
+}
