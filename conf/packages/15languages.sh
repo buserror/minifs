@@ -36,3 +36,35 @@ compile-slang() {
 	compile $MAKE # no jobs
 }
 
+PACKAGES+=" tcc"
+hset tcc url "git!git://repo.or.cz/tinycc.git#tinycc-git.tar.bz2"
+
+configure-tcc() {
+	local extra=""
+	local local_cflags;
+	case $TARGET_ARCH in
+		arm) 
+			extra+=" --cpu=armv4l"
+			local_cflags="-DTCC_UCLIBC -DTCC_ARM_EABI"
+			;;
+	esac
+	configure-generic \
+		--cross-prefix="$CROSS-" \
+		--extra-cflags="$CPPFLAGS $TARGET_CFLAGS $local_cflags" \
+		--extra-ldflags="$TARGET_LDFLAGS" \
+		--with-libgcc \
+		$extra
+}
+
+install-tcc-local() {
+	install-generic-local
+	rm -rf "$STAGING_USR"/lib/tcc/win32
+}
+
+install-tcc() {
+	log_install install-tcc-local
+}
+
+deploy-tcc() {
+	deploy	deploy_binaries
+}
