@@ -40,7 +40,7 @@ compile-targettools() {
 		-C $CONF_BASE/target-tools \
 		STAGING="$STAGING_USR" \
 		LDFLAGS="$LDFLAGS_BASE" \
-		$tools
+		"$tools"
 }
 install-targettools() {
 	log_install echo Done
@@ -54,6 +54,7 @@ deploy-targettools() {
 		-C $CONF_BASE/target-tools \
 		STAGING="$STAGING_USR" \
 		ROOT="$ROOTFS" \
+		"$tools"
 		deploy
 }
 
