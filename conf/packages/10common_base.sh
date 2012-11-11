@@ -103,7 +103,7 @@ configure-libftdi() {
 
 PACKAGES+=" util-linux"
 hset util-linux url "http://ftp.de.debian.org/debian/pool/main/u/util-linux/util-linux_2.17.2.orig.tar.gz"
-hset util-linux destdir "$STAGING_USR"
+hset util-linux destdir "$STAGING"
 
 configure-util-linux() {
 	configure-generic \
