@@ -409,7 +409,7 @@ for package in $TARGET_PACKAGES; do
 		echo "$vers" >"$BUILD/$baseroot/._version"
 		case "$typ" in
 			bz2)	tar jx --exclude=.git -C "$BUILD/$baseroot" --strip 1 -f "$loc"	;;
-			xz)		tar Jx --exclude=.git -C "$BUILD/$baseroot" --strip 1 -f "$loc"	;;
+			xz)		xzcat "$loc" | tar x --exclude=.git -C "$BUILD/$baseroot" --strip 1	;;
 			gz|tgz)	tar zx --exclude=.git -C "$BUILD/$baseroot" --strip 1 -f "$loc"	;;
 			tarb)	tar zx --exclude=.git -C "$BUILD/$baseroot" -f "$loc" ;;
 			run)	pushd "$BUILD/$baseroot"
