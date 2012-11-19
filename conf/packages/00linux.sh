@@ -239,7 +239,7 @@ deploy-linux-dtb() {
 }
 
 PACKAGES+=" linux-firmware"
-hset linux-firmware url "git!git://git.kernel.org/pub/scm/linux/kernel/git/romieu/linux-firmware.git#linux-firmware-110906-git.tar.bz2"
+hset linux-firmware url "git!git://git.kernel.org/pub/scm/linux/kernel/git/dwmw2/linux-firmware.git#linux-firmware-121119-git.tar.bz2"
 hset linux-firmware depends "linux-modules"
 hset linux-firmware phases "none"
 
@@ -272,10 +272,11 @@ hset firmware-rtl depends "linux-firmware"
 hset firmware-rtl dir "linux-firmware"
 hset firmware-rtl url "none"
 hset firmware-rtl phases "deploy"
+hset firmware-rtl subdirs "rtl_nic rtlwifi"
 
 deploy-firmware-rtl-local() {
 	mkdir "$ROOTFS"/lib/firmware
-	cp -r rtl_nic/ "$ROOTFS"/lib/firmware/
+	cp -r $(hget firmware-rtl subdirs) "$ROOTFS"/lib/firmware/
 }
 deploy-firmware-rtl() {
 	if [ ! -f "._install_$PACKAGE" ]; then

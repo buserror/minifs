@@ -25,7 +25,7 @@ hset bird depends "libreadline busybox"
 #
 PACKAGES+=" openssh"
 hset openssh url "ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-5.9p1.tar.gz"
-hset openssh depends "openssl"
+hset openssh depends "openssl zlib"
 hset openssh sysconf "/etc/ssh"
 
 setup-openssh() {
@@ -43,8 +43,8 @@ configure-openssh-local() {
 configure-openssh() {
 	configure configure-openssh-local
 }
-deploy-openssh() {
-	deploy deploy_binaries
+deploy-openssh-local() {
+	deploy_binaries
 	cat >>"$ROOTFS"/etc/passwd <<-END
 	sshd:x:1001:1001:sshd:/home:/bin/false
 	END
@@ -64,6 +64,9 @@ deploy-openssh() {
 		touch "$ROOTFS"/var/log/lastlog
 	mkdir -p $ROOTFS/etc/ssh/ $ROOTFS/var/empty/ && \
 		cp $CONFIG/ssh_host_* $ROOTFS/etc/ssh/
+}
+deploy-openssh() {
+	deploy deploy-openssh-local
 }
 
 #
