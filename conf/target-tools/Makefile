@@ -5,10 +5,14 @@ LDF	= $(LDFLAGS) -Wl,--relax,--gc-sections
 
 STAGING ?= /tmp/minifs
 
+TOOLS ?= all
 TOOLS_SRC = ${wildcard *.c}
-TOOLS = ${patsubst %.c, %, ${TOOLS_SRC}}
-
-TOOLS_BIN := ${patsubst %, $(STAGING)/bin/%, ${TOOLS}}
+ifeq ($(TOOLS),all)
+TOOLS_DST := ${patsubst %.c, %, ${TOOLS_SRC}}
+else
+TOOLS_DST := $(TOOLS)
+endif
+TOOLS_BIN := ${patsubst %, $(STAGING)/bin/%, ${TOOLS_DST}}
 
 all:	$(STAGING)/bin $(TOOLS_BIN)
 	
