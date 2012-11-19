@@ -1,7 +1,7 @@
 
 PACKAGES="$PACKAGES busybox"
 hset busybox url "http://busybox.net/downloads/busybox-$(hget busybox version).tar.bz2"
-hset busybox depends "crosstools libtool"
+hset busybox depends "crosstools host-libtool"
 
 configure-busybox() {
 	if [ -f "$CONFIG"/config_busybox.conf ]; then

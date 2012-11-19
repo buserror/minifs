@@ -117,20 +117,14 @@ install-crosstools() {
 }
 
 
-host-setup() {
-	unset CC CXX GCC LD CFLAGS CXXFLAGS CPPFLAGS LDFLAGS ACLOCAL ; 
-	unset PKG_CONFIG_PATH PKG_CONFIG_LIBDIR LD_LIBRARY_PATH INSTALL;
-	export INSTALL=/usr/bin/install
-}
+PACKAGES+=" host-libtool"
+hset host-libtool url "http://ftp.gnu.org/gnu/libtool/libtool-2.4.2.tar.gz"
+hset host-libtool destdir "/"
 
-PACKAGES+=" libtool"
-hset libtool url "http://ftp.gnu.org/gnu/libtool/libtool-2.4.2.tar.gz"
-hset libtool destdir "/"
-
-setup-libtool() {
+setup-host-libtool() {
 	export LIBTOOL="$TARGET_FULL_ARCH"-libtool
 }
-configure-libtool() {
+configure-host-libtool() {
 	(
 		host-setup
 		configure ./configure \
@@ -140,7 +134,7 @@ configure-libtool() {
 			--program-prefix="$TARGET_FULL_ARCH"- CC=$TARGET_FULL_ARCH-gcc
 	) || exit 1
 }
-install-libtool() {
+install-host-libtool() {
 	install-generic 
 	ln -f -s "$TARGET_FULL_ARCH"-libtool "$STAGING_TOOLS"/bin/libtool
 	ln -f -s "$TARGET_FULL_ARCH"-libtoolize "$STAGING_TOOLS"/bin/libtoolize
@@ -148,6 +142,7 @@ install-libtool() {
 PACKAGES+=" host-automake"
 hset host-automake url "http://ftp.gnu.org/gnu/automake/automake-1.11.6.tar.xz"
 hset host-automake destdir "/"
+hset host-automake depends "host-autoconf"
 
 configure-host-automake() {
 	(
@@ -161,7 +156,6 @@ configure-host-automake() {
 
 PACKAGES+=" host-autoconf"
 hset host-autoconf url "http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.xz"
-hset host-autoconf depends "host-automake"
 
 configure-host-autoconf() {
 	(

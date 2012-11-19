@@ -179,7 +179,9 @@ NEEDED_HOST_COMMANDS+=" curl svn cvs svn lzma"
 # to build.
 #######################################################################
 export PACKAGES=""
-export TARGET_PACKAGES="linux $NEED_CROSSTOOLS systemlibs busybox filesystems"
+export TARGET_PACKAGES="
+	host-automake \
+	linux $NEED_CROSSTOOLS systemlibs busybox filesystems"
 export BUILD_PACKAGES=""
 
 # in minifs-script, optional
@@ -286,6 +288,8 @@ for package in $TARGET_PACKAGES; do
 done
 if [ $HOSTCHECK_FAILED == 1 ]; then exit 1; fi
 unset PACKAGE
+
+compile-host-tools
 
 #######################################################################
 ## Download the files, unpack, and patch them

@@ -275,3 +275,41 @@ package_register() {
 	echo $1 $PACKAGE_ORDER
 	let PACKAGE_ORDER=PACKAGE_ORDER+1
 }
+
+# these are tools that are needed even before we start decompressing stuff
+
+host-setup() {
+	unset CC CXX GCC LD CFLAGS CXXFLAGS CPPFLAGS LDFLAGS ACLOCAL ; 
+	unset PKG_CONFIG_PATH PKG_CONFIG_LIBDIR LD_LIBRARY_PATH INSTALL;
+	export INSTALL=/usr/bin/install
+}
+
+hset host-patch url "http://ftp.de.debian.org/debian/pool/main/p/patch/patch_2.6.1.orig.tar.gz"
+hset host-patch name "patch"
+
+compile-host-tools() {
+	for tool in patch; do
+		local url=$(hget host-$tool url)
+		local name=$(hget host-$tool name)
+		if [ -x "$STAGING_TOOLS"/bin/$tool ]; then
+			continue
+		fi
+		base=${url/*\//}
+		if [ ! -f "$BASE/download/$base" ]; then
+			echo $name is $base
+			wget -q "$url" -O "$BASE"/download/$base || \
+				exit 1
+		fi
+		rm -rf $BUILD/host-$name && mkdir -p $BUILD/host-$name
+		tar zx -f "$BASE"/download/$base --strip 1  -C $BUILD/host-$name || exit 1
+		echo "** Building $name from $base"
+		(
+			host-setup
+			pushd $BUILD/host-$name
+			if [ -x configure ]; then
+				./configure --prefix=$STAGING_TOOLS
+			fi
+			make all && make install
+		) >$BUILD/host-$name/._compile_$tool.log 2>&1
+	done
+}

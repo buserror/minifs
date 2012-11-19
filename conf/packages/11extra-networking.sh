@@ -142,3 +142,11 @@ deploy-ethtool() {
 	deploy deploy_binaries
 }
 
+PACKAGES+=" fuse"
+hset fuse url "http://downloads.sourceforge.net/project/fuse/fuse-2.X/2.9.2/fuse-2.9.2.tar.gz"
+
+PACKAGES+=" sshfs"
+hset sshfs url "http://downloads.sourceforge.net/project/fuse/sshfs-fuse/2.4/sshfs-fuse-2.4.tar.gz"
+hset sshfs depends "fuse openssh libglib"
+
+
