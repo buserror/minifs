@@ -10,7 +10,7 @@ TARGET_LIBC_CFLAGS="-g -O2 -mcpu=arm926ej-s -fPIC"
 TARGET_CFLAGS="$TARGET_LIBC_CFLAGS -fPIC"
 
 board_set_versions() {
-	hset linux version "3.7-rc4"
+	hset linux version "3.7-rc6"
 	TARGET_FS_SQUASH=0
 	TARGET_FS_EXT2=1
 	TARGET_SHARED=1 
@@ -31,6 +31,5 @@ board_prepare() {
 }
 
 bard_local() {
-	tftp -g -r linux -l /linux 192.168.2.129 &&
-		kexec --append="$(cat /proc/cmdline)" --force /linux
+	tftp -g -r linux -l /linux 192.168.2.129 &&	kexec --append="$(cat /proc/cmdline)" --force /linux
 }
