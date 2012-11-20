@@ -24,7 +24,7 @@ board_prepare() {
 #	TARGET_PACKAGES+=" libusb "
 	TARGET_PACKAGES+=" curl wpa-supplicant wireless-tools"
 	TARGET_PACKAGES+=" firmware-rtl"
-	TARGET_PACKAGES+=" openssh sshfs"
+	TARGET_PACKAGES+=" openssh "
 
 	TARGET_PACKAGES+=" targettools"
 	TARGET_PACKAGES+=" kexec-tools"
