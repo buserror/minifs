@@ -287,29 +287,41 @@ host-setup() {
 hset host-patch url "http://ftp.de.debian.org/debian/pool/main/p/patch/patch_2.6.1.orig.tar.gz"
 hset host-patch name "patch"
 
+build-patch() {
+	./configure --prefix=$STAGING_TOOLS &&
+		make all &&
+		make install
+}
+
 compile-host-tools() {
+#	set -x
 	for tool in patch; do
 		local url=$(hget host-$tool url)
 		local name=$(hget host-$tool name)
+		local old_url=$(cat $BUILD/host-$name/._url_$name 2>/dev/null)
+		if [ "$old_url" != "$url" ]; then
+			echo "** Hosts '$name' need building"
+			rm -rf "$STAGING_TOOLS"/bin/$tool \
+				$BUILD/host-$name
+		fi
 		if [ -x "$STAGING_TOOLS"/bin/$tool ]; then
 			continue
 		fi
 		base=${url/*\//}
 		if [ ! -f "$BASE/download/$base" ]; then
-			echo $name is $base
+			echo "** Downloading $base"
 			wget -q "$url" -O "$BASE"/download/$base || \
 				exit 1
 		fi
 		rm -rf $BUILD/host-$name && mkdir -p $BUILD/host-$name
 		tar zx -f "$BASE"/download/$base --strip 1  -C $BUILD/host-$name || exit 1
-		echo "** Building $name from $base"
+		echo "** Building host $name"
 		(
 			host-setup
 			pushd $BUILD/host-$name
-			if [ -x configure ]; then
-				./configure --prefix=$STAGING_TOOLS
-			fi
-			make all && make install
+			echo $url >._url_$name
+			build-$name
 		) >$BUILD/host-$name/._compile_$tool.log 2>&1
 	done
+	set +x
 }

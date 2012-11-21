@@ -139,6 +139,7 @@ install-host-libtool() {
 	ln -f -s "$TARGET_FULL_ARCH"-libtool "$STAGING_TOOLS"/bin/libtool
 	ln -f -s "$TARGET_FULL_ARCH"-libtoolize "$STAGING_TOOLS"/bin/libtoolize
 }
+
 PACKAGES+=" host-automake"
 hset host-automake url "http://ftp.gnu.org/gnu/automake/automake-1.11.6.tar.xz"
 hset host-automake destdir "/"
@@ -164,6 +165,21 @@ configure-host-autoconf() {
 			--prefix=$STAGING_TOOLS \
 			--build=$(gcc -dumpmachine) \
 			--host=$TARGET_FULL_ARCH
+	) || exit 1
+}
+
+PACKAGES+=" host-pkg-config"
+hset host-pkg-config url "http://ftp.de.debian.org/debian/pool/main/p/pkg-config/pkg-config_0.26.orig.tar.gz"
+hset host-pkg-config depends "host-autoconf"
+
+configure-host-pkg-config() {
+	(
+		host-setup
+		configure ./configure \
+			--prefix=$STAGING_TOOLS \
+			--build=$(gcc -dumpmachine) \
+			--host=$TARGET_FULL_ARCH \
+			--program-prefix="$TARGET_FULL_ARCH"-
 	) || exit 1
 }
 
