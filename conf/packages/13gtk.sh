@@ -25,10 +25,12 @@ hset libffi url "ftp://sourceware.org/pub/libffi/libffi-3.0.9.tar.gz"
 PACKAGES+=" libglib"
 #hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.24/glib-2.24.1.tar.bz2"
 #hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.28/glib-2.28.7.tar.bz2"
-hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.29/glib-2.29.18.tar.bz2"
+#hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.29/glib-2.29.18.tar.bz2"
+hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.35/glib-2.35.1.tar.xz"
+
 #hset libglib prefix "$STAGING_USR"
 # this is needed for uclibc not NOT otherwise!
-hset libglib depends "libffi"
+hset libglib depends "libffi libiconv"
 
 hostcheck-libglib() {
 	hostcheck_commands glib-genmarshal glib-compile-schemas || {
@@ -53,15 +55,16 @@ ac_cv_func_qsort_r=no
 " >fake_glib_cache.conf
 	# yuck yuck yuck. fixes ARM thumb build
 	sed -i -e 's:swp %0, %1, \[%2\]:nop:g' glib/gatomic.c
-	rm -f configure
+#	sed -i -e 's/^PKG_PROG_PKG_CONFIG/# PKG_PROG_PKG_CONFIG/' configure.ac
+#	rm -f configure
 	save=$CFLAGS
-	CFLAGS+=" -DDISABLE_IPV6"
+	CFLAGS+=" -DDISABLE_IPV6 -DDISABLE_DN_SKIPNAME"
 	export CFLAGS
 	export LDFLAGS="$LDFLAGS_RLINK -Wl,-rpath -Wl,$BUILD/libglib/gthread/.libs -Wl,-rpath -Wl,$BUILD/libglib/gmodule/.libs"
 	export NOCONFIGURE=1
 	configure-generic-local \
 		--cache=fake_glib_cache.conf \
-		--with-pcre=internal || { echo FAILED ; exit 1; }
+		--with-pcre=internal || { echo FAILED ; return 1; }
 	export LDFLAGS="$LDFLAGS_BASE"
 	export CFLAGS=$save
 	unset NOCONFIGURE

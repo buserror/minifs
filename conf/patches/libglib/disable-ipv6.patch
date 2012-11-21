@@ -1,6 +1,7 @@
---- glib-2.24.1/gio/ginetaddress.c.orig	2010-11-29 14:54:17.000000000 +1030
-+++ glib-2.24.1/gio/ginetaddress.c	2010-11-29 14:55:03.000000000 +1030
-@@ -485,7 +485,11 @@
+diff -ru glib-2.35.1/gio/ginetaddress.c libglib/gio/ginetaddress.c
+--- glib-2.35.1/gio/ginetaddress.c	2012-10-13 16:01:55.000000000 +0100
++++ libglib/gio/ginetaddress.c	2012-11-21 17:32:23.811631399 +0000
+@@ -483,7 +483,11 @@
        return g_inet_address_new_from_bytes (addr, family);
      }
    else
@@ -12,7 +13,7 @@
  }
  
  /**
-@@ -512,7 +516,11 @@
+@@ -510,7 +514,11 @@
        return g_inet_address_new_from_bytes (addr, family);
      }
    else
@@ -24,3 +25,69 @@
  }
  
  
+diff -ru glib-2.35.1/gio/gresolver.c libglib/gio/gresolver.c
+--- glib-2.35.1/gio/gresolver.c	2012-10-16 17:40:06.000000000 +0100
++++ libglib/gio/gresolver.c	2012-11-21 17:32:33.919631100 +0000
+@@ -40,6 +40,9 @@
+ 
+ #include <stdlib.h>
+ 
++#ifdef DISABLE_DN_SKIPNAME
++#define dn_skipname(a,b) 0
++#endif
+ 
+ /**
+  * SECTION:gresolver
+@@ -1195,7 +1198,6 @@
+       p += n;
+       p += 4;
+     }
+-
+   /* Incomplete response */
+   if (i < count)
+     {
+diff -ru glib-2.35.1/gio/gsocket.c libglib/gio/gsocket.c
+--- glib-2.35.1/gio/gsocket.c	2012-10-13 16:01:55.000000000 +0100
++++ libglib/gio/gsocket.c	2012-11-21 17:32:40.879630897 +0000
+@@ -65,6 +65,22 @@
+ #include "gcredentials.h"
+ #include "glibintl.h"
+ 
++#ifndef IPV6_MULTICAST_HOPS
++#define IPV6_MULTICAST_HOPS 0
++#endif
++#ifndef IPV6_MULTICAST_LOOP
++#define IPV6_MULTICAST_LOOP 0
++#endif
++#ifndef IPV6_JOIN_GROUP
++#define IPV6_JOIN_GROUP 0
++#endif
++#ifndef IPV6_LEAVE_GROUP
++#define IPV6_LEAVE_GROUP 0
++#endif
++#ifndef IPV6_UNICAST_HOPS
++#define IPV6_UNICAST_HOPS 0
++#endif
++
+ /**
+  * SECTION:gsocket
+  * @short_description: Low-level socket object
+diff -ru glib-2.35.1/gio/tests/socket.c libglib/gio/tests/socket.c
+--- glib-2.35.1/gio/tests/socket.c	2012-10-22 21:04:15.000000000 +0100
++++ libglib/gio/tests/socket.c	2012-11-21 17:32:29.223631244 +0000
+@@ -636,6 +636,7 @@
+ static void
+ test_sockaddr (void)
+ {
++#ifndef DISABLE_IPV6
+   struct sockaddr_in6 sin6, gsin6;
+   GSocketAddress *saddr;
+   GInetSocketAddress *isaddr;
+@@ -670,6 +671,7 @@
+   g_assert_cmpint (sin6.sin6_flowinfo, ==, gsin6.sin6_flowinfo);
+ 
+   g_object_unref (saddr);
++#endif
+ }
+ 
+ #ifdef G_OS_UNIX
