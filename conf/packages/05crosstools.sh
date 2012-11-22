@@ -157,6 +157,7 @@ configure-host-automake() {
 
 PACKAGES+=" host-autoconf"
 hset host-autoconf url "http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.xz"
+hset host-autoconf destdir "/"
 
 configure-host-autoconf() {
 	(
