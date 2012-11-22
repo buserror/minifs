@@ -36,10 +36,10 @@ compile-libnl-tiny() {
 	compile $MAKE -j4 CC=$GCC CFLAGS="$TARGET_CPPFLAGS $TARGET_CFLAGS"
 }
 install-libnl-tiny-local() {
-	rsync -av include/ "$STAGING_USR"/include/
+	rsync -av --exclude=linux include/ "$STAGING_USR"/include/
 	cp libnl-tiny.so "$STAGING_USR"/lib/
-	ln -s libnl-tiny.so "$STAGING_USR"/lib/libnl.so
-	ln -s libnl-tiny.so "$STAGING_USR"/lib/libnl-genl.so
+	ln -sf libnl-tiny.so "$STAGING_USR"/lib/libnl.so
+	ln -sf libnl-tiny.so "$STAGING_USR"/lib/libnl-genl.so
 }
 install-libnl-tiny() {
 	log_install install-libnl-tiny-local
