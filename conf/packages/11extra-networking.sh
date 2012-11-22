@@ -149,4 +149,12 @@ PACKAGES+=" sshfs"
 hset sshfs url "http://downloads.sourceforge.net/project/fuse/sshfs-fuse/2.4/sshfs-fuse-2.4.tar.gz"
 hset sshfs depends "fuse openssh libglib"
 
+configure-sshfs() {
+	export LDFLAGS="$LDFLAGS_RLINK"
+	configure-generic
+	export LDFLAGS="$LDFLAGS_BASE"	
+}
 
+deploy-sshfs() {
+	deploy deploy_binaries
+}
