@@ -24,7 +24,7 @@ hset bird depends "libreadline busybox"
 # Secure Shell (bigger version than dropbear)
 #
 PACKAGES+=" openssh"
-hset openssh url "ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-5.9p1.tar.gz"
+hset openssh url "http://mirror.bytemark.co.uk/OpenBSD/OpenSSH/portable/openssh-6.1p1.tar.gz"
 hset openssh depends "openssl zlib"
 hset openssh sysconf "/etc/ssh"
 
