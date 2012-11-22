@@ -30,7 +30,7 @@ hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.35/glib-2.35.1.t
 
 #hset libglib prefix "$STAGING_USR"
 # this is needed for uclibc not NOT otherwise!
-hset libglib depends "libffi libiconv"
+hset libglib depends "libffi libiconv libgettext"
 
 hostcheck-libglib() {
 	hostcheck_commands glib-genmarshal glib-compile-schemas || {
@@ -47,6 +47,13 @@ setup-libglib() {
 }
 
 configure-libglib-local() {
+	local uclibc=$CONFIG/config_uclibc.conf
+	if [ -f $uclibc ]; then
+		local has_locale=$(grep 'UCLIBC_HAS_LOCALE=y' $uclibc)
+		local has_wchar=$(grep 'UCLIBC_HAS_WCHAR=y' $uclibc)
+		echo has_locale=$has_locale
+		echo has_wchar=$has_wchar
+	fi
 	printf "glib_cv_stack_grows=no
 ac_cv_func_posix_getpwuid_r=yes
 ac_cv_func_posix_getgrgid_r=yes
@@ -64,6 +71,7 @@ ac_cv_func_qsort_r=no
 	export NOCONFIGURE=1
 	configure-generic-local \
 		--cache=fake_glib_cache.conf \
+		--with-libiconv=gnu \
 		--with-pcre=internal || { echo FAILED ; return 1; }
 	export LDFLAGS="$LDFLAGS_BASE"
 	export CFLAGS=$save
@@ -242,6 +250,7 @@ configure-libgtk-local() {
 		--disable-cups \
 		--disable-papi \
 		--disable-gtk-doc-html \
+		--with-libiconv=no \
 		$extras	
 	export LDFLAGS="$LDFLAGS_BASE"
 }
