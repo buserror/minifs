@@ -59,6 +59,8 @@ static void reopen_bus()
 //	ioctl(i2c, I2C_RETRIES, 1); /* set the retries    */
 }
 
+int process_silent = 0;
+
 static int process()
 {
 	if (!msg_count)
@@ -69,7 +71,8 @@ static int process()
 	struct i2c_rdwr_ioctl_data rdwr = {msg, msg_count};
 
 	if (ioctl(i2c, I2C_RDWR, &rdwr) < 0) {
-		perror("I2C_RDWR");
+		if (!process_silent)
+			perror("I2C_RDWR");
 		return -1;
 	}
 //	printf("Done\n");
@@ -209,6 +212,18 @@ int main(int argc, const char * argv[])
 					bus = 0;
 					while (isdigit(*src))
 						bus = (bus * 10) + (*src++ - '0');
+				}	break;
+				case 'p': {
+					process_silent = 1;
+					for (int i = 0; i < 255; i++) {
+						if (!(i % 16)) printf("%02x: ", i);
+						msg[0].addr = i;
+						msg_count = 1;
+						if (process() >= 0)
+							printf("%02x ", i);
+						else printf(" - ");
+						if ((i % 16)==15) printf("\n");
+					}
 				}	break;
 				case '@': {
 					if (process() > 0)
