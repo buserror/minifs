@@ -79,7 +79,7 @@ if [ "$CONFIG_MODULES" != "" ]; then
 	PACKAGES+=" linux-modules"
 fi
 
-hset linux-modules depends "linux-headers crosstools"
+hset linux-modules depends "linux-headers crosstools rootfs-create"
 	
 setup-linux-modules() {
 	if [ "$BUILD/linux-obj/.config-bare" -nt ._conf_linux-bare ]; then		

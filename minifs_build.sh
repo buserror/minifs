@@ -114,7 +114,7 @@ mkdir -p "$STAGING_USR"/share/aclocal
 mkdir -p /tmp/installwatch
 
 # Always regenerate the rootfs
-rm -rf "$ROOTFS"/*
+#rm -rf "$ROOTFS"/*
 
 TARGET_INITRD=${TARGET_INITRD:-0}
 TARGET_FS_SQUASH=${TARGET_FS_SQUASH:-0}
@@ -181,7 +181,7 @@ NEEDED_HOST_COMMANDS+=" curl svn cvs svn lzma"
 export PACKAGES=""
 export TARGET_PACKAGES="
 	host-automake \
-	linux $NEED_CROSSTOOLS systemlibs busybox filesystems"
+	rootfs-create linux $NEED_CROSSTOOLS systemlibs busybox filesystems"
 export BUILD_PACKAGES=""
 
 # in minifs-script, optional
@@ -452,15 +452,6 @@ popd >/dev/null
 if [ "$COMMAND" == "unpack" -o "$COMMAND" == "download" ]; then
 	echo "$COMMAND done." ; exit;
 fi
-
-#######################################################################
-## Create base rootfs tree
-#######################################################################
-for pd in "$CONF_BASE/rootfs-base"; do
-	if [ -d "$pd" ]; then
-		rsync -a "$pd/" "$ROOTFS/"
-	fi
-done
 
 #######################################################################
 ## Default "build" phases Definitions -- for Autoconf targets

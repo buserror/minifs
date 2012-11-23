@@ -1,4 +1,23 @@
 
+
+PACKAGES+=" rootfs-create"
+hset rootfs-create url "none"
+hset rootfs-create phases "deploy"
+hset rootfs-create dir "."
+
+#######################################################################
+## Create base rootfs tree
+#######################################################################
+deploy-rootfs-create() {
+	echo "    Creating rootfs"
+	rm -rf "$ROOTFS/"
+	for pd in "$CONF_BASE/rootfs-base"; do
+		if [ -d "$pd" ]; then
+			rsync -a "$pd/" "$ROOTFS/"
+		fi
+	done
+}
+
 if [ $TARGET_SHARED -eq 1 ]; then
 	PACKAGES+=" sharedlibs"	
 	TARGET_PACKAGES+=" sharedlibs"
@@ -57,7 +76,7 @@ deploy-sharedlibs-local() {
 	set +x
 }
 deploy-sharedlibs() {
-	echo "    Nearly there, Installing shared libraries"
+	echo "    Installing shared libraries"
 	touch "._install_$PACKAGE"
 	deploy deploy-sharedlibs-local
 }
