@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 		if (timeout == -1 && atoi(argv[i])) {
 			timeout = atoi(argv[i]);
 		} else if (argv[i][0] == '-') {
-			if (!strcmp(argv[i], "-v" || !strcmp(argv[i], "--verbose")))
+			if (!strcmp(argv[i], "-v" || !strcmp(argv[i], "--verbose"))) {
 				verbose++;
 			} else {
 				fprintf(stderr, "%s invalid option '%s'\n", argv[0], argv[i]);
