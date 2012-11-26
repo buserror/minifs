@@ -172,6 +172,7 @@ configure-host-autoconf() {
 PACKAGES+=" host-pkg-config"
 hset host-pkg-config url "http://ftp.de.debian.org/debian/pool/main/p/pkg-config/pkg-config_0.26.orig.tar.gz"
 hset host-pkg-config depends "host-autoconf"
+hset host-pkg-config destdir "/"
 
 configure-host-pkg-config() {
 	(
@@ -182,6 +183,18 @@ configure-host-pkg-config() {
 			--host=$TARGET_FULL_ARCH \
 			--program-prefix="$TARGET_FULL_ARCH"-
 	) || exit 1
+}
+
+PACKAGES+=" host-installwatch"
+hset host-installwatch url "git!http://checkinstall.izto.org/checkinstall.git#checkinstall-git.tar.bz2"
+hset host-installwatch destdir "$STAGING_TOOLS"
+hset host-installwatch dir "host-installwatch/installwatch"
+
+configure-host-installwatch() {
+	configure-generic echo Done
+}
+install-host-installwatch() {
+	log_install make install PREFIX=$STAGING_TOOLS
 }
 
 PACKAGES+=" gdbserver"

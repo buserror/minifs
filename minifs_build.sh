@@ -54,7 +54,7 @@ echo MINIFS_BOARD $MINIFS_BOARD $COMMAND_TARGET $COMMAND_PACKAGE
 # before anything is built to prevent wasting time and have the
 # build fail in the middle
 #######################################################################
-NEEDED_HOST_COMMANDS="make tar rsync installwatch wget git"
+NEEDED_HOST_COMMANDS="make tar rsync wget git"
 
 BASE="$(pwd)"
 export MINIFS_BASE="$BASE"
@@ -180,6 +180,7 @@ NEEDED_HOST_COMMANDS+=" curl svn cvs svn lzma"
 #######################################################################
 export PACKAGES=""
 export TARGET_PACKAGES="
+	host-installwatch \
 	host-automake \
 	rootfs-create linux $NEED_CROSSTOOLS systemlibs busybox filesystems"
 export BUILD_PACKAGES=""
