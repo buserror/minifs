@@ -7,6 +7,7 @@ hset elftosb phases "deploy"
 deploy-elftosb-local() {
 	ln -sf $(hget linux-dtb filename) zImage
 	rm -f mv sd_mmc_bootstream.raw
+	echo $TARGET_KERNEL_CMDLINE >linux_prep/cmdlines/stmp378x_dev.txt
 	$MAKE \
 		CROSS_COMPILE="${CROSS}-" && \
 		mv sd_mmc_bootstream.raw ..

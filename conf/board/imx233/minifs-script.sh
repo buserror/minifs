@@ -6,6 +6,7 @@ TARGET_ARCH=arm
 TARGET_FULL_ARCH=$TARGET_ARCH-v5-linux-uclibcgnueabi
 TARGET_KERNEL_NAME=zImage
 TARGET_KERNEL_DTB=imx23-olinuxino.dtb
+TARGET_KERNEL_CMDLINE="console=ttyAMA0,115200 root=/dev/mmcblk0p2 ro rootwait ssp1=mmc quiet"
 TARGET_LIBC_CFLAGS="-g -O2 -mcpu=arm926ej-s -fPIC"
 TARGET_CFLAGS="$TARGET_LIBC_CFLAGS -fPIC"
 
