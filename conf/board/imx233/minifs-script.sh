@@ -5,7 +5,9 @@ TARGET_META_ARCH=armv5
 TARGET_ARCH=arm
 TARGET_FULL_ARCH=$TARGET_ARCH-v5-linux-uclibcgnueabi
 TARGET_KERNEL_NAME=zImage
-TARGET_KERNEL_DTB=${TARGET_KERNEL_DTB:-imx23-olinuxino.dtb}
+# this file .dts must exist either in this directory (board)
+# or in the linux arch/$TARGET_ARCH/boot/dts/
+TARGET_KERNEL_DTB=${TARGET_KERNEL_DTB:-imx23-olinuxino}
 TARGET_KERNEL_CMDLINE=${TARGET_KERNEL_CMDLINE:-"console=ttyAMA0,115200 root=/dev/mmcblk0p2 ro rootwait ssp1=mmc quiet"}
 TARGET_LIBC_CFLAGS="-g -O2 -mcpu=arm926ej-s -fPIC"
 TARGET_CFLAGS="$TARGET_LIBC_CFLAGS -fPIC"

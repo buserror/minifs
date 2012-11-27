@@ -207,32 +207,42 @@ deploy-linux-initrd() {
 
 #######################################################################
 ## linux-dtb
+# 
+# This bit compiles a device tree file from a source that is either
+# in the board config directory, or in the linux source tree itself
+# it gets compiled witht he 'dtc' tool that is made at the same time
+# as the kernel, and then gets concatenated to the kernel to create
+# a vmlinuz-xxx.dtb file
 #######################################################################
 if [ "$TARGET_KERNEL_DTB" != "" ]; then
 	PACKAGES+=" linux-dtb"
 fi
 hset linux-dtb depends "linux-bare linux-initrd"
+hset linux-dtb phases "deploy"
 
-configure-linux-dtb() {
-	configure echo Done
-}
-
-compile-linux-dtb() {
-	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
-		CROSS_COMPILE="${CROSS}-" \
-			$TARGET_KERNEL_DTB
-}
-
-install-linux-dtb() {
-	log_install echo Done 
-}
 deploy-linux-dtb-local() {
-	local dtb="$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/$TARGET_KERNEL_DTB
+	set -x
+	local dtb="$BUILD/$TARGET_KERNEL_DTB".dtb
+	local source="$CONFIG/$TARGET_KERNEL_DTB".dts
+	
+	if [ ! -f "$source" ]; then
+		if [ -f "$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/$TARGET_KERNEL_DTB".dts ]; then
+			source="$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/$TARGET_KERNEL_DTB".dts		
+		else
+			echo "*** Unable to find a matching $TARGET_KERNEL_DTB.dts" 
+			return 1
+		fi
+	fi
+	"$BUILD"/linux-obj/scripts/dtc/dtc -O dtb \
+		-i "$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/" \
+		-o $dtb $source	
+
 	rm -f "$BUILD"/vmlinuz-bare.dtb
 	if [ -f "$BUILD"/vmlinuz-bare.bin -a -f "$dtb" ]; then
 		cat "$BUILD"/vmlinuz-bare.bin "$dtb" >"$BUILD"/vmlinuz-bare.dtb
 		hset linux-dtb filename "$BUILD"/vmlinuz-bare.dtb
 	fi
+	set +x
 }
 deploy-linux-dtb() {
 	deploy deploy-linux-dtb-local
