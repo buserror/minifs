@@ -1,0 +1,52 @@
+From 83bc4b033f548fa5d3b9f58b8c2b1ad7d52386b2 Mon Sep 17 00:00:00 2001
+From: Michel Pollet <buserror@gmail.com>
+Date: Wed, 28 Nov 2012 15:57:28 +0000
+Subject: [PATCH 1/8] mxs: Allows specifying a bus number
+
+SPI busses are by default enumerated down from 32k
+and if spidev is used, it's impossible to predict
+for sure the large number that will be allocated
+and used in the /dev filename.
+
+This patch introduces a "bus-num" property for
+the .dts that let the device tree decide of
+the device id, solving that problem.
+
+Signed-off-by: Michel Pollet <buserror@gmail.com>
+---
+ drivers/spi/spi-mxs.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/spi/spi-mxs.c b/drivers/spi/spi-mxs.c
+index 86dd04d..1c65a67 100644
+--- a/drivers/spi/spi-mxs.c
++++ b/drivers/spi/spi-mxs.c
+@@ -524,6 +524,7 @@ static int __devinit mxs_spi_probe(struct platform_device *pdev)
+ 	int devid, dma_channel, clk_freq;
+ 	int ret = 0, irq_err, irq_dma;
+ 	dma_cap_mask_t mask;
++	int bus_num = -1;
+ 
+ 	/*
+ 	 * Default clock speed for the SPI core. 160MHz seems to
+@@ -568,6 +569,8 @@ static int __devinit mxs_spi_probe(struct platform_device *pdev)
+ 					   &clk_freq);
+ 		if (ret)
+ 			clk_freq = clk_freq_default;
++		if (of_property_read_u32(np, "bus-num", &bus_num))
++			bus_num = -1;
+ 	} else {
+ 		dmares = platform_get_resource(pdev, IORESOURCE_DMA, 0);
+ 		if (!dmares)
+@@ -580,7 +583,7 @@ static int __devinit mxs_spi_probe(struct platform_device *pdev)
+ 	master = spi_alloc_master(&pdev->dev, sizeof(*spi));
+ 	if (!master)
+ 		return -ENOMEM;
+-
++	master->bus_num = bus_num;
+ 	master->transfer_one_message = mxs_spi_transfer_one;
+ 	master->setup = mxs_spi_setup;
+ 	master->mode_bits = SPI_CPOL | SPI_CPHA;
+-- 
+1.7.10.4
+
