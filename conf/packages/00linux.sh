@@ -226,16 +226,15 @@ deploy-linux-dtb-local() {
 	local source="$CONFIG/$TARGET_KERNEL_DTB".dts
 	
 	if [ ! -f "$source" ]; then
-		if [ -f "$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/$TARGET_KERNEL_DTB".dts ]; then
-			source="$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/$TARGET_KERNEL_DTB".dts		
-		else
+		source="$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/$TARGET_KERNEL_DTB".dts		
+		if [ ! -f "$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/$TARGET_KERNEL_DTB".dts ]; then
 			echo "*** Unable to find a matching $TARGET_KERNEL_DTB.dts" 
 			return 1
 		fi
 	fi
 	"$BUILD"/linux-obj/scripts/dtc/dtc -O dtb \
 		-i "$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/" \
-		-o $dtb $source	
+		-o $dtb $source	|| return 1
 
 	rm -f "$BUILD"/vmlinuz-bare.dtb
 	if [ -f "$BUILD"/vmlinuz-bare.bin -a -f "$dtb" ]; then
@@ -245,6 +244,7 @@ deploy-linux-dtb-local() {
 	set +x
 }
 deploy-linux-dtb() {
+	touch ._install_$PACKAGE
 	deploy deploy-linux-dtb-local
 }
 
