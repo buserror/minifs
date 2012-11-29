@@ -34,6 +34,8 @@ board_prepare() {
 	
 	TARGET_PACKAGES+=" linux-dtb elftosb"
 	TARGET_PACKAGES+=" libsdl sdlvoxel sdlplasma libpng libsdlimage kobodeluxe"
+	TARGET_PACKAGES+=" mplayer"
+	
 }
 
 bard_local() {

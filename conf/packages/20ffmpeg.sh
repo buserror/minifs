@@ -211,3 +211,17 @@ configure-vlc() {
 		--disable-lua \
 		--disable-qt4 --disable-skins2
 }
+
+
+PACKAGES+=" mplayer"
+hset mplayer url "http://www.mplayerhq.hu/MPlayer/releases/MPlayer-1.1.tar.xz"
+hset mplayer depends "libsdl"
+
+configure-mplayer() {
+	configure ./configure  --cc="$GCC" --host-cc=gcc \
+		--enable-cross-compile --target=$TARGET_ARCH-linux	
+}
+
+deploy-mplayer() {
+	deploy deploy_binaries
+}
