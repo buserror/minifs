@@ -1,7 +1,7 @@
-From 83bc4b033f548fa5d3b9f58b8c2b1ad7d52386b2 Mon Sep 17 00:00:00 2001
+From bc36ba6fa280ff275531bd868869ffb028fd37fe Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Wed, 28 Nov 2012 15:57:28 +0000
-Subject: [PATCH 1/8] mxs: Allows specifying a bus number
+Subject: [PATCH 01/11] mxs: Allows specifying a bus number
 
 SPI busses are by default enumerated down from 32k
 and if spidev is used, it's impossible to predict

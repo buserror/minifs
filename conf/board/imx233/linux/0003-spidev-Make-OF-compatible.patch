@@ -1,7 +1,7 @@
-From 2462d8876f0afa1cb9fcbebf090521c51e5239ec Mon Sep 17 00:00:00 2001
+From acae0975a48484904f693991d3389bca31428e9a Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Wed, 28 Nov 2012 16:00:45 +0000
-Subject: [PATCH 3/8] spidev: Make OF compatible
+Subject: [PATCH 03/11] spidev: Make OF compatible
 
 Add the OF property table to allow the driver
 to be instantiated from a .dts device tree

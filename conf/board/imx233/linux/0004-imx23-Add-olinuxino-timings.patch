@@ -1,7 +1,7 @@
-From 8c0c39715f927586337a8fb5a137617b1e354a8f Mon Sep 17 00:00:00 2001
+From d0f040ac4a84a266fcdd134f12394f8212e2c688 Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Wed, 28 Nov 2012 16:03:29 +0000
-Subject: [PATCH 4/8] imx23: Add olinuxino timings
+Subject: [PATCH 04/11] imx23: Add olinuxino timings
 
 Adds support for a 'dumb' 16bpp LCD panel for the
 imx233 LQFP olinuxino board(s)

@@ -1,7 +1,7 @@
-From 22a1012fcfaa879ac8a82094671dc6a23617ddad Mon Sep 17 00:00:00 2001
+From a0084fc8dc410c106935fa6ca485fa4748da17a4 Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Wed, 28 Nov 2012 16:47:40 +0000
-Subject: [PATCH 8/8] imx23-olinuxino: Add 16 bits LCD declaration
+Subject: [PATCH 08/11] imx23-olinuxino: Add 16 bits LCD declaration
 
 Added a block for (dumb) 16 bits TFT to the
 device tree. Since it clashes with the

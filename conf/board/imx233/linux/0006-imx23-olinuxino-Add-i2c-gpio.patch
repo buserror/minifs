@@ -1,7 +1,7 @@
-From 7e23400095d6d692d97289788c5c3bdb868815b2 Mon Sep 17 00:00:00 2001
+From 170a5d3cb292a13cc887150af3176bf86112c287 Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Wed, 28 Nov 2012 16:06:16 +0000
-Subject: [PATCH 6/8] imx23-olinuxino: Add i2c-gpio
+Subject: [PATCH 06/11] imx23-olinuxino: Add i2c-gpio
 
 Instanciates a i2c-gpio driver on the UEXT
 connector.
