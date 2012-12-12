@@ -1,4 +1,4 @@
-From bc36ba6fa280ff275531bd868869ffb028fd37fe Mon Sep 17 00:00:00 2001
+From 3bea31d59db5f0e50ce212b9824701912143ef66 Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Wed, 28 Nov 2012 15:57:28 +0000
 Subject: [PATCH 01/11] mxs: Allows specifying a bus number

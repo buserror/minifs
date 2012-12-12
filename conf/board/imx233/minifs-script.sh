@@ -14,7 +14,7 @@ TARGET_LIBC_CFLAGS="-g -O2 -march=armv5te -mtune=arm926ej-s -fPIC -mthumb-interw
 TARGET_CFLAGS="$TARGET_LIBC_CFLAGS"
 
 board_set_versions() {
-	hset linux version "3.7-rc8"
+	hset linux version "3.7"
 	TARGET_FS_SQUASH=0
 	TARGET_FS_EXT2=1
 	TARGET_SHARED=1 
@@ -36,7 +36,7 @@ board_prepare() {
 	TARGET_PACKAGES+=" linux-dtb elftosb"
 	TARGET_PACKAGES+=" libsdl sdlvoxel sdlplasma libpng libsdlimage kobodeluxe"
 	TARGET_PACKAGES+=" mplayer"
-	
+	TARGET_PACKAGES+=" node"
 }
 
 bard_local() {

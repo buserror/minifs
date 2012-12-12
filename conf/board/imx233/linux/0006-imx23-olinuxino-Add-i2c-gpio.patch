@@ -1,4 +1,4 @@
-From 170a5d3cb292a13cc887150af3176bf86112c287 Mon Sep 17 00:00:00 2001
+From 16ed6806b60ad65cf627fc1fae11512dcaddf3a7 Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Wed, 28 Nov 2012 16:06:16 +0000
 Subject: [PATCH 06/11] imx23-olinuxino: Add i2c-gpio

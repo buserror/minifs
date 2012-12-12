@@ -1,4 +1,4 @@
-From d0f040ac4a84a266fcdd134f12394f8212e2c688 Mon Sep 17 00:00:00 2001
+From fc06241652dd76893d345811ade61afb4236cc13 Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Wed, 28 Nov 2012 16:03:29 +0000
 Subject: [PATCH 04/11] imx23: Add olinuxino timings
