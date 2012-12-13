@@ -204,7 +204,7 @@ function ppr(s) {
 	print s;
 }
 {
-	if ($2=="open" && match($3,pp)) l[$3]=$3;
+	if (($2=="open" || $2=="fopen64") && match($3,pp)) l[$3]=$3;
 	if ($2=="rename" && match($4,pp)) { delete l[$3]; l[$4]=$4; }
 	if ($2=="symlink" && match($4,pp)) { l[$4]=$4; }
 }
