@@ -1,4 +1,31 @@
 
+PACKAGES+=" luajit"
+hset luajit url "http://luajit.org/download/LuaJIT-2.0.0.tar.gz"
+hset luajit desc "A Just-In-Time compiler for lua"
+
+configure-luajit() {
+	configure echo Done
+}
+compile-luajit() {
+	(
+	unset CFLAGS
+	compile-generic PREFIX=/usr CROSS="$TARGET_FULL_ARCH"- MYLDFLAGS="$LDFLAGS" \
+		BUILDMODE=dynamic V=1 \
+		TARGET_CFLAGS="$TARGET_CFLAGS" \
+		HOST_CC="gcc -m32"
+	) || return 1;
+}
+install-luajit() {
+	install-generic PREFIX=/usr
+}
+deploy-luajit-local() {
+	deploy_binaries
+	deploy_staging_path "/usr/share/luajit-2.0.0" "/"
+}
+deploy-luajit() {
+	deploy deploy-luajit-local
+}
+
 PACKAGES+=" lua"
 hset lua url "http://www.lua.org/ftp/lua-5.1.4.tar.gz"
 hset lua depends "libreadline libncurses busybox"

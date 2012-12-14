@@ -35,7 +35,8 @@ board_prepare() {
 	
 	TARGET_PACKAGES+=" linux-dtb elftosb"
 	TARGET_PACKAGES+=" libsdl sdlvoxel sdlplasma libpng libsdlimage kobodeluxe mplayer"
-	TARGET_PACKAGES+=" node"
+#	TARGET_PACKAGES+=" libsdl sdlvoxel sdlplasma libpng libsdlimage kobodeluxe"
+	TARGET_PACKAGES+=" luajit"
 }
 
 bard_local() {
