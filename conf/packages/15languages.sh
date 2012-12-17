@@ -1,4 +1,8 @@
 
+# IMPORTANT NOTE:
+# THis requires the glibc-dev:i386 to build, as the gcc -m32 needed to build
+# will fail to find headers if these system host headers are not installed 
+# on a x86_64 system. You also need a -multilib version of gcc
 PACKAGES+=" luajit"
 hset luajit url "http://luajit.org/download/LuaJIT-2.0.0.tar.gz"
 hset luajit desc "A Just-In-Time compiler for lua"
@@ -10,8 +14,8 @@ compile-luajit() {
 	(
 	unset CFLAGS
 	compile-generic PREFIX=/usr CROSS="$TARGET_FULL_ARCH"- MYLDFLAGS="$LDFLAGS" \
-		BUILDMODE=dynamic V=1 \
-		TARGET_CFLAGS="$TARGET_CFLAGS" \
+		BUILDMODE=dynamic Q= \
+		TARGET_CFLAGS="$TARGET_CPPFLAGS $TARGET_CFLAGS" \
 		HOST_CC="gcc -m32"
 	) || return 1;
 }
