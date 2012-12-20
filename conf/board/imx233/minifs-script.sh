@@ -35,7 +35,7 @@ board_prepare() {
 	
 	TARGET_PACKAGES+=" linux-dtb elftosb"
 	TARGET_PACKAGES+=" libsdl sdlvoxel sdlplasma libpng libsdlimage kobodeluxe mplayer"
-	TARGET_PACKAGES+=" rrdtool"
+	TARGET_PACKAGES+=" font-bitstream-vera rrdtool"
 }
 
 bard_local() {
