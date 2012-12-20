@@ -235,8 +235,8 @@ check_host_commands
 #######################################################################
 for fil in .config .config-$(hostname -s) .config-$MINIFS_BOARD; do
 	for dir in "./" $(minifs_path_split "packages"); do
-		if [ -f "$dir/$sh" ]; then
-			source "$dir/$sh"
+		if [ -f "$dir/$fil" ]; then
+			source "$dir/$fil"
 		fi
 	done
 done
