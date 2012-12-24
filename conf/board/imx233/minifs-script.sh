@@ -27,14 +27,14 @@ board_prepare() {
 	TARGET_PACKAGES+=" gdbserver strace"
 #	TARGET_PACKAGES+=" libusb "
 	TARGET_PACKAGES+=" curl wpa-supplicant wireless-tools"
-	TARGET_PACKAGES+=" firmware-rtl"
+	TARGET_PACKAGES+=" firmware-rtl firmware-ralink"
 	TARGET_PACKAGES+=" openssh sshfs"
 
 	TARGET_PACKAGES+=" targettools"
 	TARGET_PACKAGES+=" kexec-tools"
 	
 	TARGET_PACKAGES+=" linux-dtb elftosb"
-	TARGET_PACKAGES+=" libsdl sdlvoxel sdlplasma libpng libsdlimage kobodeluxe mplayer"
+#	TARGET_PACKAGES+=" libsdl sdlvoxel sdlplasma libpng libsdlimage kobodeluxe mplayer"
 	TARGET_PACKAGES+=" font-bitstream-vera rrdtool"
 }
 

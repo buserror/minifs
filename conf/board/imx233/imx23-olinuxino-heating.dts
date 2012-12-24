@@ -115,8 +115,8 @@
 			 &gpio0 23 0 /* scl */
 			>;
 		i2c-gpio,delay-us = <2>;	/* ~100 kHz */
-		i2c-gpio,scl-output-only = <1>;
-		i2c-gpio,sda-open-drain = <0>;
+		i2c-gpio,scl-output-only = <0>;
+		i2c-gpio,sda-open-drain = <1>;
 		
 		pinctrl-names = "default";
 		pinctrl-0 = <&i2c_gpio>;
@@ -125,6 +125,10 @@
 		rtc@68 {
 			compatible = "dallas,ds1307";
 			reg = <0x68>;
+		};
+		eeprom@50 {
+			compatible = "at,24c32";
+			reg = <0x50>;
 		};
 	};
 
