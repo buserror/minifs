@@ -295,6 +295,23 @@ deploy-firmware-rtl() {
 	deploy deploy-firmware-rtl-local
 }
 
+PACKAGES+=" firmware-ralink"
+hset firmware-ralink depends "linux-firmware"
+hset firmware-ralink dir "linux-firmware"
+hset firmware-ralink url "none"
+hset firmware-ralink phases "deploy"
+
+deploy-firmware-ralink-local() {
+	mkdir "$ROOTFS"/lib/firmware
+	cp -r rt*.bin "$ROOTFS"/lib/firmware/
+}
+deploy-firmware-ralink() {
+	if [ ! -f "._install_$PACKAGE" ]; then
+		touch "._install_$PACKAGE"
+	fi
+	deploy deploy-firmware-ralink-local
+}
+
 PACKAGES+=" kexec-tools"
 hset kexec-tools url "http://kernel.org/pub/linux/utils/kernel/kexec/kexec-tools-2.0.3.tar.xz"
 hset kexec-tools depends "busybox"
