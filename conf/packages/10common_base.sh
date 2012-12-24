@@ -46,7 +46,7 @@ patch-screen() {
 ## i2c-tools - http://www.lm-sensors.org/wiki/I2CTools
 #######################################################################
 PACKAGES+=" i2c"
-hset i2c url "http://dl.lm-sensors.org/i2c-tools/releases/i2c-tools-3.0.3.tar.bz2"
+hset i2c url "http://dl.lm-sensors.org/i2c-tools/releases/i2c-tools-3.1.0.tar.bz2"
 hset i2c depends "busybox"
 
 configure-i2c() {
