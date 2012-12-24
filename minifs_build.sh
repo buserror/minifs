@@ -189,6 +189,16 @@ export BUILD_PACKAGES=""
 optional board_set_versions
 
 #######################################################################
+# if a local config file is found, run it, it allows quick
+# testing of packages without changing the real board file etc
+#######################################################################
+for fil in .config .config-$(hostname -s) .config-$MINIFS_BOARD; do
+	if [ -f "./$fil" ]; then
+		source "./$fil"
+	fi
+done
+
+#######################################################################
 ## Load all the package scripts and sort them by name
 #######################################################################
 package_files=""
