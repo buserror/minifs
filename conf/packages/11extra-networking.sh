@@ -162,3 +162,17 @@ configure-sshfs() {
 deploy-sshfs() {
 	deploy deploy_binaries
 }
+
+PACKAGES+=" dma"
+hset dma url "https://github.com/corecode/dma/archive/v0.8.tar.gz"
+hset dma depends "openssl"
+
+compile-dma() {
+	compile-generic \
+		CPPFLAGS="$TARGET_CFLAGS $TARGET_CPPFLAGS -DHAVE_GETPROGNAME -Dgetprogname\(\)='\"dma\"'" \
+		PREFIX="/usr"
+}
+
+deploy-dma() {
+	deploy deploy_binaries
+}
