@@ -244,7 +244,7 @@ check_host_commands
 # testing of packages without changing the real board file etc
 #######################################################################
 for fil in .config .config-$(hostname -s) .config-$MINIFS_BOARD; do
-	for dir in "./" $(minifs_path_split "packages"); do
+	for dir in $(minifs_path_split "packages"); do
 		if [ -f "$dir/$fil" ]; then
 			source "$dir/$fil"
 		fi
