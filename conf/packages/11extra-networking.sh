@@ -173,6 +173,11 @@ compile-dma() {
 		PREFIX="/usr"
 }
 
+install-dma() {
+	install-generic \
+		PREFIX="/usr"
+}
+
 deploy-dma() {
 	deploy deploy_binaries
 }
