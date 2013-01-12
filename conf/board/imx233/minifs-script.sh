@@ -14,18 +14,14 @@ TARGET_LIBC_CFLAGS="-g -O2 -march=armv5te -mtune=arm926ej-s -fPIC -mthumb-interw
 TARGET_CFLAGS="$TARGET_LIBC_CFLAGS"
 
 board_set_versions() {
-	hset linux version "3.7"
+	hset linux version "3.8-rc3"
 	TARGET_FS_SQUASH=0
 	TARGET_FS_EXT2=1
 	TARGET_SHARED=1 
-#	TARGET_X11=1
-	#TARGET_INITRD=1
-#	NEEDED_HOST_COMMANDS+=" mkimage"
 }
 
 board_prepare() {
 	TARGET_PACKAGES+=" gdbserver strace"
-#	TARGET_PACKAGES+=" libusb "
 	TARGET_PACKAGES+=" curl wpa-supplicant wireless-tools"
 	TARGET_PACKAGES+=" firmware-rtl firmware-ralink"
 	TARGET_PACKAGES+=" openssh sshfs"
@@ -35,10 +31,14 @@ board_prepare() {
 	
 	TARGET_PACKAGES+=" linux-dtb elftosb"
 #	TARGET_PACKAGES+=" libsdl sdlvoxel sdlplasma libpng libsdlimage kobodeluxe mplayer"
-	TARGET_PACKAGES+=" font-bitstream-vera rrdtool"
+#	TARGET_PACKAGES+=" font-bitstream-vera rrdtool"
 }
 
 bard_local() {
+	# how to use kexec from the board to launch a new kernel
 	tftp -g -r linux -l /tmp//linux 192.168.2.129 &&	kexec --append="$(cat /proc/cmdline)" --force /tmp/linux
 	tftp -g -r linux -l /tmp/linux 192.168.2.129 &&	kexec --append="console=ttyAMA0,115200 root=/dev/mmcblk0p2 ro rootwait ssp1=mmc" --force --no-ifdown /tmp/linux
+
+	# how to launch this in qemu
+	./arm-softmmu/qemu-system-arm  -M imx233o -m 64M -kernel /opt/minifs/build-imx233/vmlinuz-bare.dtb -monitor telnet::4444,server,nowait -serial stdio -display none -sd /opt/olimex/basic.img -usb -snapshot
 }
