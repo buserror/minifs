@@ -51,8 +51,17 @@
 				hog_pins_a: hog@0 {
 					reg = <0>;
 					fsl,pinmux-ids = <
+						0x0113 /* MX23_PAD_GPMI_ALE__GPIO_0_17 */
+					>;
+					fsl,drive-strength = <0>;
+					fsl,voltage = <1>;
+					fsl,pull-up = <0>;
+				};
+
+				led_pin_gpio2_1: led_gpio2_1@0 {
+					reg = <0>;
+					fsl,pinmux-ids = <
 						0x2013 /* MX23_PAD_SSP1_DETECT__GPIO_2_1 */
-					//	0x0113 /* MX23_PAD_GPMI_ALE__GPIO_0_17 */
 					>;
 					fsl,drive-strength = <0>;
 					fsl,voltage = <1>;
@@ -105,6 +114,17 @@
 		};
 	};
 
+	leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+		pinctrl-0 = <&led_pin_gpio2_1>;
+
+		user {
+			label = "green";
+			gpios = <&gpio2 1 1>;
+		};
+	};
+
 	/*
 	 * maxi declares the i2c by default as software -- so instanciate a linux driver
 	 * for it
@@ -142,13 +162,4 @@
 		pinctrl-0 = <&w1_gpio>;
 	};
 
-	leds {
-		compatible = "gpio-leds";
-
-		user {
-			label = "green";
-			gpios = <&gpio2 1 0>;
-			linux,default-trigger = "default-on";
-		};
-	};
 };
