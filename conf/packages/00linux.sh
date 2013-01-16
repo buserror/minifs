@@ -133,13 +133,15 @@ install-linux-bare() {
 }
 deploy-linux-bare() {
 	if [ -f "$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/uImage ]; then
-		deploy dd if="$BUILD"/linux-obj/arch/arm/boot/uImage \
+		deploy dd if="$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/uImage \
 			of="$BUILD"/kernel.ub \
 			bs=128k conv=sync
-	elif [ -f "$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/$TARGET_KERNEL_NAME ]; then
+	fi
+	if [ -f "$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/$TARGET_KERNEL_NAME ]; then
 		deploy cp "$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/$TARGET_KERNEL_NAME \
 			"$BUILD"/vmlinuz-bare.bin
-	elif [ -f "$BUILD"/linux-obj/$TARGET_KERNEL_NAME ]; then
+	fi
+	if [ -f "$BUILD"/linux-obj/$TARGET_KERNEL_NAME ]; then
 		deploy cp "$BUILD"/linux-obj/$TARGET_KERNEL_NAME \
 			"$BUILD"/$TARGET_KERNEL_NAME-bare.bin
 	fi
