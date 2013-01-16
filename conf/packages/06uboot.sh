@@ -2,20 +2,25 @@
 PACKAGES+=" uboot"
 # uboot URL is set by each board, not here
 #hset uboot url "git!git://repo.or.cz/u-boot-openmoko/parrot-frames.git#uboot-df3120-git.tar.bz2"
+hset uboot target "u-boot.bin"
 
 configure-uboot() {
-	local arch=$MINIFS_BOARD_UBOOT
+	local arch=$(hget uboot board)
 	if [ "$arch" = "" ];then
 		arch=$MINIFS_BOARD
+		echo WARNING uboot needs an explicit board name
 	fi
 	configure make "$arch"_config
 }
 compile-uboot-local() {
-	$MAKE $MAKE_ARGUMENTS  CROSS_COMPILE="$CROSS-" &&
-		$MAKE CROSS_COMPILE="$CROSS-" \
-			TOPDIR=../.. \
-			CPPFLAGS="$CFLAGS -DUSE_HOSTCC -static -I../../include" \
-			-C tools/env
+	$MAKE $MAKE_ARGUMENTS \
+			CROSS_COMPILE="$CROSS-" \
+			$(hget uboot target)
+	
+	#	$MAKE CROSS_COMPILE="$CROSS-" \
+	#		TOPDIR=../.. \
+	#		CPPFLAGS="$CFLAGS -DUSE_HOSTCC -static -I../../include" \
+	#		-C tools/env
 }
 compile-uboot() {
 	compile compile-uboot-local
@@ -40,8 +45,7 @@ install-uboot() {
 	log_install install-uboot-local
 }
 deploy-uboot() {
-    # Reggie changed, not sure why but this test fails.
-	#if [ -x "$STAGING_USR"/bin/fw_printenv ]; then
+	if [ -x "$STAGING"/bin/fw_printenv ]; then
 		deploy cp "$STAGING"/usr/bin/fw_printenv "$ROOTFS"/bin/
-	#fi	
+	fi	
 }
