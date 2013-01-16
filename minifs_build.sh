@@ -25,10 +25,8 @@ MINIFS_BOARD=${MINIFS_BOARD:-"atom"}
 # get a default number of concurent jobs
 MINIFS_JOBS=${MINIFS_JOBS:-$(cat /proc/cpuinfo |grep '^processor'|wc -l)}
 
-MINIFS_BOARD_COMP=""
-for pd in $(echo "$MINIFS_BOARD"| tr "-" "\n") ; do
-	MINIFS_BOARD_COMP="$pd:$MINIFS_BOARD_COMP"
-done
+MINIFS_BOARD_ROLE=${MINIFS_BOARD/*-}
+MINIFS_BOARD=${MINIFS_BOARD/-*}
 
 #######################################################################
 # MINIFS_PATH contains collumn separated directories with extra

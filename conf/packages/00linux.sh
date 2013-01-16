@@ -131,20 +131,24 @@ install-linux-bare() {
 		INSTALLKERNEL="no-default-install" \
 			install
 }
-deploy-linux-bare() {
+deploy-linux-bare-local() {
 	if [ -f "$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/uImage ]; then
-		deploy dd if="$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/uImage \
+		dd if="$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/uImage \
 			of="$BUILD"/kernel.ub \
 			bs=128k conv=sync
 	fi
 	if [ -f "$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/$TARGET_KERNEL_NAME ]; then
-		deploy cp "$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/$TARGET_KERNEL_NAME \
+		cp "$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/$TARGET_KERNEL_NAME \
 			"$BUILD"/vmlinuz-bare.bin
 	fi
 	if [ -f "$BUILD"/linux-obj/$TARGET_KERNEL_NAME ]; then
-		deploy cp "$BUILD"/linux-obj/$TARGET_KERNEL_NAME \
+		cp "$BUILD"/linux-obj/$TARGET_KERNEL_NAME \
 			"$BUILD"/$TARGET_KERNEL_NAME-bare.bin
 	fi
+}
+
+deploy-linux-bare() {
+	deploy deploy-linux-bare-local
 }
 
 #######################################################################
