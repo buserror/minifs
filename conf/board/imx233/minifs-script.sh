@@ -1,17 +1,13 @@
 #!/bin/bash
 
-TARGET_META_ARCH=armv5
+. "$CONF_BASE"/arch/armv5.sh
 
-TARGET_ARCH=arm
-TARGET_FULL_ARCH=$TARGET_ARCH-v5-linux-uclibcgnueabi
 TARGET_KERNEL_NAME=zImage
+
 # this file .dts must exist either in this directory (board)
 # or in the linux arch/$TARGET_ARCH/boot/dts/
 TARGET_KERNEL_DTB=${TARGET_KERNEL_DTB:-imx23-olinuxino}
 TARGET_KERNEL_CMDLINE=${TARGET_KERNEL_CMDLINE:-"console=ttyAMA0,115200 root=/dev/mmcblk0p2 ro rootwait ssp1=mmc quiet"}
-#TARGET_LIBC_CFLAGS="-g -O2 -mcpu=arm926ej-s -fPIC"
-TARGET_LIBC_CFLAGS="-g -O2 -march=armv5te -mtune=arm926ej-s -fPIC -mthumb-interwork"
-TARGET_CFLAGS="$TARGET_LIBC_CFLAGS"
 
 board_set_versions() {
 	hset linux version "3.8-rc3"

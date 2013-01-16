@@ -2,8 +2,6 @@
 
 . "$CONF_BASE"/arch/armv4.sh
 
-MINIFS_BOARD_UBOOT=mini2440
-
 board_set_versions() {
 	hset linux version "3.0.4"
 	# for a >64Mb nand with 2k blocks and 128k erase blocks
@@ -18,6 +16,9 @@ board_prepare() {
 	TARGET_PACKAGES+=" tinc openssh rsync iptables dnsmasq"
 	TARGET_PACKAGES+=" cups cups-splix ghostscript msfonts"
 	
+	hset uboot board "mini2440"
+
+	hset uboot 
 	{
 		if [ ! -d "$CONFIG"/rootfs/etc/tinc/ ]; then
 			mkdir -p "$CONFIG"/rootfs/etc/tinc/ &&
