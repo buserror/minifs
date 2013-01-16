@@ -1,0 +1,14 @@
+diff --git a/include/configs/mx28evk.h b/include/configs/mx28evk.h
+index dd0ef21..e8c76ce 100644
+--- a/include/configs/mx28evk.h
++++ b/include/configs/mx28evk.h
+@@ -70,6 +70,9 @@
+ #define CONFIG_CMD_BOOTZ
+ #define CONFIG_CMD_I2C
+ 
++#define CONFIG_FS_EXT4
++#define CONFIG_CMD_EXT4
++
+ /*
+  * Memory configurations
+  */

@@ -1,0 +1,42 @@
+From d4b29a95058ce7dc06b6a737f7a18e8758ea2f29 Mon Sep 17 00:00:00 2001
+From: Michel Pollet <buserror@gmail.com>
+Date: Wed, 28 Nov 2012 16:06:16 +0000
+Subject: [PATCH 06/11] imx23-olinuxino: Add i2c-gpio
+
+Instanciates a i2c-gpio driver on the UEXT
+connector.
+The hardware i2c is not configured by default
+and disabled by solder bridges, as it clashes
+with LCD pins.
+
+Signed-off-by: Michel Pollet <buserror@gmail.com>
+---
+ arch/arm/boot/dts/imx23-olinuxino.dts |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/arch/arm/boot/dts/imx23-olinuxino.dts b/arch/arm/boot/dts/imx23-olinuxino.dts
+index e7484e4..12ce116 100644
+--- a/arch/arm/boot/dts/imx23-olinuxino.dts
++++ b/arch/arm/boot/dts/imx23-olinuxino.dts
+@@ -107,6 +107,18 @@
+ 		};
+ 	};
+ 
++	/*
++	 * maxi declares the i2c by default as software -- so instanciate a linux driver
++	 * for it
++	 */
++	i2c@0 {
++		compatible = "i2c-gpio";
++		gpios = <&gpio2 27 0 /* sda */
++			 &gpio2 28 0 /* scl */
++			>;
++		i2c-gpio,delay-us = <2>;	/* ~100 kHz */
++	};
++
+ 	leds {
+ 		compatible = "gpio-leds";
+ 		pinctrl-names = "default";
+-- 
+1.7.10.4
+
