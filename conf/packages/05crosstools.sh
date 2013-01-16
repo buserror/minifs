@@ -120,6 +120,7 @@ install-crosstools() {
 PACKAGES+=" host-libtool"
 hset host-libtool url "http://ftp.gnu.org/gnu/libtool/libtool-2.4.2.tar.gz"
 hset host-libtool destdir "/"
+hset host-libtool depends "host-installwatch"
 
 setup-host-libtool() {
 	export LIBTOOL="$TARGET_FULL_ARCH"-libtool
@@ -135,7 +136,7 @@ configure-host-libtool() {
 	) || exit 1
 }
 install-host-libtool() {
-	install-generic 
+	install-generic || return 1
 	ln -f -s "$TARGET_FULL_ARCH"-libtool "$STAGING_TOOLS"/bin/libtool
 	ln -f -s "$TARGET_FULL_ARCH"-libtoolize "$STAGING_TOOLS"/bin/libtoolize
 }
@@ -158,6 +159,7 @@ configure-host-automake() {
 PACKAGES+=" host-autoconf"
 hset host-autoconf url "http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.xz"
 hset host-autoconf destdir "/"
+hset host-autoconf depends "host-installwatch"
 
 configure-host-autoconf() {
 	(
