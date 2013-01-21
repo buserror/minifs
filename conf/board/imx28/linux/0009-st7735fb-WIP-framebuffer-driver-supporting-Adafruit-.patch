@@ -1,4 +1,4 @@
-From 7d05b7911719c8e7182bfe44cd07814fb73f0571 Mon Sep 17 00:00:00 2001
+From bd512ef36748bf77401c32e3fb506a77391a6285 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Mon, 21 Nov 2011 12:55:23 -0500
 Subject: [PATCH 09/11] st7735fb: WIP framebuffer driver supporting Adafruit

@@ -1,4 +1,4 @@
-From 55a68fd38508a5503f2f51e98995875803b63c4b Mon Sep 17 00:00:00 2001
+From 4ee9f5c7a34019be9c85f9baf739ab8fdf82dd81 Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Wed, 28 Nov 2012 16:00:08 +0000
 Subject: [PATCH 02/11] spidev: Introduces an optional interrupt

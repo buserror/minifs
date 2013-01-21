@@ -1,4 +1,4 @@
-From 414d1a85d44ea1283b4e59beaabeb42bf788f09a Mon Sep 17 00:00:00 2001
+From 256b8020caf25723e335bb298eec8724c727a94e Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Wed, 28 Nov 2012 16:47:40 +0000
 Subject: [PATCH 08/11] imx23-olinuxino: Add 16 bits LCD declaration

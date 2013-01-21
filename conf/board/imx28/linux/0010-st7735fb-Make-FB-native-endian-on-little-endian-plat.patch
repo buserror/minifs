@@ -1,4 +1,4 @@
-From 98155c29e87587a16d11c4440b6aedbb8328a466 Mon Sep 17 00:00:00 2001
+From dd083cd8af449e1f991323a9a317f32ea98ab1ef Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Tue, 22 Nov 2011 10:48:32 -0500
 Subject: [PATCH 10/11] st7735fb: Make FB native endian on little endian

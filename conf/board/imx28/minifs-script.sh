@@ -9,7 +9,7 @@ TARGET_KERNEL_DTB=${TARGET_KERNEL_DTB:-imx28-evk}
 TARGET_KERNEL_CMDLINE=${TARGET_KERNEL_CMDLINE:-"console=ttyAMA0,115200 root=/dev/mmcblk0p2 ro rootwait ssp1=mmc quiet"}
 
 board_set_versions() {
-	hset linux version "3.8-rc3"
+	hset linux version "3.8-rc4"
 	TARGET_FS_SQUASH=0
 	TARGET_FS_EXT2=1
 	TARGET_SHARED=1 
@@ -47,7 +47,8 @@ imx28-compile-uboot() {
 	compile-uboot &&
 		tools/mxsboot sd u-boot.sb ../u-boot.sd
 }
-bard_local() {
+
+board_local() {
 	# how to use kexec from the board to launch a new kernel
 	tftp -g -r linux -l /tmp//linux 192.168.2.129 &&	kexec --append="$(cat /proc/cmdline)" --force /tmp/linux
 	tftp -g -r linux -l /tmp/linux 192.168.2.129 &&	kexec --append="console=ttyAMA0,115200 root=/dev/mmcblk0p2 ro rootwait ssp1=mmc" --force --no-ifdown /tmp/linux

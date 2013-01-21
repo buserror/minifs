@@ -1,4 +1,4 @@
-From 04be3257d4194866da0337bbcb26ec3a03190e75 Mon Sep 17 00:00:00 2001
+From 7833cc2d3356615bdd00fb17f8ec2caf7f4b8e4c Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Wed, 28 Nov 2012 16:04:39 +0000
 Subject: [PATCH 05/11] imx23: Add 16 and 18 bits dtsi pin mapping

@@ -1,4 +1,4 @@
-From b1c97c531b32327572f853c58849aad1268ec1ca Mon Sep 17 00:00:00 2001
+From 051f0bd91566e8793b6a6ce803fe106c83ff31ef Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Wed, 28 Nov 2012 16:07:29 +0000
 Subject: [PATCH 07/11] imx23-olinuxino: Add support for hard SPI
