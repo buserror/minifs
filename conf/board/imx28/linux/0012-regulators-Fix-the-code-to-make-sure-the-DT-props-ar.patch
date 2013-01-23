@@ -1,7 +1,7 @@
 From a2552b9f8dce559b2cfc37354c408c86f53c1138 Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Tue, 22 Jan 2013 14:14:32 +0000
-Subject: [PATCH 12/14] regulators: Fix the code to make sure the DT props are
+Subject: [PATCH 12/15] regulators: Fix the code to make sure the DT props are
  set
 
 "regulator-type" is required as a property, but it's neither

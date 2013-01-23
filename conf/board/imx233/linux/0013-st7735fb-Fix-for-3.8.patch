@@ -1,7 +1,7 @@
 From a5559345e1ad5c59a3178f654c6d16a92b5b7b25 Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Tue, 22 Jan 2013 14:14:56 +0000
-Subject: [PATCH 13/14] st7735fb: Fix for 3.8
+Subject: [PATCH 13/15] st7735fb: Fix for 3.8
 
 Some of the init macros got renamed.
 

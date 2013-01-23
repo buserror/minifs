@@ -1,7 +1,7 @@
 From dd083cd8af449e1f991323a9a317f32ea98ab1ef Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Tue, 22 Nov 2011 10:48:32 -0500
-Subject: [PATCH 10/14] st7735fb: Make FB native endian on little endian
+Subject: [PATCH 10/15] st7735fb: Make FB native endian on little endian
  platforms
 
 This is a quick unoptimized implementation of a shadow swap buffer

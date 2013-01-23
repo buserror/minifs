@@ -1,7 +1,7 @@
 From a9a52a8311c956e745a1add9e71fc0d1a36ff1d9 Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Mon, 3 Dec 2012 15:39:24 +0000
-Subject: [PATCH 11/14] SPI Smart TFT driver
+Subject: [PATCH 11/15] SPI Smart TFT driver
 
 Not working yet. Work in progress
 
