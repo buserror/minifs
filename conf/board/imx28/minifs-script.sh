@@ -2,6 +2,8 @@
 
 . "$CONF_BASE"/arch/armv5.sh
 
+MINIFS_BOARD_ROLE+=" mxs"
+
 # this file .dts must exist either in this directory (board)
 # or in the linux arch/$TARGET_ARCH/boot/dts/
 

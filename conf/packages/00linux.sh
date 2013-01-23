@@ -29,19 +29,25 @@ export TARGET_KERNEL_ARCH="${TARGET_KERNEL_ARCH:-$TARGET_ARCH}"
 
 setup-linux-headers() {
 	mkdir -p "$BUILD/linux-obj"
+	local conf=$(minifs_locate_config_path config_kernel.conf)
+	[[ "$conf" == "" ]] && conf="$CONFIG/config_kernel.conf"
 	if [ "$COMMAND_PACKAGE" = "kernel" -o "$COMMAND_PACKAGE" = "linux" ] ; then
-		cp "$CONFIG/config_kernel.conf"  "$BUILD/linux-obj"/.config
+		if [ -f "$conf" ]; then
+			cp "$conf"  "$BUILD/linux-obj"/.config
+		fi
 		$MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 			CROSS_COMPILE="${CROSS}-" \
 				$COMMAND_TARGET
-		cp "$BUILD/linux-obj/.config" "$CONFIG/config_kernel.conf"
+		if [ -f "$BUILD/linux-obj/.config" ]; then
+			cp "$BUILD/linux-obj/.config" "$conf"
+		fi
 		rm -f ._*
 		exit
 	fi
 	if [ ! -f "$BUILD/linux-obj/.config-bare" -o \
-		"$CONFIG/config_kernel.conf" -nt "$BUILD/linux-obj/.config-bare" ]; then
+		"$conf" -nt "$BUILD/linux-obj/.config-bare" ]; then
 		sed -e "s/CONFIG_INITRAMFS_SOURCE=.*/CONFIG_INITRAMFS_SOURCE=\"\"/" \
-			"$CONFIG/config_kernel.conf" \
+			"$conf" \
 			>"$BUILD"/linux-obj/.config-bare
 		rm -f ._conf_linux-headers
 	fi
@@ -163,10 +169,12 @@ hset linux-initrd phases "deploy"
 setup-linux-initrd() {
 	mkdir -p "$BUILD/linux-obj"
 	touch ._conf_linux-initrd
+	local conf=$(minifs_locate_config_path config_kernel.conf)
+	[[ "$conf" == "" ]] && conf="$CONFIG/config_kernel.conf"
 	if [ ! -f "$BUILD/linux-obj/.config-initrd" -o \
-		"$CONFIG/config_kernel.conf" -nt "$BUILD/linux-obj/.config-initrd" ]; then
+		"$conf" -nt "$BUILD/linux-obj/.config-initrd" ]; then
 		sed -e 's|CONFIG_INITRAMFS_SOURCE=.*|CONFIG_INITRAMFS_SOURCE="../rootfs ../staging-tools/special_file_table_kernel.txt"|' \
-			"$CONFIG/config_kernel.conf" \
+			"$conf" \
 			>"$BUILD"/linux-obj/.config-initrd
 		rm -f ._conf_linux-initrd
 	fi
@@ -229,7 +237,7 @@ hset linux-dtb phases "deploy"
 deploy-linux-dtb-local() {
 	set -x
 	local dtb="$BUILD/$TARGET_KERNEL_DTB".dtb
-	local source="$CONFIG/$TARGET_KERNEL_DTB".dts
+	local source=$(minifs_locate_config_path "$TARGET_KERNEL_DTB".dts)
 	
 	if [ ! -f "$source" ]; then
 		source="$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/$TARGET_KERNEL_DTB".dts		

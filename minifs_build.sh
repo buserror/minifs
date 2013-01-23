@@ -26,6 +26,8 @@ MINIFS_BOARD=${MINIFS_BOARD:-"atom"}
 MINIFS_JOBS=${MINIFS_JOBS:-$(cat /proc/cpuinfo |grep '^processor'|wc -l)}
 
 MINIFS_BOARD_ROLE=${MINIFS_BOARD/*-}
+MINIFS_BOARD_ROLE=${MINIFS_BOARD_ROLE//+/ }
+# now remove the roles bits
 MINIFS_BOARD=${MINIFS_BOARD/-*}
 
 #######################################################################
@@ -87,7 +89,17 @@ if [ "$CONFIG" == "" ]; then
 	exit 1
 fi
 
+# this one is always mandatory
 source "$CONFIG"/minifs-script.sh
+
+for script in $(minifs_locate_config_path "") ; do
+	for try in "$TARGET_META_ARCH-minifs-script.sh" "$TARGET_ARCH-minifs-script.sh"; do
+		if [ -f "$try" ]; then
+			source $try
+		fi
+	done
+done
+
 
 # remove any package, and it's installed dirs
 if [ "$COMMAND_TARGET" == "remove" ]; then
@@ -155,10 +167,12 @@ export PKG_CONFIG_LIBDIR="" # do not search local paths
 export ACLOCAL="aclocal -I $STAGING_USR/share/aclocal"
 export HOST_INSTALL="/usr/bin/install"
 
+KERNEL_CONFIG_FILE=$(minifs_locate_config_path config_kernel.conf)
+
 # Look in this target's kernel config to know if we need/want modules
-CONFIG_MODULES=$(grep '^CONFIG_MODULES=y' "$CONFIG/config_kernel.conf")
-CONFIG_KERNEL_LZO=$(grep '^CONFIG_KERNEL_LZO=y' "$CONFIG/config_kernel.conf")
-CONFIG_UCLIBC=$(grep 'CT_LIBC_UCLIBC_0_9_30_or_later=y' "$CONFIG/config_crosstools.conf")
+CONFIG_MODULES=$(grep '^CONFIG_MODULES=y' "$KERNEL_CONFIG_FILE")
+CONFIG_KERNEL_LZO=$(grep '^CONFIG_KERNEL_LZO=y' "$KERNEL_CONFIG_FILE")
+CONFIG_UCLIBC=$(grep 'CT_LIBC_UCLIBC_0_9_30_or_later=y' $(minifs_locate_config_path config_crosstools.conf))
 
 if [ "$CONFIG_KERNEL_LZO" != "" ]; then
 	NEEDED_HOST_COMMANDS+=" lzop"
@@ -199,16 +213,17 @@ done
 #######################################################################
 ## Load all the package scripts and sort them by name
 #######################################################################
+#minifs_locate_config_path "packages" 3 ; exit
 package_files=""
-for pd in "$CONF_BASE/packages" "$CONFIG/packages" $(minifs_path_split "packages"); do
+for pd in "$CONF_BASE/packages" $(minifs_locate_config_path "packages" 1); do
 	if [ -d "$pd" ]; then
 		package_files+="$(echo $pd/*.sh) "
 	fi
 done
+
 # filename_sort is in conf/host-tools
 package_files=$(filename_sort $package_files)
 # echo $package_files
-
 #######################################################################
 ## Source all the package files in order. 
 ## Attempts at setting them in 'groups' that is set via the

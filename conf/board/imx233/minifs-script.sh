@@ -2,6 +2,8 @@
 
 . "$CONF_BASE"/arch/armv5.sh
 
+MINIFS_BOARD_ROLE+=" mxs"
+
 TARGET_KERNEL_NAME=zImage
 
 # this file .dts must exist either in this directory (board)

@@ -59,7 +59,7 @@ deploy-filesystem-populate() {
 			>$ROOTFS/etc/minifs.tag
 			
 	## Add rootfs overrides for boards
-	for pd in "$CONFIG/rootfs" $(minifs_path_split "rootfs"); do
+	for pd in $(minifs_locate_config_path rootfs 1); do
 		if [ -d "$pd" ]; then
 			echo "### Overriding root $pd"
 			rsync -av --exclude=._\* "$pd/" "$ROOTFS/"

@@ -52,7 +52,8 @@ hset wpa-supplicant dir "wpa-supplicant/wpa_supplicant"
 hset wpa-supplicant depends "libreadline libncurses libnl-tiny openssl"
 
 setup-wpa-supplicant() {
-	if [ ! -f "$CONFIG"/config_wpa-supplicant.conf ]; then
+	local conf=$(minifs_locate_config_path config_wpa-supplicant.conf)
+	if [ ! -f "$conf" ]; then
 		echo "### Target needs a $CONFIG/config_wpa-supplicant.conf"
 		echo "### Make one using the 'defconfig' file in $(pwd)"
 		exit 1
@@ -61,7 +62,7 @@ setup-wpa-supplicant() {
 
 configure-wpa-supplicant-local() {
 	if [ ! -f .config ]; then rm ._* ; fi
-	cp "$CONFIG"/config_wpa-supplicant.conf \
+	cp $(minifs_locate_config_path config_wpa-supplicant.conf) \
 		.config
 }
 configure-wpa-supplicant() {

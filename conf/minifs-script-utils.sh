@@ -37,14 +37,19 @@ minifs_path_split() {
 
 minifs_locate_config_path() {
 	local file=$1
+	local flags=${2-0}
+	local all=$[ $flags & 1 ]
+	local verbose=$[ $flags & 2 ]
+	
 	for ro in "$CONF_BASE" $(minifs_path_split ""); do 
-		for di in distro board arch; do
-			for pd in $(echo "$MINIFS_BOARD_COMP"| tr ":" "\n") ; do
+		for di in distro "board/$MINIFS_BOARD" arch/$TARGET_META_ARCH arch/$TARGET_ARCH; do
+			for pd in $MINIFS_BOARD_ROLE ""; do
 				local try="$ro/$di/$pd/$file"
-				echo try $try >&2
+				try=${try//\/\//\/}
+				[[ $verbose != 0 ]] && echo try $try >&2
 				if [ -e "$try" ]; then
 					echo $try
-					return 0
+					[[ $all == 0 ]] && return 0
 				fi
 			done
 		done
@@ -67,6 +72,12 @@ optional_one_of () {
 			$f
 			return
 		fi
+	done
+}
+
+optional_role () {
+	for r in $MINIFS_BOARD_ROLE; do
+		echo "$r-$1"
 	done
 }
 
