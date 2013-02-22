@@ -215,7 +215,8 @@ done
 #######################################################################
 #minifs_locate_config_path "packages" 3 ; exit
 package_files=""
-for pd in "$CONF_BASE/packages" $(minifs_locate_config_path "packages" 1); do
+for pd in \
+		$(minifs_locate_config_path "packages" 1); do
 	if [ -d "$pd" ]; then
 		package_files+="$(echo $pd/*.sh) "
 	fi
