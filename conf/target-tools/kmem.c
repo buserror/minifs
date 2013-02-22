@@ -9,11 +9,12 @@
 #include <unistd.h>
 #include <string.h>
 
-long long unsigned base = 0;
+long long unsigned base = 0, end = 0;
 long long unsigned value = 0;
 int set = 0, has_base = 0, has_value = 0;
 int size = 0; // int
 const char * device = "/dev/mem";
+int verbose = 0;
 
 static void doarg(const char * arg)
 {
@@ -27,13 +28,22 @@ static void doarg(const char * arg)
 			doarg(arg);
 			doarg(eq); 
 		} else {
+			char * enda = arg;
+			arg = strsep(&enda, "-:");
 			if (sscanf(arg, "0x%llx", &value) ||
 					sscanf(arg, "%llx", &value)) {
-				printf("base (%s) = %llx\n", arg, value);
+				if (verbose) printf("base (%s) = %llx\n", arg, value);
 				if (!has_base) {
 					base = value;
 					value = 0;
 					has_base++;
+					
+					if (enda && (sscanf(enda, "0x%llx", &value) ||
+						sscanf(enda, "%llx", &value)) && value >= base) {
+						if (verbose) printf("end (%s) = %llx\n", enda, value);
+						end = value;
+					}
+						
 				} else
 					has_value = 1;
 			}
@@ -54,9 +64,7 @@ static void doarg(const char * arg)
 
 
 int main(int argc, const char * argv[])
-{	 
-	int verbose = 0;
-	
+{	 	
 	for (int i = 1; i < argc; i++) {
 		if ((!strcmp(argv[i], "-d") || !strcmp(argv[i], "--device")) &&
 				i < argc - 1)
@@ -120,28 +128,39 @@ int main(int argc, const char * argv[])
 				exit(1);
 		}
 	} else {
-		printf("%x: ", base);
-		switch (size) {
-			case 0:
-				printf("%x", *((int*)bb));
-				break;
-			case 1:
-				printf("%02x", *((uint8_t*)bb));
-				break;
-			case 2:
-				printf("%04x", *((uint16_t*)bb));
-				break;
-			case 4:
-				printf("%08x", *((uint32_t*)bb));
-				break;
-			case 8:
-				printf("%llx", *((long long unsigned*)bb));
-				break;
-			default:
-				for (int i = 0; i < size; i++)
-					printf("%02x", ((uint8_t*)bb)[i]); 
-				break;
-		}
-		printf("\n");
+		do {
+			int width = 1;
+			printf("%llx: ", base);
+			do {
+				switch (size) {
+					case 0:
+						printf("%x", *((int*)bb));
+						break;
+					case 1:
+						printf("%02x", *((uint8_t*)bb));
+						break;
+					case 2:
+						printf("%04x", *((uint16_t*)bb));
+						break;
+					case 4:
+						printf("%08x", *((uint32_t*)bb));
+						break;
+					case 8:
+						printf("%0llx", *((long long unsigned*)bb));
+						break;
+					default:
+						for (int i = 0; i < size; i++)
+							printf("%02x", ((uint8_t*)bb)[i]); 
+						break;
+				}
+				int w = size ? size : sizeof(int);
+				base += w; bb += w;
+				width++;
+				if ((width * size) > 32 )
+					break;
+				printf(" ");
+			} while (base < end);
+			printf("\n");
+		} while (base < end);
 	}
 }
