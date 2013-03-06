@@ -337,7 +337,7 @@ for package in $TARGET_PACKAGES; do
 	typ=${fil/*.}
 	url=${fil/\#*}
 	loc=${base/*#/}
-	vers=$(echo $base|sed -r 's|.*([-_](v?[0-9]+[a-z]?[\._]?)+)\..*|\1|')
+	vers=$(echo $base|sed -r 's|.*([-_](v?[0-9]+[a-z\-]*[\._]?)+)\..*|\1|')
 	host=${url/*:\/\/}
 	host=${host/\/*}
 	#echo "base=$base typ=$typ loc=$loc vers=$vers"
@@ -447,10 +447,8 @@ for package in $TARGET_PACKAGES; do
 			*)	echo ### error file format '$typ' ($base) not supported" ; exit 1
 		esac
 		( for pd in \
-				"$CONFIG/$baseroot" "$CONFIG/$baseroot$vers"\
-				"$PATCHES/$baseroot" "$PATCHES/$baseroot$vers"\
-				$(minifs_path_split "patches/$baseroot") \
-				$(minifs_path_split "patches/$baseroot$vers"); do
+				$(minifs_locate_config_path "$baseroot" 3) \
+				$(minifs_locate_config_path "$baseroot$vers" 3) ; do
 			echo trying patches $pd
 			if [ -d "$pd" ]; then
 				echo "#### Patching $base"

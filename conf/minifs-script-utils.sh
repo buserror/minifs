@@ -46,7 +46,7 @@ minifs_locate_config_path() {
 			for pd in $MINIFS_BOARD_ROLE ""; do
 				local try="$ro/$di/$pd/$file"
 				try=${try//\/\//\/}
-				[[ $verbose != 0 ]] && echo try $try >&2
+				[[ $verbose != 0 ]] && echo try \"$try\" >&2
 				if [ -e "$try" ]; then
 					echo $try
 					[[ $all == 0 ]] && return 0
