@@ -1,4 +1,4 @@
-From a2552b9f8dce559b2cfc37354c408c86f53c1138 Mon Sep 17 00:00:00 2001
+From 8e86b6c5d38b413b6a1a96a310163fbdf25baec8 Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Tue, 22 Jan 2013 14:14:32 +0000
 Subject: [PATCH 12/15] regulators: Fix the code to make sure the DT props are

@@ -1,4 +1,4 @@
-From e663d9e64128c45ebd99bb258e02e201df16ae9d Mon Sep 17 00:00:00 2001
+From 296b0ed29aecde3df9bf13203f89f618a88bdbb7 Mon Sep 17 00:00:00 2001
 From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
 Date: Wed, 21 Nov 2012 10:14:09 +0000
 Subject: [PATCH 14/15] gpiolib-of: ad gpio-export support

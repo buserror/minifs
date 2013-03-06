@@ -1,4 +1,4 @@
-From 7913556cf81a63e3462aa93bbdcabdd1b6c26d78 Mon Sep 17 00:00:00 2001
+From ce3f48ea653b970abfafa8bec9b2815c8ee6ba42 Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Wed, 28 Nov 2012 16:00:45 +0000
 Subject: [PATCH 03/15] spidev: Make OF compatible

@@ -1,4 +1,4 @@
-From fcd392a919e920fdb98902b1ea8228a0373d61bc Mon Sep 17 00:00:00 2001
+From cbe6d56f95a91e45c33f89478663cfa3569ac22d Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Tue, 22 Jan 2013 16:12:45 +0000
 Subject: [PATCH 15/15] olinuxino: Remove regulator
