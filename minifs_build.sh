@@ -447,6 +447,9 @@ for package in $TARGET_PACKAGES; do
 			*)	echo ### error file format '$typ' ($base) not supported" ; exit 1
 		esac
 		( for pd in \
+				"$PATCHES/$baseroot" "$PATCHES/$baseroot$vers" \
+				$(minifs_path_split "patches/$baseroot") \
+				$(minifs_path_split "patches/$baseroot$vers") \
 				$(minifs_locate_config_path "$baseroot" 3) \
 				$(minifs_locate_config_path "$baseroot$vers" 3) ; do
 			echo trying patches $pd
