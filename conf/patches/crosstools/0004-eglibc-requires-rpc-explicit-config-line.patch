@@ -1,0 +1,19 @@
+
+diff -r 17cdb10b1675 -r 75c2df0f7a12 scripts/build/libc/glibc-eglibc.sh-common
+--- a/scripts/build/libc/glibc-eglibc.sh-common	Mon Oct 22 03:32:28 2012 +0000
++++ b/scripts/build/libc/glibc-eglibc.sh-common	Fri Nov 02 04:04:04 2012 +0000
+@@ -214,6 +214,10 @@
+             else
+                 OPTIMIZE=-O2
+             fi
++            if [ "${CT_LIBC_EGLIBC_2_16_or_later}" = "y" ]; then
++                # always include rpc, the user can still override it with TI-RPC
++                extra_config+=( --enable-obsolete-rpc )
++            fi
+             ;;
+         glibc)
+             # glibc can't be built without -O2 (reference needed!)
+
+
+
+
