@@ -66,9 +66,14 @@ ac_cv_func_qsort_r=no
 	export CFLAGS
 	export LDFLAGS="$LDFLAGS_RLINK -Wl,-rpath -Wl,$BUILD/libglib/gthread/.libs -Wl,-rpath -Wl,$BUILD/libglib/gmodule/.libs"
 	export NOCONFIGURE=1
+	if [ "$TARGET_LIBC" != "eglibc" ]; then
+		iconv=gnu
+	else
+		iconv=no
+	fi
 	configure-generic-local \
 		--cache=fake_glib_cache.conf \
-		--with-libiconv=gnu \
+		--with-libiconv=$iconv \
 		--with-pcre=internal || { echo FAILED ; return 1; }
 	export LDFLAGS="$LDFLAGS_BASE"
 	export CFLAGS=$save
