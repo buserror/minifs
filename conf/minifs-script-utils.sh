@@ -94,13 +94,30 @@ hget() {
 	eval echo '${'"$ka$kb"'#hash}'
 }
 
+get_package_dir() {
+	local pack=$1
+	local dir=$(hget $pack dir)
+	dir=${dir:-$pack}
+	if [ "$dir" == "." ]; then
+		dir=$BUILD
+	fi
+	if [ -d "/$dir" ]; then
+		echo $dir
+	elif [ -d "$BUILD/$dir" ]; then
+		echo "$BUILD/$dir"
+	else
+		echo "get_package_dir($pack) not found ($dir)" >&2
+		echo /invalid
+	fi
+}
+
 package() {
 	export MINIFS_PACKAGE="$1"
 	export PACKAGE="$1"
-	export PACKAGE_DIR="$2"
+	export PACKAGE_DIR=$(get_package_dir $PACKAGE)
 	local prefix=$(hget $PACKAGE prefix)
 	export PACKAGE_PREFIX=${prefix:-/usr}
-	pushd "$BUILD/$PACKAGE_DIR" >/dev/null
+	pushd "$PACKAGE_DIR" >/dev/null
 }
 end_package() {
 	#echo "#### Building $PACKAGE DONE"

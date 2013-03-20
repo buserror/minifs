@@ -35,7 +35,9 @@ hset filesystem-prepack url "none"
 
 PACKAGES+=" filesystems"
 hset filesystems url "none"
+hset filesystems dir "."
 hset filesystems depends "busybox sharedlibs filesystem-populate filesystem-prepack"
+hset filesystems phases "deploy"
 FILESYSTEMS=""
 
 if [ $TARGET_FS_SQUASH -eq 1 ]; then
