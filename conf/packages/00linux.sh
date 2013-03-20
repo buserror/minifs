@@ -23,6 +23,11 @@ PACKAGES+=" linux-headers"
 
 export TARGET_KERNEL_ARCH="${TARGET_KERNEL_ARCH:-$TARGET_ARCH}"
 
+linux-get-cross() {
+	local cross=$(hget linux cross-prefix)
+	echo "${cross:-${CROSS}}-"
+}
+
 #######################################################################
 ## linux-headers
 #######################################################################
@@ -36,7 +41,7 @@ setup-linux-headers() {
 			cp "$conf"  "$BUILD/linux-obj"/.config
 		fi
 		$MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
-			CROSS_COMPILE="${CROSS}-" \
+			CROSS_COMPILE=$(linux-get-cross) \
 				$COMMAND_TARGET
 		if [ -f "$BUILD/linux-obj/.config" ]; then
 			cp "$BUILD/linux-obj/.config" "$conf"
@@ -60,13 +65,13 @@ configure-linux-headers() {
 
 compile-linux-headers() {
 	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
-		CROSS_COMPILE="${CROSS}-" \
+		CROSS_COMPILE=$(linux-get-cross) \
 			oldconfig			
 }
 
 install-linux-headers-local() {
 	$MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
-		CROSS_COMPILE="${CROSS}-" \
+		CROSS_COMPILE=$(linux-get-cross) \
 		INSTALL_HDR_PATH="$KERNEL" \
 			headers_install
 	rm -rf "$STAGING_USR"/include/linux || true
@@ -99,20 +104,20 @@ configure-linux-modules() {
 
 compile-linux-modules() {
 	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
-		CROSS_COMPILE="${CROSS}-" \
+		CROSS_COMPILE=$(linux-get-cross) \
 			modules -j$MINIFS_JOBS
 }
 
 install-linux-modules() {
 	log_install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
-		CROSS_COMPILE="${CROSS}-" \
+		CROSS_COMPILE=$(linux-get-cross) \
 		INSTALL_HDR_PATH="$KERNEL" INSTALL_MOD_PATH="$KERNEL" \
 			modules_install 
 }
 deploy-linux-modules() {
 	deploy rsync -a --exclude source --exclude build "$KERNEL"/lib "$ROOTFS/"
 	find "$ROOTFS"/lib/modules/ -name \*.ko | \
-		xargs "${CROSS}-strip" -R .note -R .comment --strip-unneeded
+		xargs "$(linux-get-cross)strip" -R .note -R .comment --strip-unneeded
 }
 
 #######################################################################
@@ -127,12 +132,12 @@ configure-linux-bare() {
 }
 compile-linux-bare() {
 	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
-		CROSS_COMPILE="${CROSS}-" \
+		CROSS_COMPILE=$(linux-get-cross) \
 			$TARGET_KERNEL_NAME -j$MINIFS_JOBS
 }
 install-linux-bare() {
 	log_install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
-		CROSS_COMPILE="${CROSS}-" \
+		CROSS_COMPILE=$(linux-get-cross) \
 		INSTALL_PATH="$KERNEL" INSTALL_MOD_PATH="$KERNEL" \
 		INSTALLKERNEL="no-default-install" \
 			install
@@ -183,19 +188,19 @@ setup-linux-initrd() {
 
 configure-linux-initrd() {
 	configure $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
-		CROSS_COMPILE="${CROSS}-" \
+		CROSS_COMPILE=$(linux-get-cross) \
 			oldconfig >>"$LOGFILE" 2>&1
 }
 
 compile-linux-initrd() {
 	rm -f "$BUILD/linux-obj"/usr/initramfs_data.*
 	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
-		CROSS_COMPILE="${CROSS}-" \
+		CROSS_COMPILE=$(linux-get-cross) \
 			$TARGET_KERNEL_NAME -j$MINIFS_JOBS
 }
 install-linux-initrd() {
 	log_install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
-		CROSS_COMPILE="${CROSS}-" \
+		CROSS_COMPILE=$(linux-get-cross) \
 		INSTALL_PATH="$KERNEL" INSTALL_MOD_PATH="$KERNEL" \
 		INSTALLKERNEL="no-default-install" \
 			install
@@ -283,7 +288,7 @@ configure-linux-perf() {
 
 compile-linux-perf() {
 	compile $MAKE EXTRA_CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
-		CROSS_COMPILE="${CROSS}-" V=1 \
+		CROSS_COMPILE=$(linux-get-cross) V=1 \
 		WERROR=0 NO_GTK2=1 NO_LIBPERL=1 NO_LIBPYTHON=1 
 }
 
