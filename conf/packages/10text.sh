@@ -65,7 +65,9 @@ install-libxml2() {
 }
 
 # 110906 No Changes
-PACKAGES+=" libgettext"
+if [ "$TARGET_LIBC" != "eglibc" ]; then
+	PACKAGES+=" libgettext"
+fi
 hset libgettext url "http://ftp.gnu.org/pub/gnu/gettext/gettext-0.18.1.1.tar.gz"
 
 configure-libgettext() {	
