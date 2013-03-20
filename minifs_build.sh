@@ -215,8 +215,7 @@ done
 #######################################################################
 #minifs_locate_config_path "packages" 3 ; exit
 package_files=""
-for pd in \
-		$(minifs_locate_config_path "packages" 1); do
+for pd in "$CONF_BASE/packages" $(minifs_path_split "packages") $(minifs_locate_config_path "packages" 1); do
 	if [ -d "$pd" ]; then
 		package_files+="$(echo $pd/*.sh) "
 	fi
@@ -239,7 +238,7 @@ for p in $package_files; do
 #	echo $p $order
 	filid=$(((order * 1000) + fid))
 	fid=$((fid + 1))
-	package_set_group $filid
+#	package_set_group $filid
 	source $p
 done
 
@@ -622,15 +621,12 @@ process_one_package() {
 	done
 }
 
-for pack in $PROCESS_PACKAGES; do 	
-	dir=$(hget $pack dir)
-	dir=${dir:-$pack}
-	# echo PACK $pack dir $dir
-	if [ ! -d "$BUILD/$dir" ]; then
-	#	echo "$BUILD/$dir" will not be built
+for pack in $PROCESS_PACKAGES; do
+	if [ ! -d $(get_package_dir $pack) ]; then 
+		echo "$BUILD/$dir" will not be built
 		continue
 	fi
-	package $pack $dir
+	package $pack
 		phases=$(hget $pack phases)
 		phases=${phases:-$DEFAULT_PHASES}
 
@@ -658,22 +654,22 @@ while true; do fg 2>/dev/null || break; done
 echo "Deploying packages"
 # this pass does just the 'deploy' bits
 for pack in $PROCESS_PACKAGES; do 	
-	dir=$(hget $pack dir)
-	dir=${dir:-$pack}
-	if [ -d "$BUILD/$dir" ]; then
-		package $pack $dir
-			phases=$(hget $pack phases)
-			phases=${phases:-$DEFAULT_PHASES}
-			
-			for ph in $phases; do
-				if [[ $ph != "deploy" ]]; then continue ;fi
-				optional_one_of \
-					$MINIFS_BOARD-$ph-$pack \
-					$ph-$pack \
-					$ph-generic || break
-			done
-		end_package
+	if [ ! -d $(get_package_dir $pack) ]; then
+		echo "$BUILD/$dir" will not be deployed
+		continue;
 	fi
+	package $pack
+		phases=$(hget $pack phases)
+		phases=${phases:-$DEFAULT_PHASES}
+		
+		for ph in $phases; do
+			if [[ $ph != "deploy" ]]; then continue ;fi
+			optional_one_of \
+				$MINIFS_BOARD-$ph-$pack \
+				$ph-$pack \
+				$ph-generic || break
+		done
+	end_package
 done
 
 # in minifs-script
