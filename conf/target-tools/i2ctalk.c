@@ -203,6 +203,22 @@ int main(int argc, const char * argv[])
 				sleep(1);
 			}
 		}
+		if (!strcmp(argv[ai], "--probe")) {
+			process_silent = 1;
+			printf("Probing bus %d:", bus);fflush(stdout);
+			for (int i = 2; i < 126; i++) {
+				msg[0].addr = i;
+				msg[0].len = 1;
+				static const char * zero = "";
+				msg[0].buf = zero;
+				msg_count = 1;
+				if (process() >= 0) {
+					printf(" %02x", i);fflush(stdout);
+				}
+			}
+			printf(" done\n");
+			exit(0);
+		}
 		while (*src) {
 			char c = *src++;
 			switch (c) {
