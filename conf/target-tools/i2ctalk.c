@@ -206,7 +206,7 @@ int main(int argc, const char * argv[])
 		if (!strcmp(argv[ai], "--probe")) {
 			process_silent = 1;
 			printf("Probing bus %d:", bus);fflush(stdout);
-			for (int i = 2; i < 126; i++) {
+			for (int i = 2; i < 126; i += 2) {
 				msg[0].addr = i;
 				msg[0].len = 1;
 				static const char * zero = "";
