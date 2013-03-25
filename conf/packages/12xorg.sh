@@ -25,6 +25,7 @@ xorg_module_geturl() {
 PACKAGES+=" xorgmacros"
 hset xorgmacros url $(xorg_module_geturl "util" "util-macros")
 hset xorgmacros depends "crosstools"
+hset xorgmacros destdir "$STAGING_TOOLS"
 
 XORG_LIBS=""
 XORG_PROTOS=""
@@ -101,7 +102,7 @@ configure-xorglibXfont() {
 }
 
 configure-xorglibXt() {
-	configure-generic
+	configure-generic --enable-malloc0returnsnull
 	sed -i -e "s|^CFLAGS = .*|CFLAGS =|g" util/Makefile
 }
 
@@ -134,7 +135,6 @@ configure-xorgfontadobe() {
 }
 
 PACKAGES+=" $XORG_LIBS $XORG_FONTS"
-
 
 PACKAGES+=" xkbcomp" 
 hset xkbcomp url $(xorg_module_geturl "app" "xkbcomp")
@@ -207,10 +207,10 @@ PACKAGES+=" xorgserver"
 hset xorgserver url $(xorg_module_geturl "xserver" "xorg-server")
 hset xorgserver depends \
 	"busybox libsha1 xorglibX11 xorgfontutil \
-	xkbcomp xtrans \
+	 xtrans \
 	$XORG_LIBS \
 	xorgfontadobe \
-	libmesa openssl"
+	 openssl"
 
 configure-xorgserver-local() {
 	export LDFLAGS="$LDFLAGS_RLINK"
@@ -221,8 +221,9 @@ configure-xorgserver-local() {
 		--disable-dbus \
 		--enable-xorg --disable-xnest \
 		--with-sha1=libsha1 \
-		--enable-xfbdev \
-		--with-mesa-source="$BUILD/libmesa"
+		--enable-xfbdev
+
+#		--with-mesa-source="$BUILD/libmesa"
 	export LDFLAGS="$LDFLAGS_BASE"
 }
 configure-xorgserver() {
@@ -269,9 +270,6 @@ configure-xorglibXv() {
 	configure-generic --enable-malloc0returnsnull
 }
 configure-xorglibXi() {
-	configure-generic --enable-malloc0returnsnull
-}
-configure-xorglibXt() {
 	configure-generic --enable-malloc0returnsnull
 }
 configure-xorglibX11() {
