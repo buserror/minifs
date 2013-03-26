@@ -219,7 +219,7 @@ hset mplayer depends "libsdl"
 
 configure-mplayer() {
 	configure ./configure  --cc="$GCC" --host-cc=gcc \
-		--enable-cross-compile --target=$TARGET_ARCH-linux	
+		--enable-cross-compile --target=$TARGET_ARCH-linux	--prefix=/usr
 }
 
 deploy-mplayer() {
