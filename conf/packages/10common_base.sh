@@ -102,7 +102,8 @@ configure-libftdi() {
 }
 
 PACKAGES+=" util-linux"
-hset util-linux url "http://ftp.de.debian.org/debian/pool/main/u/util-linux/util-linux_2.17.2.orig.tar.gz"
+#hset util-linux url "http://ftp.de.debian.org/debian/pool/main/u/util-linux/util-linux_2.17.2.orig.tar.gz"
+hset util-linux url "http://ftp.de.debian.org/debian/pool/main/u/util-linux/util-linux_2.20.1.orig.tar.gz"
 hset util-linux destdir "$STAGING"
 
 configure-util-linux() {
@@ -111,7 +112,18 @@ configure-util-linux() {
 		--disable-libblkid \
 		--disable-fsck \
 		--disable-mount \
-		--without-ncurses
+		--disable-libmount \
+		--disable-partx \
+		--without-ncurses \
+		scanf_cv_type_modifier=yes
+}
+
+install-util-linux-local() {
+	install-generic-local
+	mv "$STAGING"/lib/libuu* "$STAGING_USR"/lib/	
+}
+install-util-linux() {
+	log_install install-util-linux-local
 }
 
 #######################################################################
