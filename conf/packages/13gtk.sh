@@ -23,7 +23,7 @@ hset libffi url "ftp://sourceware.org/pub/libffi/libffi-3.0.9.tar.gz"
 
 # More recent version of glib fails to conf because of lack of glib-compile-schemas
 PACKAGES+=" libglib"
-hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.35/glib-2.35.1.tar.xz"
+hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.35/glib-2.35.8.tar.xz"
 
 #hset libglib prefix "$STAGING_USR"
 # this is needed for uclibc not NOT otherwise!
@@ -87,16 +87,19 @@ configure-libglib() {
 PACKAGES+=" libglibnet"
 #hset libglibnet url "http://ftp.gnome.org/pub/gnome/sources/glib-networking/2.28/glib-networking-2.28.7.tar.bz2"
 #hset libglibnet url "http://ftp.gnome.org/pub/gnome/sources/glib-networking/2.29/glib-networking-2.29.18.tar.bz2"
-hset libglibnet url "http://ftp.gnome.org/pub/gnome/sources/glib-networking/2.35/glib-networking-2.35.3.tar.bz2"
-hset libglibnet depends "gnutls libglib"
+#hset libglibnet url "http://ftp.gnome.org/pub/gnome/sources/glib-networking/2.35/glib-networking-2.35.3.tar.bz2"
+hset libglibnet url "http://ftp.gnome.org/pub/gnome/sources/glib-networking/2.35/glib-networking-2.35.9.tar.xz"
+#hset libglibnet depends "gnutls libglib"
+hset libglibnet depends "libglib"
 hset libglibnet destdir "none" # let out own "install" fix borken autocrap
 
-setup-libglibnet() {
-	ROOTFS_KEEPERS+="libgnutls.so:"
-}
+#setup-libglibnet() {
+	#ROOTFS_KEEPERS+="libgnutls.so:"
+#}
 
 configure-libglibnet-local() {
 	configure-generic-local \
+		--without-gnutls \
 		--disable-glibtest \
 		--with-libgcrypt-prefix="$STAGING_USR" \
 		--with-ca-certificates=/etc/ca-certificates.crt \
@@ -134,12 +137,14 @@ hset libcairo url "http://www.cairographics.org/releases/cairo-1.12.8.tar.xz"
 hset libcairo depends "libfreetype libpng libglib libpixman"
 
 configure-libcairo() {
+	export LDFLAGS="$LDFLAGS_RLINK -lxcb"
 	local extras=""
 	if [ "$TARGET_ARCH" == "arm" ]; then
 		extras+=" --disable-some-floating-point "
 	fi
 	if [[ $TARGET_X11 ]]; then
-		extras+=" --enable-xlib=yes \
+		extras+=" --enable-xlib \
+		--enable-xlib-xcb=yes \
 		--enable-xlib-xrender=yes \
 		--with-x "
 	else
@@ -149,11 +154,12 @@ configure-libcairo() {
 	fi
 	extras+=" --enable-directfb=no"
 	configure-generic $extras
+	export LDFLAGS="$LDFLAGS_BASE"
 }
 
 PACKAGES+=" libharfbuzz"
-hset libharfbuzz url "http://cgit.freedesktop.org/harfbuzz/snapshot/harfbuzz-0.9.9.tar.gz"
-hset libharfbuzz depends "libfontconfig libcairo"
+hset libharfbuzz url "http://cgit.freedesktop.org/harfbuzz/snapshot/harfbuzz-0.9.14.tar.gz"
+hset libharfbuzz depends "libfontconfig libcairo libicu"
 
 PACKAGES+=" libpango"
 #hset libpango url "http://ftp.gnome.org/pub/gnome/sources/pango/1.28/pango-1.28.3.tar.bz2"
@@ -190,7 +196,8 @@ deploy-libpango() {
 
 PACKAGES+=" libatk"
 #hset libatk url "http://ftp.gnome.org/pub/gnome/sources/atk/1.33/atk-1.33.6.tar.bz2"
-hset libatk url "http://ftp.gnome.org/pub/gnome/sources/atk/1.33/atk-1.33.6.tar.bz2"
+#hset libatk url "http://ftp.gnome.org/pub/gnome/sources/atk/1.33/atk-1.33.6.tar.bz2"
+hset libatk url "http://ftp.acc.umu.se/pub/gnome/sources/atk/2.8/atk-2.8.0.tar.xz"
 
 configure-libatk() {
 	# 1.33.6: prevents glib faling because of atk using G_CONST_RETURN
@@ -201,7 +208,8 @@ configure-libatk() {
 }
 PACKAGES+=" libgdkpixbuf"
 #hset libgdkpixbuf url "http://ftp.gnome.org/pub/gnome/sources/gdk-pixbuf/2.23/gdk-pixbuf-2.23.1.tar.bz2"
-hset libgdkpixbuf url "http://ftp.gnome.org/pub/gnome/sources/gdk-pixbuf/2.26/gdk-pixbuf-2.26.5.tar.bz2"
+#hset libgdkpixbuf url "http://ftp.gnome.org/pub/gnome/sources/gdk-pixbuf/2.26/gdk-pixbuf-2.26.5.tar.bz2"
+hset libgdkpixbuf url "http://ftp.gnome.org/pub/gnome/sources/gdk-pixbuf/2.26/gdk-pixbuf-2.26.5.tar.xz"
 
 configure-libgdkpixbuf() {
 	printf "gio_can_sniff=yes" >fake_gtk_cache.conf
