@@ -25,28 +25,6 @@ diff -ru glib-2.35.1/gio/ginetaddress.c libglib/gio/ginetaddress.c
  }
  
  
-diff -ru glib-2.35.1/gio/gresolver.c libglib/gio/gresolver.c
---- glib-2.35.1/gio/gresolver.c	2012-10-16 17:40:06.000000000 +0100
-+++ libglib/gio/gresolver.c	2012-11-21 17:32:33.919631100 +0000
-@@ -40,6 +40,9 @@
- 
- #include <stdlib.h>
- 
-+#ifdef DISABLE_DN_SKIPNAME
-+#define dn_skipname(a,b) 0
-+#endif
- 
- /**
-  * SECTION:gresolver
-@@ -1195,7 +1198,6 @@
-       p += n;
-       p += 4;
-     }
--
-   /* Incomplete response */
-   if (i < count)
-     {
-diff -ru glib-2.35.1/gio/gsocket.c libglib/gio/gsocket.c
 --- glib-2.35.1/gio/gsocket.c	2012-10-13 16:01:55.000000000 +0100
 +++ libglib/gio/gsocket.c	2012-11-21 17:32:40.879630897 +0000
 @@ -65,6 +65,22 @@
