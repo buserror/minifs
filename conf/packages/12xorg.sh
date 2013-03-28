@@ -59,8 +59,11 @@ PACKAGES+=" $XCB_LIBS"
 
 PACKAGES+=" libpthreadstubs xcbproto libxcb xkeyboardconfig"
 hset libpthreadstubs url "http://xcb.freedesktop.org/dist/libpthread-stubs-0.3.tar.gz"
-hset xcbproto url "http://xcb.freedesktop.org/dist/xcb-proto-1.6.tar.gz"
-hset libxcb url "http://xcb.freedesktop.org/dist/libxcb-1.5.tar.bz2"
+
+hset xcbproto url "http://xcb.freedesktop.org/dist/xcb-proto-1.6.tar.bz2"
+#hset xcbproto url $(xorg_module_geturl "lib" "libxcb")
+#hset libxcb url "http://xcb.freedesktop.org/dist/libxcb-1.5.tar.bz2"
+hset libxcb url "http://xcb.freedesktop.org/dist/libxcb-1.7.tar.bz2"
 hset libxcb depends "libpthreadstubs xcbproto $XCB_LIBS"
 hset xkeyboardconfig url "http://xlibs.freedesktop.org/xkbdesc/xkeyboard-config-1.7.tar.bz2"
 
@@ -150,6 +153,20 @@ deploy-xkbcomp() {
 	deploy deploy_binaries
 }
 
+PACKAGES+=" xhost" 
+hset xhost url $(xorg_module_geturl "app" "xhost")
+hset xhost depends "xorgserver"
+
+configure-xhost() {
+	export LDFLAGS="$LDFLAGS_RLINK -lxcb"
+	rm -f configure
+	configure-generic
+	export LDFLAGS="$LDFLAGS_BASE"	
+}
+deploy-xhost() {
+	deploy deploy_binaries
+}
+
 # http://cgit.freedesktop.org/mesa/drm
 PACKAGES+=" libmesadrm"
 #hset libmesadrm url "git!git://anongit.freedesktop.org/git/mesa/drm#libmesadrm-git.tar.bz2"
@@ -207,20 +224,26 @@ PACKAGES+=" xorgserver"
 hset xorgserver url $(xorg_module_geturl "xserver" "xorg-server")
 hset xorgserver depends \
 	"busybox libsha1 xorglibX11 xorgfontutil \
-	 xtrans \
+	xkbcomp xtrans \
 	$XORG_LIBS \
 	xorgfontadobe \
 	 openssl"
 
 configure-xorgserver-local() {
-	export LDFLAGS="$LDFLAGS_RLINK"
+	export LDFLAGS="$LDFLAGS_RLINK -lxcb"
 	./autogen.sh
 	configure-generic-local \
+		--with-fontrootdir="/usr/share/fonts" \
 		--disable-xwin --disable-xprint --disable-ipv6 \
 		--disable-dmx --enable-xvfb --disable-xnest \
 		--disable-dbus \
 		--enable-xorg --disable-xnest \
 		--with-sha1=libsha1 \
+		--disable-glx \
+		--disable-dri \
+		--disable-dri2 \
+		--enable-kdrive \
+		--enable-kdrive-evdev \
 		--enable-xfbdev
 
 #		--with-mesa-source="$BUILD/libmesa"
