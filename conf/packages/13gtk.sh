@@ -219,6 +219,10 @@ configure-libgdkpixbuf() {
 		--without-libtiff	
 }
 
+deploy-libgdkpixbuf() {
+	deploy deploy_binaries
+}
+
 # this is included in GTK
 #PACKAGES+=" libgail"
 #hset libgail url "http://ftp.acc.umu.se/pub/gnome/sources/gail/1.22/gail-1.22.3.tar.bz2"
