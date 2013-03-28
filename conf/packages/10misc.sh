@@ -86,22 +86,32 @@ configure-libnettle() {
 	configure-generic --disable-openssl --enable-shared
 }
 
+PACKAGES+=" libtasn1"
+hset libtasn1 url "http://ftp.gnu.org/gnu/libtasn1/libtasn1-3.3.tar.gz"
+
 PACKAGES+=" libp11-kit"
-hset libp11-kit url "http://p11-glue.freedesktop.org/releases/p11-kit-0.5.tar.gz"
+hset libp11-kit url "http://p11-glue.freedesktop.org/releases/p11-kit-0.17.4.tar.gz"
+hset libp11-kit depends "libtasn1"
+
+configure-libp11-kit() {
+	configure-generic # --without-libtasn1
+}
 
 # 110906 Updated 2.12.10 http://ftp.gnu.org/gnu/gnutls/
 #        Now requires libnettle, no libgcrypt
 PACKAGES+=" gnutls"
-hset gnutls url "http://ftp.gnu.org/pub/gnu/gnutls/gnutls-2.12.10.tar.bz2"
+hset gnutls url "http://ftp.gnu.org/pub/gnu/gnutls/gnutls-2.12.21.tar.bz2"
 hset gnutls depends "libgcrypt libp11-kit"
 
 configure-gnutls() {
 	export LDFLAGS="$LDFLAGS_RLINK"
+	for fn in ./gl/m4/stdio_h.m4 ./lib/gl/m4/stdlib_h.m4; do
+		sed -i -e 's/GNULIB_GETS=1/GNULIB_GETS=0/g' $fn
+	done
 	configure-generic \
 		--with-libgcrypt \
 		--with-libgcrypt-prefix="$STAGING_USR" \
 		--with-libreadline-prefix="$STAGING_USR" \
-		--with-included-libtasn1 \
 		--disable-rpath
 	export LDFLAGS="$LDFLAGS_BASE"
 }
