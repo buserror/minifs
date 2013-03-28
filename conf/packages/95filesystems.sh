@@ -137,6 +137,10 @@ deploy-filesystem-ext() {
 	fi		
 }
 
+hostcheck-filesystem-jffs() {
+	hostcheck_commands mkfs.jffs2
+}
+
 deploy-filesystem-jffs() {
 	local out="$BUILD"/minifs-full-jffs2.img
 	echo -n "     Building $out "
