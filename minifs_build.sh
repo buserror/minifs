@@ -68,7 +68,7 @@ export STAGING="$BUILD/staging"
 export STAGING_USR="$STAGING/usr"
 export ROOTFS="$BUILD/rootfs"
 export ROOTFS_PLUGINS=""
-export ROOTFS_KEEPERS="libnss_dns.so.2:libnss_dns-2.10.2.so:"
+export ROOTFS_KEEPERS="libnss_dns.so.2:"
 export STAGING_TOOLS="$BUILD"/staging-tools
 KERNEL="$BUILD/kernel"
 
@@ -164,7 +164,8 @@ export CXXFLAGS="$CFLAGS"
 export LIBC_CFLAGS="${TARGET_LIBC_CFLAGS:-$TARGET_CFLAGS}"
 export PKG_CONFIG_PATH="$STAGING/lib/pkgconfig:$STAGING_USR/lib/pkgconfig:$STAGING_USR/share/pkgconfig"
 export PKG_CONFIG_LIBDIR="" # do not search local paths
-export ACLOCAL="aclocal -I $STAGING_USR/share/aclocal"
+export PKG_CONFIG=pkg-config
+export ACLOCAL="aclocal -I $STAGING_USR/share/aclocal -I $STAGING_TOOLS/usr/share/aclocal -I /usr/share/aclocal"
 export HOST_INSTALL="/usr/bin/install"
 
 KERNEL_CONFIG_FILE=$(minifs_locate_config_path config_kernel.conf)
@@ -493,7 +494,7 @@ configure-generic-local() {
 				--prefix="$PACKAGE_PREFIX" \
 				--sysconfdir=$sysconf
 		elif [ -f configure.ac -o -f configure.in ]; then
-			aclocal && libtoolize --copy --force --automake 
+			$ACLOCAL && libtoolize --copy --force --automake 
 			autoreconf --force #;libtoolize;automake --add-missing
 		fi
 	fi
