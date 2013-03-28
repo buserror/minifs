@@ -63,7 +63,7 @@ PACKAGES+=" libwebkit"
 #hset libwebkit url "git!git://gitorious.org/webkit/webkit.git#libwebkit-git.tar.bz2"
 #hset libwebkit url "http://ftp.de.debian.org/debian/pool/main/w/webkit/webkit_1.8.1.orig.tar.xz"
 hset libwebkit url "http://ftp.de.debian.org/debian/pool/main/w/webkitgtk/webkitgtk_1.11.91.orig.tar.xz"
-hset libwebkit depends "libicu libenchant libsoup sqlite3 libxslt libgail libgtk libwebp libsecret gstreamer gst-plugins-base"
+hset libwebkit depends "libicu libenchant libsoup sqlite3 libxslt libgail libgtk libwebp libsecret"
 
 hostcheck-libwebkit() {
 	hostcheck_commands gperf
@@ -94,8 +94,8 @@ configure-libwebkit() {
 		--disable-geolocation \
 		--disable-gtk-doc-html \
 		--disable-webkit2 \
+		--disable-svg \
 		--with-gtk=2.0 \
-		--enable-jit \
 		$extras WTF_USE_WEBP=0
 	CFLAGS=$save
 	CXXFLAGS=$save
