@@ -29,7 +29,7 @@ static void doarg(const char * arg)
 		} else {
 			if (sscanf(arg, "0x%llx", &value) ||
 					sscanf(arg, "%llx", &value)) {
-				printf("base (%s) = %llx\n", arg, value);
+				printf("%s (%s) = %llx\n", has_base? "base" : "value", arg, value);
 				if (!has_base) {
 					base = value;
 					value = 0;
