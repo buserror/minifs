@@ -137,7 +137,7 @@ configure() {
 			touch $turd
 		else
 			echo "#### ** ERROR ** Configuring $PACKAGE"
-			echo "     Check $(pwd)/$LOGFILE"
+			echo "     Check " $(get_package_dir $PACKAGE)/$LOGFILE
 			exit 1
 		fi
 	fi
@@ -154,7 +154,7 @@ compile() {
 			touch $turd
 		else
 			echo "#### ** ERROR ** Compiling $PACKAGE"
-			echo "     Check $(pwd)/$LOGFILE"
+			echo "     Check " $(get_package_dir $PACKAGE)/$LOGFILE
 			exit 1
 		fi
 	fi
@@ -171,7 +171,7 @@ log_install() {
 			touch $turd
 		else
 			echo "#### ** ERROR ** Installing $PACKAGE"
-			echo "     Check $(pwd)/$LOGFILE"
+			echo "     Check " $(get_package_dir $PACKAGE)/$LOGFILE
 			exit 1
 		fi
 	fi
@@ -190,7 +190,7 @@ deploy() {
 			"$@" && touch $turd 
 		} >>$LOGFILE 2>&1 || {
 			echo "#### ** ERROR ** Deploying $PACKAGE"
-			echo "     Check $BUILD/$PACKAGE/$LOGFILE"
+			echo "     Check " $(get_package_dir $PACKAGE)/$LOGFILE
 			exit 1
 		}
 	fi
@@ -220,10 +220,9 @@ remove_package() {
 # and return all pathnames that contains $1 as a regexp, while
 # removing any occurance of $2 from them, if present
 get_installed_stuff() {
-	local dir=$(hget $pack dir)
-	dir=${dir:-$pack}
-	if [ -f "$BUILD/$dir/._dist_$PACKAGE.log" ]; then
-		cat "$BUILD/$dir/._dist_$PACKAGE.log" | \
+	local dir=$(get_package_dir $pack)
+	if [ -f "$dir/._dist_$PACKAGE.log" ]; then
+		cat "$dir/._dist_$PACKAGE.log" | \
 		awk -v pp="$1" -v ss="$2" \
 '
 function ppr(s) {
