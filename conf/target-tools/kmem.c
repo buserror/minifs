@@ -32,7 +32,7 @@ static void doarg(const char * arg)
 			arg = strsep(&enda, "-:");
 			if (sscanf(arg, "0x%llx", &value) ||
 					sscanf(arg, "%llx", &value)) {
-				if (verbose) printf("base (%s) = %llx\n", arg, value);
+				if (verbose) printf("%s (%s) = %llx\n", has_base? "base" : "value", arg, value);
 				if (!has_base) {
 					base = value;
 					value = 0;
