@@ -73,7 +73,7 @@ hset orc url "http://code.entropywave.com/download/orc/orc-0.4.16.tar.gz"
 ## gstreamer
 #######################################################################
 # http://gstreamer.freedesktop.org/
-CONFIG_GSTREAMER_VERSION=0.10.35
+CONFIG_GSTREAMER_VERSION=0.10.36
 
 PACKAGES+=" gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly"
 hset gstreamer url "http://gstreamer.freedesktop.org/src/gstreamer/gstreamer-$CONFIG_GSTREAMER_VERSION.tar.bz2"
@@ -106,7 +106,14 @@ configure-gst-plugins-base() {
 	else
 		extra="--without-x "
 	fi
-	configure-generic --without-gudev --disable-nls $extra
+	sed -i -e '/[ \t]tests[ \t]/d' Makefile.am
+	rm -f configure
+	configure-generic \
+		--disable-vorbistest \
+		--disable-freetypetest \
+		--disable-oggtest \
+		--without-gudev \
+		--disable-nls $extra
 	export LDFLAGS="$LDFLAGS_BASE"
 }
 configure-gst-plugins-good() {
