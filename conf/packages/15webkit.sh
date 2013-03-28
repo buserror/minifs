@@ -19,8 +19,9 @@ configure-libxslt() {
 
 # http://site.icu-project.org/
 PACKAGES+=" libicu"
-hset libicu url "http://download.icu-project.org/files/icu4c/4.2.1/icu4c-4_2_1-src.tgz"
+#hset libicu url "http://download.icu-project.org/files/icu4c/4.2.1/icu4c-4_2_1-src.tgz"
 #hset libicu url "http://download.icu-project.org/files/icu4c/4.4.2/icu4c-4_4_2-src.tgz"
+hset libicu url "http://download.icu-project.org/files/icu4c/51.1/icu4c-51_1-src.tgz"
 hset libicu dir "libicu/source"
 hset libicu configscript "icu-config"
 
@@ -51,11 +52,18 @@ configure-libicu() {
 	configure configure-libicu-local
 }
 
+PACKAGES+=" libwebp"
+hset libwebp url "https://webp.googlecode.com/files/libwebp-0.2.1.tar.gz"
+PACKAGES+=" libsecret"
+hset libsecret url "http://ftp.de.debian.org/debian/pool/main/libs/libsecret/libsecret_0.15.orig.tar.xz"
+hset libsecret depends "libgcrypt"
 
 PACKAGES+=" libwebkit"
 #hset libwebkit url "git!git://git.webkit.org/WebKit.git#libwebkit-git.tar.bz2"
-hset libwebkit url "git!git://gitorious.org/webkit/webkit.git#libwebkit-git.tar.bz2"
-hset libwebkit depends "libicu libenchant libsoup sqlite3 libxslt libgail libgtk gstreamer"
+#hset libwebkit url "git!git://gitorious.org/webkit/webkit.git#libwebkit-git.tar.bz2"
+#hset libwebkit url "http://ftp.de.debian.org/debian/pool/main/w/webkit/webkit_1.8.1.orig.tar.xz"
+hset libwebkit url "http://ftp.de.debian.org/debian/pool/main/w/webkitgtk/webkitgtk_1.11.91.orig.tar.xz"
+hset libwebkit depends "libicu libenchant libsoup sqlite3 libxslt libgail libgtk libwebp libsecret gstreamer gst-plugins-base"
 
 hostcheck-libwebkit() {
 	hostcheck_commands gperf
@@ -67,6 +75,9 @@ hostcheck-libwebkit() {
 configure-libwebkit() {
 #	local extras="--enable-debug"
 	local extras=""
+	export LDFLAGS="$LDFLAGS_RLINK"
+	# GTKlauncher still want GST, even when no video is not configured
+	sed -i -e '/gst/d' Tools/GtkLauncher/main.c
 	save=$CFLAGS
 	if [[ ! $TARGET_X11 ]]; then
 		# ENABLE_NETSCAPE_PLUGIN_API
@@ -76,12 +87,19 @@ configure-libwebkit() {
 	fi
 	configure-generic \
 		--disable-glibtest \
+		--disable-video \
+		--disable-webgl \
+		--disable-media-source \
+		--disable-web-audio \
+		--disable-geolocation \
 		--disable-gtk-doc-html \
 		--disable-webkit2 \
 		--with-gtk=2.0 \
-		$extras
+		--enable-jit \
+		$extras WTF_USE_WEBP=0
 	CFLAGS=$save
 	CXXFLAGS=$save
+	export LDFLAGS="$LDFLAGS_BASE"
 }
 deploy-libwebkit() {
 	deploy cp Programs/GtkLauncher "$ROOTFS"/usr/bin/
