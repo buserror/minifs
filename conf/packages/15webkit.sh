@@ -95,6 +95,7 @@ configure-libwebkit() {
 		--disable-gtk-doc-html \
 		--disable-webkit2 \
 		--disable-svg \
+		--disable-spellcheck \
 		--with-gtk=2.0 \
 		$extras WTF_USE_WEBP=0
 	CFLAGS=$save
