@@ -19,8 +19,6 @@ configure-libxslt() {
 
 # http://site.icu-project.org/
 PACKAGES+=" libicu"
-#hset libicu url "http://download.icu-project.org/files/icu4c/4.2.1/icu4c-4_2_1-src.tgz"
-#hset libicu url "http://download.icu-project.org/files/icu4c/4.4.2/icu4c-4_4_2-src.tgz"
 hset libicu url "http://download.icu-project.org/files/icu4c/51.1/icu4c-51_1-src.tgz"
 hset libicu dir "libicu/source"
 hset libicu configscript "icu-config"
@@ -89,7 +87,7 @@ configure-libwebkit() {
 		--disable-glibtest \
 		--disable-video \
 		--disable-webgl \
-		--disable-media-source \
+		--disable-media-stream \
 		--disable-web-audio \
 		--disable-geolocation \
 		--disable-gtk-doc-html \
