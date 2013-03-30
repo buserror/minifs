@@ -229,6 +229,8 @@ hset xorgserver depends \
 	xorgfontadobe \
 	 openssl"
 
+#	--enable-kdrive --enable-kdrive-evdev 
+
 configure-xorgserver-local() {
 	export LDFLAGS="$LDFLAGS_RLINK -lxcb"
 	./autogen.sh
@@ -242,8 +244,6 @@ configure-xorgserver-local() {
 		--disable-glx \
 		--disable-dri \
 		--disable-dri2 \
-		--enable-kdrive \
-		--enable-kdrive-evdev \
 		--enable-xfbdev
 
 #		--with-mesa-source="$BUILD/libmesa"
