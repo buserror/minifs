@@ -42,7 +42,7 @@ minifs_locate_config_path() {
 	local verbose=$[ $flags & 2 ]
 	
 	for ro in "$CONF_BASE" $(minifs_path_split ""); do 
-		for di in distro "board/$MINIFS_BOARD" arch/$TARGET_META_ARCH arch/$TARGET_ARCH; do
+		for di in distro "board/$MINIFS_BOARD" arch/$TARGET_META_ARCH arch/$TARGET_ARCH ""; do
 			for pd in $MINIFS_BOARD_ROLE ""; do
 				local try="$ro/$di/$pd/$file"
 				try=${try//\/\//\/}
