@@ -83,11 +83,14 @@ deploy-libfontconfig() {
 # http://www.cairographics.org/releases/
 PACKAGES+=" libpixman"
 #hset libpixman url "http://xorg.freedesktop.org/archive/individual/lib/pixman-0.22.0.tar.bz2"
-hset libpixman url "http://xorg.freedesktop.org/archive/individual/lib/pixman-0.28.2.tar.bz2"
+#hset libpixman url "http://xorg.freedesktop.org/archive/individual/lib/pixman-0.28.2.tar.bz2"
+hset libpixman url "http://xorg.freedesktop.org/archive/individual/lib/pixman-0.29.2.tar.bz2"
 
 configure-libpixman() {
 	local extras=""
-	if [ "$TARGET_ARCH" == "arm" ]; then
+	if [ "$TARGET_META_ARCH" == "armv7" ]; then
+		extras+=" --enable-arm-simd --enable-arm-neon"	
+	elif [ "$TARGET_ARCH" == "arm" ]; then
 		# won't work in thumb
 		export CFLAGS="${CFLAGS//-mthumb[^-]/-marm }"
 		extras+=" --disable-arm-simd --disable-arm-neon"	
