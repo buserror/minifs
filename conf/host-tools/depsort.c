@@ -122,7 +122,7 @@ int main()
 				if (p->moved) {
 					fprintf(stderr, "Pack %s was already moved!\n", p->name);
 					if (p->moved > 5) {
-						fprintf(stderr, "Circular dependency involving %s and %d detected, failing!\n", p->name, de->name);
+						fprintf(stderr, "Circular dependency involving %s and %s detected, failing!\n", p->name, de->name);
 						exit(1);
 					}
 				}
