@@ -320,6 +320,7 @@ compile-host-tools
 ## Download the files, unpack, and patch them
 #######################################################################
 pushd download >/dev/null
+# echo TARGET_PACKAGES $TARGET_PACKAGES
 for package in $TARGET_PACKAGES; do 
 	fil=$(hget $package url)
 
@@ -583,6 +584,8 @@ shell-generic() {
 ## Find out which package we want/have, and order them by build order
 #######################################################################
 DEPLIST=""
+#echo PACKAGES $PACKAGES
+# echo BUILD_PACKAGES $BUILD_PACKAGES
 export BUILD_PACKAGES
 for pack in $PACKAGES; do 
 	# check to see if that package was requested, otherwise, skip it
@@ -596,9 +599,10 @@ done
 #######################################################################
 ## Call the dependency sorter, and get back the result
 #######################################################################
-#echo DEPLIST $DEPLIST
+# echo DEPLIST $DEPLIST
+# echo PROCESS_PACKAGES $PROCESS_PACKAGES
 PROCESS_PACKAGES=$(echo $DEPLIST|depsort 2>/tmp/depsort.log)
-#echo PROCESS_PACKAGES $PROCESS_PACKAGES
+# echo PROCESS_PACKAGES $PROCESS_PACKAGES
 #exit
 
 #######################################################################

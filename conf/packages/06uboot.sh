@@ -16,11 +16,6 @@ compile-uboot-local() {
 	$MAKE $MAKE_ARGUMENTS \
 			CROSS_COMPILE="$CROSS-" \
 			$(hget uboot target)
-	
-	#	$MAKE CROSS_COMPILE="$CROSS-" \
-	#		TOPDIR=../.. \
-	#		CPPFLAGS="$CFLAGS -DUSE_HOSTCC -static -I../../include" \
-	#		-C tools/env
 }
 compile-uboot() {
 	compile compile-uboot-local

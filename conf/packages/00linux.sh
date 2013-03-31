@@ -125,8 +125,13 @@ deploy-linux-modules() {
 #######################################################################
 
 PACKAGES+=" linux-bare"
-hset linux-bare depends "linux-modules linux-headers crosstools uboot"
+hset linux-bare depends "linux-modules linux-headers crosstools"
 
+hostcheck-linux-bare() {
+	if [ "$TARGET_KERNEL_NAME" == uImage ]; then
+		hostcheck_commands mkimage
+	fi
+}
 configure-linux-bare() {
 	configure echo Done
 }
