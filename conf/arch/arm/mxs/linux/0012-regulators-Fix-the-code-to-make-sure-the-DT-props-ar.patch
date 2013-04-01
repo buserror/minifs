@@ -1,8 +1,7 @@
-From 8e86b6c5d38b413b6a1a96a310163fbdf25baec8 Mon Sep 17 00:00:00 2001
+From 82e36ea5fd497d150bcaf6541efe0bc6dcf63d88 Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Tue, 22 Jan 2013 14:14:32 +0000
-Subject: [PATCH 12/15] regulators: Fix the code to make sure the DT props are
- set
+Subject: [PATCH] regulators: Fix the code to make sure the DT props are set
 
 "regulator-type" is required as a property, but it's neither
 documented nor tested for validity at runtime, leading to a
@@ -35,10 +34,10 @@ index 63c6598..fba0916 100644
  
  		enable-gpio = <&gpio0 23 0x4>;
 diff --git a/drivers/regulator/gpio-regulator.c b/drivers/regulator/gpio-regulator.c
-index bae681c..2a66f18 100644
+index 9d39eb4..3fd87c0 100644
 --- a/drivers/regulator/gpio-regulator.c
 +++ b/drivers/regulator/gpio-regulator.c
-@@ -207,6 +207,10 @@ of_get_gpio_regulator_config(struct device *dev, struct device_node *np)
+@@ -204,6 +204,10 @@ of_get_gpio_regulator_config(struct device *dev, struct device_node *np)
  
  	of_property_read_string(np, "regulator-type", &regtype);
  

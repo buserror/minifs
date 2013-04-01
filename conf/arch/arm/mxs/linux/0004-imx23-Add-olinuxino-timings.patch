@@ -1,7 +1,7 @@
-From 706ce3bca657bd62608652f35abcbc31e8377148 Mon Sep 17 00:00:00 2001
+From ee64d5960264da584ecebdcf478fecc07552877f Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Wed, 28 Nov 2012 16:03:29 +0000
-Subject: [PATCH 04/15] imx23: Add olinuxino timings
+Subject: [PATCH] imx23: Add olinuxino timings
 
 Adds support for a 'dumb' 16bpp LCD panel for the
 imx233 LQFP olinuxino board(s)
@@ -13,7 +13,7 @@ Signed-off-by: Michel Pollet <buserror@gmail.com>
  1 file changed, 31 insertions(+)
 
 diff --git a/arch/arm/mach-mxs/mach-mxs.c b/arch/arm/mach-mxs/mach-mxs.c
-index c66129b..c6fceef 100644
+index 3218f1f..fe47dbe 100644
 --- a/arch/arm/mach-mxs/mach-mxs.c
 +++ b/arch/arm/mach-mxs/mach-mxs.c
 @@ -46,6 +46,26 @@ static struct fb_videomode mx23evk_video_modes[] = {
@@ -43,7 +43,7 @@ index c66129b..c6fceef 100644
  static struct fb_videomode mx28evk_video_modes[] = {
  	{
  		.name		= "Seiko-43WVF1G",
-@@ -252,6 +272,15 @@ static void __init imx23_evk_init(void)
+@@ -261,6 +281,15 @@ static void __init imx23_evk_init(void)
  	mxsfb_pdata.ld_intf_width = STMLCDIF_24BIT;
  }
  
@@ -59,7 +59,7 @@ index c66129b..c6fceef 100644
  static inline void enable_clk_enet_out(void)
  {
  	struct clk *clk = clk_get_sys("enet_out", NULL);
-@@ -411,6 +440,8 @@ static void __init mxs_machine_init(void)
+@@ -431,6 +460,8 @@ static void __init mxs_machine_init(void)
  		imx28_evk_init();
  	else if (of_machine_is_compatible("fsl,imx23-evk"))
  		imx23_evk_init();

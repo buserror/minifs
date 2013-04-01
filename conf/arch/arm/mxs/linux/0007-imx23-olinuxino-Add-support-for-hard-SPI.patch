@@ -1,7 +1,7 @@
-From e29719ac4e4973e808b71c3a8d7827e22838ebe3 Mon Sep 17 00:00:00 2001
+From d25d83cf206015ab7b394452c10ede80a5f9df27 Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Wed, 28 Nov 2012 16:07:29 +0000
-Subject: [PATCH 07/15] imx23-olinuxino: Add support for hard SPI
+Subject: [PATCH] imx23-olinuxino: Add support for hard SPI
 
 Adds support for the SSP2 hardware driver
 onto the UEXT connector of the olinuxino.

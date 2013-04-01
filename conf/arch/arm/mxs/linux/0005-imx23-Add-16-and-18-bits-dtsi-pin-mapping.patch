@@ -1,7 +1,7 @@
-From 07acfbba64e05ac2f41114409e5160c92d65d486 Mon Sep 17 00:00:00 2001
+From e4749d67daed27dc1aecb2d3a249417b8f865a7f Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Wed, 28 Nov 2012 16:04:39 +0000
-Subject: [PATCH 05/15] imx23: Add 16 and 18 bits dtsi pin mapping
+Subject: [PATCH] imx23: Add 16 and 18 bits dtsi pin mapping
 
 This specifies blocks for 16 and 18 bits
 LCD pin mapping for the (LQFP) imx233
@@ -13,7 +13,7 @@ Signed-off-by: Michel Pollet <buserror@gmail.com>
  1 file changed, 60 insertions(+)
 
 diff --git a/arch/arm/boot/dts/imx23.dtsi b/arch/arm/boot/dts/imx23.dtsi
-index 65415c5..e59de8e 100644
+index 56afcf4..d0a6ac9 100644
 --- a/arch/arm/boot/dts/imx23.dtsi
 +++ b/arch/arm/boot/dts/imx23.dtsi
 @@ -292,6 +292,66 @@
