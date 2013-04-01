@@ -171,3 +171,29 @@ install-bootsplash() {
 deploy-bootsplash() {
 	deploy cp "$STAGING_USR"/bin/splash "$ROOTFS"/usr/bin
 }
+
+PACKAGES+=" libexif"
+hset libexif url "http://ftp.de.debian.org/debian/pool/main/libe/libexif/libexif_0.6.21.orig.tar.gz"
+
+PACKAGES+=" fbi"
+hset fbi url "http://ftp.de.debian.org/debian/pool/main/f/fbi/fbi_2.07.orig.tar.gz"
+hset fbi depends "libpng libjpeg libexif libfreetype libfontconfig"
+
+configure-fbi() {
+	configure sed -i -e 's/sys_siglist.*/strsignal(termsig));/g' fbtools.c
+}
+compile-fbi() {
+	(
+		export LDFLAGS="$LDFLAGS_RLINK"
+		export CFLAGS="$TARGET_CPPFLAGS $TARGET_CFLAGS -DHAVE_NEW_EXIF=1"
+#		compile make verbose=yes CFLAGS="$TARGET_CPPFLAGS $TARGET_CFLAGS -I$STAGING_USR/include/freetype2 -DVERSION= -I. -DHAVE_NEW_EXIF=1"
+		compile-generic verbose=yes
+	) || exit 1
+}
+
+install-fbi() {
+	install-generic prefix=/usr
+}
+deploy-fbi() {
+	deploy deploy_binaries
+}
