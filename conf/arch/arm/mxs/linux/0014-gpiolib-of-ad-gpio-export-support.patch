@@ -1,7 +1,7 @@
-From 296b0ed29aecde3df9bf13203f89f618a88bdbb7 Mon Sep 17 00:00:00 2001
+From a1b57877386025e1d21a2db6a8743dbb7bc986f8 Mon Sep 17 00:00:00 2001
 From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
 Date: Wed, 21 Nov 2012 10:14:09 +0000
-Subject: [PATCH 14/15] gpiolib-of: ad gpio-export support
+Subject: [PATCH] gpiolib-of: ad gpio-export support
 
 This will allow to export gpios with or without names
 
@@ -13,7 +13,7 @@ Signed-off-by: Michel Pollet <buserror@gmail.com> (fixed)
  2 files changed, 126 insertions(+)
 
 diff --git a/Documentation/devicetree/bindings/gpio/gpio.txt b/Documentation/devicetree/bindings/gpio/gpio.txt
-index a336287..c2a9024 100644
+index a336287..1d18975 100644
 --- a/Documentation/devicetree/bindings/gpio/gpio.txt
 +++ b/Documentation/devicetree/bindings/gpio/gpio.txt
 @@ -112,3 +112,63 @@ where,
@@ -38,7 +38,7 @@ index a336287..c2a9024 100644
 +optional properties:
 + - gpio-export,name: export name
 + - gpio-export,output: to set the as output with default value
-+ 		       if no present gpio as input
++		       if no present gpio as input
 + - pio-export,direction_may_change: boolean to allow the direction to be controllable
 +
 +Example:
@@ -81,7 +81,7 @@ index a336287..c2a9024 100644
 +	};
 +};
 diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
-index d542a14..3ccc856 100644
+index a71a54a..87655d3 100644
 --- a/drivers/gpio/gpiolib-of.c
 +++ b/drivers/gpio/gpiolib-of.c
 @@ -21,6 +21,8 @@
@@ -93,7 +93,7 @@ index d542a14..3ccc856 100644
  
  /* Private data structure for of_gpiochip_find_and_xlate */
  struct gg_data {
-@@ -289,3 +291,67 @@ void of_gpiochip_remove(struct gpio_chip *chip)
+@@ -254,3 +256,67 @@ void of_gpiochip_remove(struct gpio_chip *chip)
  	if (chip->of_node)
  		of_node_put(chip->of_node);
  }
@@ -126,16 +126,16 @@ index d542a14..3ccc856 100644
 +
 +		for (i = 0; i < max_gpio; i++) {
 +			unsigned long flags = GPIOF_EXPORT;
-+			
++
 +			gpio = of_get_gpio(cnp, i);
-+			
++
 +			if (!of_property_read_u32(cnp, "gpio-export,output", &val))
 +				flags |= GPIOF_DIR_OUT | (val ? GPIOF_INIT_HIGH : 0);
 +			else
 +				flags |= GPIOF_DIR_IN;
 +			if (of_property_read_bool(np, "gpio-export,direction_may_change"))
 +				flags |= GPIOF_EXPORT_CHANGEABLE;
-+			
++
 +			if (gpio_request_one(gpio, flags, name ? name : of_node_full_name(np)) != gpio) {
 +				printk("%s: unable to requestp gpio %d\n", __func__, gpio);
 +			}

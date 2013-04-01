@@ -1,8 +1,7 @@
-From 638f6f10bfdf6b6366257b97b0d1d11e279d2418 Mon Sep 17 00:00:00 2001
+From 4f22ae85c7e56a974c931816141f738f82e5839b Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Tue, 22 Nov 2011 10:48:32 -0500
-Subject: [PATCH 10/15] st7735fb: Make FB native endian on little endian
- platforms
+Subject: [PATCH] st7735fb: Make FB native endian on little endian platforms
 
 This is a quick unoptimized implementation of a shadow swap buffer
 which is engaged on little endian platforms. It's not DMA safe
@@ -22,7 +21,7 @@ Signed-off-by: Michel Pollet <buserror@gmail.com>
  2 files changed, 21 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/video/st7735fb.c b/drivers/video/st7735fb.c
-index 500cc88..69ad3d0 100644
+index 32b28af..8670754 100644
 --- a/drivers/video/st7735fb.c
 +++ b/drivers/video/st7735fb.c
 @@ -244,7 +244,14 @@ static void st7735fb_update_display(struct st7735fb_par *par)
@@ -82,7 +81,7 @@ index 500cc88..69ad3d0 100644
  	if (retval < 0)
  		goto fbreg_fail;
 diff --git a/include/video/st7735fb.h b/include/video/st7735fb.h
-index 250f036..52f5182 100644
+index 6d3f68b..048477c 100644
 --- a/include/video/st7735fb.h
 +++ b/include/video/st7735fb.h
 @@ -34,6 +34,7 @@ enum st7735_cmd {

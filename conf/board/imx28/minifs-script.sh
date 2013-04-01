@@ -1,8 +1,6 @@
 #!/bin/bash
 
-. "$CONF_BASE"/arch/armv5.sh
-
-MINIFS_BOARD_ROLE+=" mxs"
+. "$CONF_BASE"/arch/mxs.sh
 
 # this file .dts must exist either in this directory (board)
 # or in the linux arch/$TARGET_ARCH/boot/dts/
@@ -11,7 +9,7 @@ TARGET_KERNEL_DTB=${TARGET_KERNEL_DTB:-imx28-evk}
 TARGET_KERNEL_CMDLINE=${TARGET_KERNEL_CMDLINE:-"console=ttyAMA0,115200 root=/dev/mmcblk0p2 ro rootwait ssp1=mmc quiet"}
 
 board_set_versions() {
-	hset linux version "3.8"
+	mxs-set-versions
 	TARGET_FS_SQUASH=0
 	TARGET_FS_EXT2=1
 	TARGET_SHARED=1 

@@ -1,7 +1,7 @@
-From 7264252776c052facbd93428d3e62d12716f46bb Mon Sep 17 00:00:00 2001
+From cb74406ad813c22d1256cde8a1c2f8d0b92f5346 Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Tue, 22 Jan 2013 14:14:56 +0000
-Subject: [PATCH 13/15] st7735fb: Fix for 3.8
+Subject: [PATCH] st7735fb: Fix for 3.8
 
 Some of the init macros got renamed.
 
@@ -11,7 +11,7 @@ Signed-off-by: Michel Pollet <buserror@gmail.com>
  1 file changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/video/st7735fb.c b/drivers/video/st7735fb.c
-index 210ae1d..7a802de 100644
+index 714d6ad..15a728c 100644
 --- a/drivers/video/st7735fb.c
 +++ b/drivers/video/st7735fb.c
 @@ -128,7 +128,7 @@ static const struct st7735_function st7735_cfg_script[] = {
@@ -20,7 +20,7 @@ index 210ae1d..7a802de 100644
  
 -static struct fb_fix_screeninfo st7735fb_fix __devinitdata = {
 +static struct fb_fix_screeninfo st7735fb_fix __initdata = {
- 	.id =		"ST7735", 
+ 	.id =		"ST7735",
  	.type =		FB_TYPE_PACKED_PIXELS,
  	.visual =	FB_VISUAL_PSEUDOCOLOR,
 @@ -139,7 +139,7 @@ static struct fb_fix_screeninfo st7735fb_fix __devinitdata = {

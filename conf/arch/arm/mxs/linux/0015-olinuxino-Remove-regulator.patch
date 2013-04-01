@@ -1,20 +1,20 @@
-From cbe6d56f95a91e45c33f89478663cfa3569ac22d Mon Sep 17 00:00:00 2001
+From d5fbcc40624d8d0450eee6c69f425b3415a0ff51 Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Tue, 22 Jan 2013 16:12:45 +0000
-Subject: [PATCH 15/15] olinuxino: Remove regulator
+Subject: [PATCH] olinuxino: Remove regulator
 
 Export the pin as plain GPIO
 
 Signed-off-by: Michel Pollet <buserror@gmail.com>
 ---
- arch/arm/boot/dts/imx23-olinuxino.dts |   23 +++++++++--------------
- 1 file changed, 9 insertions(+), 14 deletions(-)
+ arch/arm/boot/dts/imx23-olinuxino.dts |   21 ++++++++-------------
+ 1 file changed, 8 insertions(+), 13 deletions(-)
 
 diff --git a/arch/arm/boot/dts/imx23-olinuxino.dts b/arch/arm/boot/dts/imx23-olinuxino.dts
-index 7af1aa2..8b0763e 100644
+index 7af1aa2..7b71ea2 100644
 --- a/arch/arm/boot/dts/imx23-olinuxino.dts
 +++ b/arch/arm/boot/dts/imx23-olinuxino.dts
-@@ -155,25 +155,20 @@
+@@ -155,22 +155,17 @@
  
  	ahb@80080000 {
  		usb0: usb@80080000 {
@@ -37,18 +37,14 @@ index 7af1aa2..8b0763e 100644
 +	gpio_export {
 +		compatible = "gpio-export";
 +		#size-cells = <0>;
-+		
++
 +		vbus_toggle {
 +			gpio-export,name = "vbus_toggle";
 +			gpio-export,output = <1>;
 +			gpios = <&gpio0 17 0>;
  		};
  	};
--
-+	
- 	/*
- 	 * maxi declares the i2c by default as software -- so instanciate a linux driver
- 	 * for it
+ 
 -- 
 1.7.10.4
 

@@ -1,7 +1,7 @@
-From 96c09a0443e45d9b84d452808bfc98d38801c87c Mon Sep 17 00:00:00 2001
+From f8beb11aca4054972d15741dbda13ea362997cc3 Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Wed, 28 Nov 2012 16:00:08 +0000
-Subject: [PATCH 02/15] spidev: Introduces an optional interrupt
+Subject: [PATCH] spidev: Introduces an optional interrupt
 
 this patchs allows the spidev driver to use an
 optional interrupt to trigger a pool() or select()

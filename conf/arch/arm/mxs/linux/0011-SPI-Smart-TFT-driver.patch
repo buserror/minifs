@@ -1,7 +1,7 @@
-From dd24c40df1b4ab45e05ba09bb708a4450abcaa42 Mon Sep 17 00:00:00 2001
+From 3c53c1723249b24c661fe79dd8e3d0964ad5c67e Mon Sep 17 00:00:00 2001
 From: Michel Pollet <buserror@gmail.com>
 Date: Mon, 3 Dec 2012 15:39:24 +0000
-Subject: [PATCH 11/15] SPI Smart TFT driver
+Subject: [PATCH] SPI Smart TFT driver
 
 Not working yet. Work in progress
 
@@ -78,7 +78,7 @@ index 9685886..7af1aa2 100644
  			lcdif@80030000 {
  				pinctrl-names = "default";
 diff --git a/arch/arm/boot/dts/imx23.dtsi b/arch/arm/boot/dts/imx23.dtsi
-index e59de8e..97be73c 100644
+index d0a6ac9..905bed1 100644
 --- a/arch/arm/boot/dts/imx23.dtsi
 +++ b/arch/arm/boot/dts/imx23.dtsi
 @@ -320,38 +320,38 @@
@@ -152,7 +152,7 @@ index e59de8e..97be73c 100644
  
  			digctl@8001c000 {
 diff --git a/drivers/video/st7735fb.c b/drivers/video/st7735fb.c
-index 69ad3d0..210ae1d 100644
+index 8670754..714d6ad 100644
 --- a/drivers/video/st7735fb.c
 +++ b/drivers/video/st7735fb.c
 @@ -22,10 +22,15 @@
@@ -360,7 +360,7 @@ index 69ad3d0..210ae1d 100644
  #endif
  
 +	printk("%s registering fdev\n", __func__);
-+	
++
  	retval = register_framebuffer(info);
  	if (retval < 0)
  		goto fbreg_fail;
@@ -388,7 +388,7 @@ index 69ad3d0..210ae1d 100644
  	.id_table = st7735fb_ids,
  	.probe  = st7735fb_probe,
 diff --git a/include/video/st7735fb.h b/include/video/st7735fb.h
-index 52f5182..250f036 100644
+index 048477c..6d3f68b 100644
 --- a/include/video/st7735fb.h
 +++ b/include/video/st7735fb.h
 @@ -34,7 +34,6 @@ enum st7735_cmd {
