@@ -185,8 +185,7 @@ configure-fbi() {
 compile-fbi() {
 	(
 		export LDFLAGS="$LDFLAGS_RLINK"
-		export CFLAGS="$TARGET_CPPFLAGS $TARGET_CFLAGS -DHAVE_NEW_EXIF=1"
-#		compile make verbose=yes CFLAGS="$TARGET_CPPFLAGS $TARGET_CFLAGS -I$STAGING_USR/include/freetype2 -DVERSION= -I. -DHAVE_NEW_EXIF=1"
+		export CFLAGS="$TARGET_CPPFLAGS $TARGET_CFLAGS -DHAVE_NEW_EXIF=1 -DHAVE_LIBPNG=1"
 		compile-generic verbose=yes
 	) || exit 1
 }
