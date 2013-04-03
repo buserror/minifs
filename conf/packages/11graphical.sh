@@ -196,3 +196,16 @@ install-fbi() {
 deploy-fbi() {
 	deploy deploy_binaries
 }
+
+PACKAGES+=" fbset"
+hset fbset url "http://ftp.de.debian.org/debian/pool/main/f/fbset/fbset_2.1.orig.tar.gz"
+
+compile-fbset() {
+	compile $MAKE CC=$GCC 
+}
+install-fbset() {
+	log_install echo done
+}
+deploy-fbset() {
+	deploy cp fbset "$ROOTFS"/bin/
+}
