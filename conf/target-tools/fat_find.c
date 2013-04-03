@@ -336,7 +336,7 @@ int main(int argc, char ** argv)
 
 	struct dirent * disk;
 	while ((disk = readdir(disks)) != NULL && partitionCount < maxPart) {
-		if (strncmp(disk->d_name, "sd", 2))
+		if (strncmp(disk->d_name, "sd", 2) && strncmp(disk->d_name, "mmc", 3))
 			continue;
 	//	printf("disk %s\n", disk->d_name);
 		char diskpath[128];
@@ -437,6 +437,7 @@ int main(int argc, char ** argv)
 
 		chdir(outdir);
 		if (link) {
+			unlink(link);
 			if (symlink(p->dev, link)) {
 				perror(link);
 			}
