@@ -120,7 +120,9 @@ configure-util-linux() {
 
 install-util-linux-local() {
 	install-generic-local
-	mv "$STAGING"/lib/libuu* "$STAGING_USR"/lib/	
+	mv "$STAGING"/lib/libuu* "$STAGING_USR"/lib/ &&
+		ln -sf $(basename $(ls "$STAGING_USR"/lib/libuuid.*.*.*)) \
+			"$STAGING_USR"/lib/libuuid.so
 }
 install-util-linux() {
 	log_install install-util-linux-local
