@@ -161,6 +161,15 @@ PACKAGES+=" libharfbuzz"
 hset libharfbuzz url "http://cgit.freedesktop.org/harfbuzz/snapshot/harfbuzz-0.9.14.tar.gz"
 hset libharfbuzz depends "libfontconfig libcairo libicu"
 
+configure-libharfbuzz-local() {
+	# Add the extra header. it's needed by libwebkit
+	sed -i -e 's/hb-unicode.h \\/hb-unicode.h hb-icu.h \\/g' src/Makefile.am
+	configure-generic
+}
+configure-libharfbuzz() {
+	configure configure-libharfbuzz-local
+}
+
 PACKAGES+=" libpango"
 #hset libpango url "http://ftp.gnome.org/pub/gnome/sources/pango/1.28/pango-1.28.3.tar.bz2"
 hset libpango url "http://ftp.gnome.org/pub/gnome/sources/pango/1.32/pango-1.32.5.tar.xz"
