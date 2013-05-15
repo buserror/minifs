@@ -40,10 +40,23 @@ int main(int argc, char ** argv)
 	
 	if (argc == 1)
 		exit(0);
-		
+	
+	/* strip double slash from pathnames, so dir//file is the same as dir/file */
+	for (i = 1; i < argc; i++) {
+		char *s = argv[i];
+		char *d = s;
+		while (*s) {
+			if (s[0] == '/' && s[1] == '/') s++;
+			else *d++ = *s++;
+		}
+		*d = 0;
+	}
 	qsort(argv+1, argc-1, sizeof(char*), compar);
 
 	for (i = 1; i < argc; i++) {
+		/* if pathnames are equivalent, don't print them twice, or more */
+		if (i > 1 && !strcmp(argv[i], argv[i-1]))
+			continue;
 		char * white = strchr(argv[i], ' ');
 		if (white)
 			printf("\"%s\" ", argv[i]);
