@@ -120,7 +120,7 @@ CROSSTOOL_JOBS=".$MINIFS_JOBS"
 
 mkdir -p "$STAGING_TOOLS"/bin
 mkdir -p download "$KERNEL" "$ROOTFS" "$STAGING_USR" "$TOOLCHAIN"
-mkdir -p "$STAGING_USR"/share/aclocal
+mkdir -p "$STAGING_USR"/share/aclocal $STAGING_TOOLS/usr/share/aclocal
 mkdir -p /tmp/installwatch
 
 # Always regenerate the rootfs
@@ -225,6 +225,7 @@ done
 # filename_sort is in conf/host-tools
 package_files=$(filename_sort $package_files)
 # echo $package_files
+
 #######################################################################
 ## Source all the package files in order. 
 ## Attempts at setting them in 'groups' that is set via the
