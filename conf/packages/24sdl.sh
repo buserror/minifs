@@ -121,12 +121,16 @@ PACKAGES+=" libsdlgfx"
 hset libsdlgfx url "http://www.ferzkopp.net/Software/SDL_gfx-2.0/SDL_gfx-2.0.22.tar.gz"
 hset libsdlgfx depends "libsdl"
 
-configure-libsdlgfx() {
-	export SDL_CONFIG="$STAGING_TOOLS"/bin/sdl-config
+configure-libsdlgfx-local() {
         # autocrap wants a m4 directory , so we create it if not already done
 	if [ ! -e m4 ]; then mkdir m4; fi
-	configure-generic \
+	rm -f configure
+	configure-generic-local \
 		--disable-mmx --without-x --disable-sdltest
+}
+configure-libsdlgfx() {
+	export SDL_CONFIG="$STAGING_TOOLS"/bin/sdl-config
+	configure configure-libsdlgfx-local
 }
 
 deploy-libsdlgfx(){
