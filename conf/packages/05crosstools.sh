@@ -189,7 +189,6 @@ configure-host-pkg-config() {
 
 PACKAGES+=" host-installwatch"
 hset host-installwatch url "http://jordanhackworth.com/files/df3120/checkinstall-1.6.2.tar.gz"
-#hset host-installwatch url "git!http://checkinstall.izto.org/checkinstall.git#checkinstall-git.tar.bz2"
 hset host-installwatch destdir "$STAGING_TOOLS"
 hset host-installwatch dir "host-installwatch/installwatch"
 
