@@ -120,7 +120,7 @@ CROSSTOOL_JOBS=".$MINIFS_JOBS"
 
 mkdir -p "$STAGING_TOOLS"/bin
 mkdir -p download "$KERNEL" "$ROOTFS" "$STAGING_USR" "$TOOLCHAIN"
-mkdir -p "$STAGING_USR"/share/aclocal $STAGING_TOOLS/usr/share/aclocal
+mkdir -p "$STAGING_USR"/share/aclocal $STAGING_TOOLS/share/aclocal
 mkdir -p /tmp/installwatch
 
 # Always regenerate the rootfs
@@ -165,7 +165,7 @@ export LIBC_CFLAGS="${TARGET_LIBC_CFLAGS:-$TARGET_CFLAGS}"
 export PKG_CONFIG_PATH="$STAGING/lib/pkgconfig:$STAGING_USR/lib/pkgconfig:$STAGING_USR/share/pkgconfig"
 export PKG_CONFIG_LIBDIR="" # do not search local paths
 export PKG_CONFIG=pkg-config
-export ACLOCAL="aclocal -I $STAGING_USR/share/aclocal -I $STAGING_TOOLS/usr/share/aclocal -I /usr/share/aclocal"
+export ACLOCAL="aclocal -I $STAGING_USR/share/aclocal -I $STAGING_TOOLS/share/aclocal -I /usr/share/aclocal"
 export HOST_INSTALL="/usr/bin/install"
 
 KERNEL_CONFIG_FILE=$(minifs_locate_config_path config_kernel.conf)
