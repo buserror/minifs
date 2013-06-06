@@ -137,7 +137,7 @@ hset libcairo url "http://www.cairographics.org/releases/cairo-1.12.8.tar.xz"
 hset libcairo depends "libfreetype libpng libglib libpixman"
 
 configure-libcairo() {
-	export LDFLAGS="$LDFLAGS_RLINK -lxcb"
+	export LDFLAGS="$LDFLAGS_RLINK"
 	local extras=""
 	if [ "$TARGET_ARCH" == "arm" ]; then
 		extras+=" --disable-some-floating-point "
@@ -147,6 +147,7 @@ configure-libcairo() {
 		--enable-xlib-xcb=yes \
 		--enable-xlib-xrender=yes \
 		--with-x "
+		LDFLAGS+=" -lxcb"
 	else
 		extras+=" --enable-xlib=no \
 		--enable-xlib-xrender=no \
@@ -168,6 +169,13 @@ configure-libharfbuzz-local() {
 }
 configure-libharfbuzz() {
 	configure configure-libharfbuzz-local
+}
+install-libharfbuzz-local() {
+	install-generic
+	cp harfbuzz.pc "$STAGING_USR"/lib/pkgconfig/
+}
+install-libharfbuzz() {
+	log_install install-libharfbuzz-local
 }
 
 PACKAGES+=" libpango"
