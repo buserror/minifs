@@ -26,6 +26,7 @@ PACKAGES+=" xorgmacros"
 hset xorgmacros url $(xorg_module_geturl "util" "util-macros")
 hset xorgmacros depends "crosstools"
 hset xorgmacros destdir "$STAGING_TOOLS"
+hset xorgmacros prefix "/"
 
 XORG_LIBS=""
 XORG_PROTOS=""
