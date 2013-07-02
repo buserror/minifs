@@ -113,7 +113,6 @@ CROSS_BASE="$TOOLCHAIN/$TARGET_FULL_ARCH/"
 CROSS="$CROSS_BASE/bin/$TARGET_FULL_ARCH"
 GCC="${CROSS}-gcc"
 
-echo ${GCC}
 
 WGET=wget
 MAKE=make
@@ -170,7 +169,6 @@ export PKG_CONFIG=pkg-config
 export ACLOCAL="aclocal -I $STAGING_USR/share/aclocal -I $STAGING_TOOLS/share/aclocal -I /usr/share/aclocal"
 export HOST_INSTALL="/usr/bin/install"
 
-echo ${CFLAGS}
 
 KERNEL_CONFIG_FILE=$(minifs_locate_config_path config_kernel.conf)
 
