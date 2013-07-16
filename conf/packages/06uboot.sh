@@ -39,8 +39,20 @@ install-uboot-local() {
 install-uboot() {
 	log_install install-uboot-local
 }
-deploy-uboot() {
+
+deploy-uboot-local() {
+	if [ "$(hget uboot deploy-target)" != "" ]; then
+		$MAKE $MAKE_ARGUMENTS \
+				CROSS_COMPILE="$CROSS-" \
+				$(hget uboot deploy-target) &&
+			cp $(hget uboot deploy-target) ..
+	fi
 	if [ -x "$STAGING"/bin/fw_printenv ]; then
 		deploy cp "$STAGING"/usr/bin/fw_printenv "$ROOTFS"/bin/
 	fi	
+}
+
+deploy-uboot() {
+	echo uboot deploy
+	deploy deploy-uboot-local
 }
