@@ -53,6 +53,5 @@ deploy-uboot-local() {
 }
 
 deploy-uboot() {
-	echo uboot deploy
 	deploy deploy-uboot-local
 }
