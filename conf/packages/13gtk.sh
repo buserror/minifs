@@ -160,12 +160,14 @@ configure-libcairo() {
 
 PACKAGES+=" libharfbuzz"
 hset libharfbuzz url "http://cgit.freedesktop.org/harfbuzz/snapshot/harfbuzz-0.9.14.tar.gz"
-hset libharfbuzz depends "libfontconfig libcairo libicu"
+hset libharfbuzz depends "libfontconfig libcairo"
+hset libharfbuzz optional "libicu"
 
 configure-libharfbuzz-local() {
 	# Add the extra header. it's needed by libwebkit
 	sed -i -e 's/hb-unicode.h \\/hb-unicode.h hb-icu.h \\/g' src/Makefile.am
-	configure-generic
+	configure-generic \
+		ac_cv_path_icu_config=no
 }
 configure-libharfbuzz() {
 	configure configure-libharfbuzz-local
