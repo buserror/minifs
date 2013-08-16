@@ -4,7 +4,8 @@
 # will fail to find headers if these system host headers are not installed 
 # on a x86_64 system. You also need a -multilib version of gcc
 PACKAGES+=" luajit"
-hset luajit url "http://luajit.org/download/LuaJIT-2.0.2.tar.gz"
+hset luajit version "2.0.2"
+hset luajit url "http://luajit.org/download/LuaJIT-$(hget luajit version).tar.gz"
 hset luajit desc "A Just-In-Time compiler for lua"
 
 configure-luajit() {
@@ -24,7 +25,7 @@ install-luajit() {
 }
 deploy-luajit-local() {
 	deploy_binaries
-	deploy_staging_path "/usr/share/luajit-2.0.0" "/"
+	deploy_staging_path "/usr/share/luajit-$(hget luajit version)" "/"
 }
 deploy-luajit() {
 	deploy deploy-luajit-local
