@@ -10,7 +10,8 @@ hset rootfs-create dir "."
 #######################################################################
 deploy-rootfs-create() {
 	echo "    Creating rootfs"
-	rm -rf "$ROOTFS/"
+	mkdir -p "$ROOTFS"
+	rm -rf "$ROOTFS/*"
 	for pd in "$CONF_BASE/rootfs-base" $(minifs_path_split "rootfs"); do
 		if [ -d "$pd" ]; then
 			rsync -a "$pd/" "$ROOTFS/"
