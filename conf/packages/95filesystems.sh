@@ -48,6 +48,10 @@ if [ $TARGET_FS_EXT -eq 1 ]; then
 	FILESYSTEMS+=" filesystem-ext"
 	NEEDED_HOST_COMMANDS+=" genext2fs tune2fs"
 fi
+if [ "$TARGET_FS_TAR" != "" ]; then
+	FILESYSTEMS+=" filesystem-tar"
+	NEEDED_HOST_COMMANDS+=" tar"
+fi
 if [ "$TARGET_FS_JFFS2" != "" ]; then
 	FILESYSTEMS+=" filesystem-jffs"
 	NEEDED_HOST_COMMANDS+=" mkfs.jffs2"
@@ -67,6 +71,9 @@ hset filesystem-squash depends "filesystems"
 hset filesystem-ext dir "."
 hset filesystem-ext phases "deploy"
 hset filesystem-ext depends "filesystems"
+hset filesystem-tar dir "."
+hset filesystem-tar phases "deploy"
+hset filesystem-tar depends "filesystems"
 hset filesystem-jffs dir "."
 hset filesystem-jffs phases "deploy"
 hset filesystem-jffs depends "filesystems"
@@ -137,6 +144,17 @@ deploy-filesystem-ext() {
 	fi		
 }
 
+deploy-filesystem-tar() {
+	local out="$BUILD"/minifs-full.tar.gz
+	echo -n "     Building $out "
+	if tar zcf $out -C "$ROOTFS" ./ \
+			>>"$BUILD/._filesystem.log" 2>&1 ; then
+		echo Done
+	else
+		echo "#### ERROR"
+	fi		
+}
+
 hostcheck-filesystem-jffs() {
 	hostcheck_commands mkfs.jffs2
 }
@@ -148,11 +166,11 @@ deploy-filesystem-jffs() {
 		-r "$ROOTFS" \
 		-o "$out"  \
 		-D "$STAGING_TOOLS"/special_file_table.txt \
-			>>"$BUILD/._filesystem.log" 2>&1 ; then
+			>>"$BUILD/._filesystem_jffs.log" 2>&1 ; then
 		echo Done
 	else
 		echo "#### ERROR Generating " "$BUILD"/minifs-full-jffs2.img
-	fi		
+	fi
 }
 
 # Set TARGET_FS_INITRD to whatever format you want, remember to activate
