@@ -45,7 +45,7 @@ install-pump() {
 deploy-pump() {
 	deploy cp "$STAGING_USR"/sbin/pump "$ROOTFS"/sbin/
 }
- 
+
 # 110906 Updated 3.6.23.1 http://www.sqlite.org/ -- 3.7 is all borken and .zip
 PACKAGES+=" sqlite3"
 V="3.6.23.1"
@@ -154,7 +154,7 @@ configure-libnss() {
 	configure echo Done
 }
 compile-libnss() {
-#		SOURCE_MD_DIR=$(DISTDIR) 
+#		SOURCE_MD_DIR=$(DISTDIR)
 	local extra=""
 	local build=""
 	local nspr=""
@@ -163,7 +163,7 @@ compile-libnss() {
 		build="USE_64=1"
 		nspr="--enable-64bit"
 	fi
-	
+
 	compile make -C mozilla/security/nss \
 		nss_build_all \
 		MOZILLA_CLIENT=1 \
@@ -215,12 +215,12 @@ hset curl phases "deploy"
 hset curl configscript "curl-config"
 
 configure-libcurl() {
-	local extras="--with-random=/dev/urandom "	
+	local extras="--with-random=/dev/urandom "
 	export LDFLAGS="$LDFLAGS_RLINK"
-	if [ -d ../openssl ]; then 
+	if [ -d ../openssl ]; then
 		extras+="--with-ssl ";
 	fi
-	if [ -d ../gnutls ]; then 
+	if [ -d ../gnutls ]; then
 		extras+="--with-gnutls "
 		LDFLAGS+=" -lgcrypt -lgpg-error"
 	fi
@@ -298,7 +298,7 @@ compile-libcap() {
 		DESTDIR="$STAGING_USR"
 }
 install-libcap() {
-	install-generic RAISE_SETFCAP=no 
+	install-generic RAISE_SETFCAP=no
 }
 deploy-libcap() {
 	deploy deploy_binaries
@@ -331,7 +331,7 @@ hset evtest url "http://cgit.freedesktop.org/evtest/snapshot/evtest-1.29.tar.gz"
 configure-evtest() {
 	export LDFLAGS="$LDFLAGS_RLINK -lm"
 	configure-generic
-	export LDFLAGS="$LDFLAGS_BASE"		
+	export LDFLAGS="$LDFLAGS_BASE"
 }
 deploy-evtest(){
 	deploy deploy_binaries
@@ -357,13 +357,13 @@ hset elfutils optional "lzma"
 
 configure-elfutils-local() {
 	cat <<-END >libintl.h
-	#ifndef _LIBINTL_H 
-	#define _LIBINTL_H      1 
-	#define gettext(a)              (a) 
-	#define dgettext(a,b)           (b) 
-	#define setlocale(a, b)         ; 
-	#define bindtextdomain(a, b)    ; 
-	#define textdomain(a)           ; 
+	#ifndef _LIBINTL_H
+	#define _LIBINTL_H      1
+	#define gettext(a)              (a)
+	#define dgettext(a,b)           (b)
+	#define setlocale(a, b)         ;
+	#define bindtextdomain(a, b)    ;
+	#define textdomain(a)           ;
 	#endif
 	END
 	rm -f configure
@@ -385,7 +385,7 @@ configure-procps() {
 	# prevents errors with rpl_malloc
 	export ac_cv_func_malloc_0_nonnull=yes
 	export ac_cv_func_realloc_0_nonnull=yes
-	
+
 	sed -i -e '/AC_FUNC_MALLOC|AC_FUNC_REALLOC/d' \
 		-e "s|misc/git-version-gen .tarball-version|echo stable\|tr -d '\\n'|" \
 		configure.ac
@@ -417,4 +417,19 @@ deploy-procps-local() {
 
 deploy-procps() {
 	deploy deploy-procps-local
+}
+
+PACKAGES+=" cpuburn"
+hset cpuburn url "http://ftp.de.debian.org/debian/pool/main/c/cpuburn/cpuburn_1.4a.orig.tar.gz"
+
+compile-cpuburn() {
+	compile make -C ARM CC=$GCC
+}
+
+install-cpuburn() {
+	log_install cp ARM/burnCortexA8 "$STAGING_USR"/bin/
+}
+
+deploy-cpuburn() {
+	deploy cp "$STAGING_USR"/bin/burn* "$ROOTFS"/bin/
 }
