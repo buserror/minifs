@@ -97,7 +97,7 @@ hset libftdi depends "libusb-compat"
 
 configure-libftdi() {
 	configure-generic \
-		--disable-libftdipp 
+		--disable-libftdipp
 	# --with-async-mode # removed at 0.17
 }
 
@@ -137,6 +137,7 @@ hset mtd_utils url "http://ftp.de.debian.org/debian/pool/main/m/mtd-utils/mtd-ut
 # util-linux is only for libuuid
 hset mtd_utils depends "zlib lzo util-linux"
 hset mtd_utils deploy-list "nandwrite mtd_debug"
+hset mtd_utils deploy-ubifs 0
 
 configure-mtd_utils() {
 	configure echo Done
@@ -149,8 +150,16 @@ compile-mtd_utils() {
 install-mtd_utils() {
 	log_install echo Done
 }
+deploy-mtd_utils-local() {
+	cp $(hget mtd_utils deploy-list) "$ROOTFS/bin/"
+	if [ $(hget mtd_utils deploy-ubifs) -eq 1 ]; then
+		echo Deploying ubifs
+		cp mkfs.ubifs/mkfs.ubifs "$ROOTFS/bin/"
+		cp $(find ubi-utils/ -type f -perm -o=x) "$ROOTFS/bin/"
+	fi
+}
 deploy-mtd_utils() {
-	deploy cp $(hget mtd_utils deploy-list) "$ROOTFS/bin/"
+	deploy deploy-mtd_utils-local
 }
 
 #######################################################################
