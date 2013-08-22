@@ -1,0 +1,13 @@
+diff -uwr urjtag/urjtag/include/urjtag/bfin.h urjtag.new/urjtag/include/urjtag/bfin.h
+--- urjtag/urjtag/include/urjtag/bfin.h	2013-05-14 12:28:32.000000000 +0100
++++ urjtag.new/urjtag/include/urjtag/bfin.h	2013-08-21 11:34:21.824711245 +0100
+@@ -37,7 +37,9 @@
+ 
+ enum core_regnum
+ {
++#ifndef REG_R0
+     REG_R0 = T_REG_R, REG_R1, REG_R2, REG_R3, REG_R4, REG_R5, REG_R6, REG_R7,
++#endif
+     REG_P0 = T_REG_P, REG_P1, REG_P2, REG_P3, REG_P4, REG_P5, REG_SP, REG_FP,
+     REG_I0 = T_REG_I, REG_I1, REG_I2, REG_I3,
+     REG_M0 = T_REG_M, REG_M1, REG_M2, REG_M3,
