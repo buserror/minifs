@@ -29,6 +29,9 @@ cat << EOF | tee "$STAGING_TOOLS"/special_file_table.txt |\
 /var/cache	d    755  0    0    -    -    -    -    -
 /var/run	d    755  0    0    -    -    -    -    -
 EOF
+cat "$STAGING_TOOLS"/special_file_table.txt |
+	awk '{print $1,$2,$3,$4,$5,$6,$7}' |
+	sed 's/[- ]*$//g' >"$STAGING_TOOLS"/special_file_table_squash.txt
 
 PACKAGES+=" filesystem-prepack"
 hset filesystem-prepack url "none"
@@ -114,7 +117,7 @@ deploy-filesystem-squash() {
 	echo -n "     Building $out "
 	if mksquashfs "$ROOTFS" "$out" $(hget filesystem-squash options) \
 		-all-root \
-		-pf "$STAGING_TOOLS"/special_file_table.txt \
+		-pf "$STAGING_TOOLS"/special_file_table_squash.txt \
 			>>"$BUILD/._filesystem.log" 2>&1 ; then
 		echo Done
 	else
