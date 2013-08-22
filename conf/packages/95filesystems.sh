@@ -2,12 +2,12 @@
 
 #######################################################################
 # Create the text files used to make the device files in ROOTFS
-# the count parameter can't be used because of mksquashfs 
+# the count parameter can't be used because of mksquashfs
 # name    	type mode uid gid major minor start inc count
 #######################################################################
 cat << EOF | tee "$STAGING_TOOLS"/special_file_table.txt |\
 	awk '{nod=$2=="c"||$2=="b";print nod?"nod":"dir",$1,"0"$3,$4,$5, nod? $2" "$6" "$7:"";}' \
-	>"$STAGING_TOOLS"/special_file_table_kernel.txt 
+	>"$STAGING_TOOLS"/special_file_table_kernel.txt
 /dev		d    755  0    0    -    -    -    -    -
 /dev/console	c    600  0    0    5    1    0    0    -
 /dev/ptmx	c    666  0    0    5    2    0    0    -
@@ -100,7 +100,7 @@ deploy-filesystem-prepack() {
 	for lib in "$ROOTFS"/lib "$ROOTFS"/usr/lib; do
 		if [ -d "$lib" ]; then
 			find "$lib" -type f -exec "${CROSS}-strip" \
-				--strip-unneeded {} \; 
+				--strip-unneeded {} \;
 		fi
 	done
 	) >>"$LOGFILE" 2>&1 || {
@@ -119,10 +119,14 @@ deploy-filesystem-squash() {
 		echo Done
 	else
 		echo "#### ERROR"
-	fi		
+	fi
 }
 
 deploy-filesystem-ext() {
+	if [ $TARGET_FS_EXT -eq 0 ]; then
+		return
+	fi
+	echo "TARGET_FS_EXT $TARGET_FS_EXT"
 	local out="$BUILD"/minifs-full-ext.img
 	echo -n "     Building $out "
 	local basesize=$(du -s "$ROOTFS"|awk '{print $1;}')
@@ -141,7 +145,7 @@ deploy-filesystem-ext() {
 		echo Done
 	else
 		echo "#### ERROR"
-	fi		
+	fi
 }
 
 deploy-filesystem-tar() {
@@ -152,7 +156,7 @@ deploy-filesystem-tar() {
 		echo Done
 	else
 		echo "#### ERROR"
-	fi		
+	fi
 }
 
 hostcheck-filesystem-jffs() {
@@ -185,7 +189,7 @@ deploy-filesystem-initrd() {
 		echo Done
 	else
 		echo "#### ERROR"
-	fi		
+	fi
 }
 
 
