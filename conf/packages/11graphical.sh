@@ -64,7 +64,7 @@ configure-libfontconfig() {
 
 compile-libfontconfig() {
 	export LDFLAGS="$LDFLAGS_RLINK -lfreetype -lz -lexpat"
-	compile-generic V=1 
+	compile-generic V=1
 	export LDFLAGS="$LDFLAGS_BASE"
 }
 
@@ -73,7 +73,7 @@ deploy-libfontconfig-local() {
 #	rsync -av \
 #		"$STAGING_USR"/etc/fonts \
 #		"$ROOTFS"/etc/ \
-#			&>> "$LOGFILE" 
+#			&>> "$LOGFILE"
 }
 
 deploy-libfontconfig() {
@@ -89,11 +89,11 @@ hset libpixman url "http://xorg.freedesktop.org/archive/individual/lib/pixman-0.
 configure-libpixman() {
 	local extras=""
 	if [ "$TARGET_META_ARCH" == "armv7" ]; then
-		extras+=" --enable-arm-simd --enable-arm-neon"	
+		extras+=" --enable-arm-simd --enable-arm-neon"
 	elif [ "$TARGET_ARCH" == "arm" ]; then
 		# won't work in thumb
 		export CFLAGS="${CFLAGS//-mthumb[^-]/-marm }"
-		extras+=" --disable-arm-simd --disable-arm-neon"	
+		extras+=" --disable-arm-simd --disable-arm-neon"
 	fi
 	configure-generic \
 		--disable-gtk \
@@ -179,8 +179,12 @@ PACKAGES+=" fbi"
 hset fbi url "http://ftp.de.debian.org/debian/pool/main/f/fbi/fbi_2.07.orig.tar.gz"
 hset fbi depends "libpng libjpeg libexif libfreetype libfontconfig"
 
+configure-fbi-local() {
+	sed -i -s 's/png_set_gray_1_2_4_to_8/png_set_expand_gray_1_2_4_to_8/g' rd/read-png.c
+	sed -i -e 's/sys_siglist.*/strsignal(termsig));/g' fbtools.c
+}
 configure-fbi() {
-	configure sed -i -e 's/sys_siglist.*/strsignal(termsig));/g' fbtools.c
+	configure configure-fbi-local
 }
 compile-fbi() {
 	(
@@ -201,7 +205,7 @@ PACKAGES+=" fbset"
 hset fbset url "http://ftp.de.debian.org/debian/pool/main/f/fbset/fbset_2.1.orig.tar.gz"
 
 compile-fbset() {
-	compile $MAKE CC=$GCC 
+	compile $MAKE CC=$GCC
 }
 install-fbset() {
 	log_install echo done
