@@ -10,7 +10,7 @@ hset mDNSResponder url "http://www.opensource.apple.com/darwinsource/tarballs/ot
 hset mDNSResponder depends "busybox"
 
 configure-mDNSResponder() {
-	configure echo Done
+	configure sed -i -e 's|/var/run|/tmp/run|g' mDNSPosix/Makefile
 }
 
 compile-mDNSResponder-local() {
