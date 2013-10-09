@@ -1,0 +1,160 @@
+diff -crw urjtag.git/urjtag/include/urjtag/cable.h urjtag.new/urjtag/include/urjtag/cable.h
+*** urjtag.git/urjtag/include/urjtag/cable.h	Tue May 14 12:28:32 2013
+--- urjtag.new/urjtag/include/urjtag/cable.h	Wed Oct  9 17:09:03 2013
+***************
+*** 66,71 ****
+--- 66,72 ----
+      URJ_CABLE_PARAM_KEY_INTERFACE,      /* lu           ftdi */
+      URJ_CABLE_PARAM_KEY_FIRMWARE,       /* string       ice100 */
+      URJ_CABLE_PARAM_KEY_INDEX,          /* lu           ftdi */
++     URJ_CABLE_PARAM_KEY_INVERT,         /* bool			gpio inverted logic */
+  }
+  urj_cable_param_key_t;
+  
+diff -crw urjtag.git/urjtag/src/tap/cable/gpio.c urjtag.new/urjtag/src/tap/cable/gpio.c
+*** urjtag.git/urjtag/src/tap/cable/gpio.c	Tue May 14 12:28:33 2013
+--- urjtag.new/urjtag/src/tap/cable/gpio.c	Wed Oct  9 17:08:04 2013
+***************
+*** 57,62 ****
+--- 57,63 ----
+      int          signals;
+      uint32_t     lastout;
+      int          fd_gpios[4];
++     int          not;
+  } gpio_params_t;
+  
+  static int gpio_export (unsigned int gpio, int export)
+***************
+*** 220,225 ****
+--- 221,227 ----
+      cable_params->jtag_gpios[GPIO_TDO] = GPIO_REQUIRED;
+      cable_params->jtag_gpios[GPIO_TMS] = GPIO_REQUIRED;
+      cable_params->jtag_gpios[GPIO_TCK] = GPIO_REQUIRED;
++     cable_params->not = 0;
+      if (params != NULL)
+          /* parse arguments beyond the cable name */
+          for (i = 0; params[i] != NULL; i++)
+***************
+*** 238,243 ****
+--- 240,248 ----
+              case URJ_CABLE_PARAM_KEY_TCK:
+                  cable_params->jtag_gpios[GPIO_TCK] = params[i]->value.lu;
+                  break;
++             case URJ_CABLE_PARAM_KEY_INVERT:
++ 				cable_params->not = params[i]->value.enabled ? 1 : 0;
++ 				break;
+              default:
+                  break;
+              }
+***************
+*** 245,250 ****
+--- 250,258 ----
+  
+      urj_log (URJ_LOG_LEVEL_NORMAL,
+          _("Initializing GPIO JTAG Chain\n"));
++ 	if (cable_params->not)
++ 		urj_log (URJ_LOG_LEVEL_NORMAL,
++ 			_("Note: Using inverted GPIO logic\n"));
+  
+      /*
+       * We need to configure the cable only once. Next time
+***************
+*** 309,322 ****
+      tms = tms ? 1 : 0;
+      tdi = tdi ? 1 : 0;
+  
+!     gpio_set_value (p->fd_gpios[GPIO_TMS], tms);
+!     gpio_set_value (p->fd_gpios[GPIO_TDI], tdi);
+  
+      for (i = 0; i < n; i++)
+      {
+!         gpio_set_value (p->fd_gpios[GPIO_TCK], 0);
+!         gpio_set_value (p->fd_gpios[GPIO_TCK], 1);
+!         gpio_set_value (p->fd_gpios[GPIO_TCK], 0);
+      }
+  }
+  
+--- 317,330 ----
+      tms = tms ? 1 : 0;
+      tdi = tdi ? 1 : 0;
+  
+!     gpio_set_value (p->fd_gpios[GPIO_TMS], tms ^ p->not);
+!     gpio_set_value (p->fd_gpios[GPIO_TDI], tdi ^ p->not);
+  
+      for (i = 0; i < n; i++)
+      {
+!         gpio_set_value (p->fd_gpios[GPIO_TCK], 0 ^ p->not);
+!         gpio_set_value (p->fd_gpios[GPIO_TCK], 1 ^ p->not);
+!         gpio_set_value (p->fd_gpios[GPIO_TCK], 0 ^ p->not);
+      }
+  }
+  
+***************
+*** 325,338 ****
+  {
+      gpio_params_t *p = cable->params;
+  
+!     gpio_set_value(p->fd_gpios[GPIO_TCK], 0);
+!     gpio_set_value(p->fd_gpios[GPIO_TDI], 0);
+!     gpio_set_value(p->fd_gpios[GPIO_TMS], 0);
+      p->lastout &= ~(URJ_POD_CS_TMS | URJ_POD_CS_TDI | URJ_POD_CS_TCK);
+  
+      urj_tap_cable_wait (cable);
+  
+!     return gpio_get_value (p->fd_gpios[GPIO_TDO], p->jtag_gpios[GPIO_TDO]);
+  }
+  
+  static int
+--- 333,346 ----
+  {
+      gpio_params_t *p = cable->params;
+  
+! 	gpio_set_value(p->fd_gpios[GPIO_TCK], 0 ^ p->not);
+!     gpio_set_value(p->fd_gpios[GPIO_TDI], 0 ^ p->not);
+!     gpio_set_value(p->fd_gpios[GPIO_TMS], 0 ^ p->not);
+      p->lastout &= ~(URJ_POD_CS_TMS | URJ_POD_CS_TDI | URJ_POD_CS_TCK);
+  
+      urj_tap_cable_wait (cable);
+  
+!     return gpio_get_value (p->fd_gpios[GPIO_TDO], p->jtag_gpios[GPIO_TDO]) ^ p->not;
+  }
+  
+  static int
+***************
+*** 360,370 ****
+      if (mask != 0)
+      {
+          if (mask & URJ_POD_CS_TMS)
+!             gpio_set_value (p->fd_gpios[GPIO_TMS], val & URJ_POD_CS_TMS);
+          if (mask & URJ_POD_CS_TDI)
+!             gpio_set_value (p->fd_gpios[GPIO_TDI], val & URJ_POD_CS_TDI);
+          if (mask & URJ_POD_CS_TCK)
+!             gpio_set_value (p->fd_gpios[GPIO_TCK], val & URJ_POD_CS_TCK);
+      }
+  
+      p->lastout = val & mask;
+--- 368,378 ----
+      if (mask != 0)
+      {
+          if (mask & URJ_POD_CS_TMS)
+!             gpio_set_value (p->fd_gpios[GPIO_TMS], (!!(val & URJ_POD_CS_TMS)) ^ p->not);
+          if (mask & URJ_POD_CS_TDI)
+!             gpio_set_value (p->fd_gpios[GPIO_TDI], (!!(val & URJ_POD_CS_TDI)) ^ p->not);
+          if (mask & URJ_POD_CS_TCK)
+!             gpio_set_value (p->fd_gpios[GPIO_TCK], (!!(val & URJ_POD_CS_TCK)) ^ p->not);
+      }
+  
+      p->lastout = val & mask;
+diff -crw urjtag.git/urjtag/src/tap/cable.c urjtag.new/urjtag/src/tap/cable.c
+*** urjtag.git/urjtag/src/tap/cable.c	Tue May 14 12:28:33 2013
+--- urjtag.new/urjtag/src/tap/cable.c	Wed Oct  9 17:03:49 2013
+***************
+*** 683,688 ****
+--- 683,689 ----
+      { URJ_CABLE_PARAM_KEY_INTERFACE,    URJ_PARAM_TYPE_LU,      "interface", },
+      { URJ_CABLE_PARAM_KEY_FIRMWARE,     URJ_PARAM_TYPE_STRING,  "firmware", },
+      { URJ_CABLE_PARAM_KEY_INDEX,        URJ_PARAM_TYPE_LU,      "index", },
++     { URJ_CABLE_PARAM_KEY_INVERT,       URJ_PARAM_TYPE_BOOL,    "invert", },
+  };
+  
+  const urj_param_list_t urj_cable_param_list =
