@@ -49,15 +49,16 @@ deploy-filesystem-populate() {
 		"$STAGING/etc/" \
 		"$STAGING_USR/etc/" \
 		"$ROOTFS/etc/"
-	mv "$ROOTFS"/usr/etc/* "$ROOTFS"/etc/ 
+	mv "$ROOTFS"/usr/etc/* "$ROOTFS"/etc/
 	rm -rf "$ROOTFS"/usr/etc/ "$ROOTFS"/usr/var/
 	ln -s ../etc $ROOTFS/usr/etc
 	ln -s ../var $ROOTFS/usr/var
 	echo minifs-$MINIFS_BOARD >$ROOTFS/etc/hostname
-	echo "minifs-$MINIFS_BOARD-" | \
-		awk '{ print $0 strftime("%Y%m%d%H%M"); }' \
-			>$ROOTFS/etc/minifs.tag
-			
+	tag=$(echo "minifs-$MINIFS_BOARD-" | \
+		awk '{ print $0 strftime("%Y%m%d%H%M"); }')
+	echo $tag >$ROOTFS/etc/minifs.tag
+	export MINIFS_TAG=$tag
+
 	## Add rootfs overrides for boards
 	for pd in $(minifs_locate_config_path rootfs 1); do
 		if [ -d "$pd" ]; then
