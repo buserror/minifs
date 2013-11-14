@@ -1,10 +1,10 @@
 /*
  * fat_find.c
- * 
+ *
  * (C) 2010 Michel Pollet <buserror@gmail.com>
  *
- * This tool is made to scan the system for FAT partitions that meet 
- * a set of criteria, and allow quick extraction of files without 
+ * This tool is made to scan the system for FAT partitions that meet
+ * a set of criteria, and allow quick extraction of files without
  * having to mount the filesystem.
  * The tool can also synlink the partition that matched to allow quick
  * access later to mount it if necessary.
@@ -13,17 +13,19 @@
  * modify it under the terms of the GNU Library General Public
  * License as published by the Free Software Foundation; either
  * version 2 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this library; if not, write to the
  * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
  * Boston, MA  02110-1301, USA.
  */
+#define _GNU_SOURCE	// for fnmatch
+#include <features.h>
 #include <sys/types.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -37,6 +39,10 @@
 // from thirdparty
 #include <libfatint.h>
 
+#if !defined(__UCLIBC_MAJOR__) || defined(__UCLIBC_HAS_FNMATCH__)
+#define CONFIG_FNMATCH 1
+#include <fnmatch.h>
+#endif
 
 struct lookupList {
 	int count;
@@ -46,7 +52,10 @@ struct lookupList {
 
 struct volume_id_file {
 	char name[32];
-	char longname[32];
+	char longname[4 * 32 + 1];
+
+	char lfn[4][32 + 1];
+
 	int32_t cluster;
 	uint32_t size;
 
@@ -136,7 +145,7 @@ readfunc(
 }
 
 
-uint32_t
+ssize_t
 volume_id_read_file(
 		struct volume_id *id,
 		struct volume_id_file *file,
@@ -157,9 +166,11 @@ volume_id_read_file(
 			return -1; /* Read error */
 		uint32_t data = size > LIBFAT_SECTOR_SIZE ? LIBFAT_SECTOR_SIZE : size;
 
-	//	printf("Writing %d\n", data);
+		// printf("Writing %d (%8d remains)\n", data, size);
 		write(outfd, block, data);
 		size -= data;
+		// flush the sector too, we don't want to keep data around!
+		libfat_flush(fs);
 
 		s = libfat_nextsector(fs, s);
 	}
@@ -208,7 +219,9 @@ volume_id_read_dir(
 
 			/* long name */
 			if ((dep->attribute & FAT_ATTR_MASK) == FAT_ATTR_LONG_NAME) {
-				longname_extract((uint8_t*)dep, file.longname);
+				int lfni = (((uint8_t*)dep)[0] & 0xf) - 1;
+				if (lfni < 4)
+					longname_extract((uint8_t*)dep, file.lfn[lfni]);
 				continue;
 			}
 
@@ -218,8 +231,12 @@ volume_id_read_dir(
 					continue;
 				//res = dep->name;
 			}
-
+			for (int i = 0; i < 4; i++) {
+			//	printf("lfn[%d] = '%s'\n", i, file.lfn[i]);
+				strcat(file.longname, file.lfn[i]);
+			}
 			shortname_extract((uint8_t*)dep, file.name);
+		//	printf("  %s: '%s'\n", file.name, file.longname);
 			file.entry = *dep;
 			file.sector = s;
 			file.offset = nent;
@@ -284,6 +301,20 @@ int read_sys_int(const char * path, const char * name, int * res)
 	return 0;
 }
 
+int
+filename_match(
+	const char * name,
+	const struct volume_id_file * file )
+{
+#ifdef CONFIG_FNMATCH
+	return !fnmatch(name, file->longname, FNM_CASEFOLD) ||
+			!fnmatch(name, file->name, FNM_CASEFOLD);
+#else
+	return !strcasecmp(name, file->longname) ||
+			!strcasecmp(name, file->name);
+#endif
+}
+
 int main(int argc, char ** argv)
 {
 	struct lookupList expect = {0};
@@ -292,6 +323,7 @@ int main(int argc, char ** argv)
 	const char * outdir = "/tmp/rw";
 	const char * link = NULL; // "/tmp/rw/root";
 	int verbose = 0;
+	int list = 0, any = 0;
 
 	for (int i = 1; i < argc; i++) {
 		if (!strcmp("-e", argv[i]) || !strcmp("--expect", argv[i])) {
@@ -304,15 +336,25 @@ int main(int argc, char ** argv)
 			outdir = argv[++i];
 		} else if (!strcmp("-l", argv[i]) || !strcmp("--link", argv[i])) {
 			link = argv[++i];
+		} else if (!strcmp("-L", argv[i]) || !strcmp("--list", argv[i])) {
+			list++;
+		} else if (!strcmp("-a", argv[i]) || !strcmp("--any", argv[i])) {
+			any++;
 		} else if (!strcmp("-v", argv[i])) {
 			verbose++;
 		} else {
-			fprintf(stderr, "%s\n"
+			fprintf(stderr, "%s"
+#ifdef CONFIG_FNMATCH
+					" (with fnmatch support)"
+#endif
+					"\n"
 					"\t[-e|--expect] <filename> : only select FS with <filename> present\n"
 					"\t[-p|--print] <filename>] : print <filename> on console, if present\n"
 					"\t[-o|--out] <dir> : destination for copied files (optional, def /tmp/rw)\n"
 					"\t[-c|--copy] <filename> : copy <filename> to local directory\n"
 					"\t[-l|--link] <name> : symlink found device to <name>\n"
+					"\t[-L|--list] : print device+filename of 'expected' files found\n"
+					"\t[-a|--any] : expect/list any of the files specified\n"
 					"\t[-v] : verbose mode\n",
 					argv[0]);
 			exit(0);
@@ -391,34 +433,47 @@ int main(int argc, char ** argv)
 
 		if (verbose)
 			for (int j = 0; j < p->root.count; j++)
-				printf("\t'%s' %u\n", p->root.entry[j].longname,
+				printf("\t'%s':'%s' %u\n", p->root.entry[j].name,
+						p->root.entry[j].longname,
 						read32(&p->root.entry[j].entry.size));
 
 		for (int ei = 0; ei < expect.count; ei++) {
 			int found = 0;
 			for (int j = 0; j < p->root.count; j++) {
-				if (!strcasecmp(expect.name[ei], p->root.entry[j].longname) ||
-					!strcasecmp(expect.name[ei], p->root.entry[j].name)) {
+				if (filename_match(expect.name[ei], &p->root.entry[j])) {
 					found++;
 					if (verbose)
-						printf("%s: found '%s'\n", p->dev, expect.name[ei]);
+						printf("%s: found '%s'/'%s'\n", p->dev, expect.name[ei], p->root.entry[j].longname);
+					if (list) {
+						char *name = p->root.entry[j].longname[0] ?
+										p->root.entry[j].longname :
+										p->root.entry[j].name;
+						char * quot = "";
+						for (char *s = name; *s && !quot; s++)
+							if (index(" \'", *s))
+								quot = "\"";
+							else if (index("\"", *s))
+								quot = "'";
+
+						printf("%s%s%s ", quot, name, quot);
+					}
 					break;
 				}
 			}
-			if (!found) {
-				printf("%s: '%s' NOT found, discarding\n", p->dev, expect.name[ei]);
+			if (!found && !any) {
+				if (verbose)
+					printf("%s: '%s' NOT found, discarding\n", p->dev, expect.name[ei]);
 				p = partition[i] = NULL;
 				break;
 			}
 		}
 		if (!p)
 			continue;
-
-		printf("%s ", p->dev);
+		if (!list)
+			printf("%s ", p->dev);
 		for (int pi = 0; pi < print.count; pi++) {
 			for (int j = 0; j < p->root.count; j++) {
-				if (!strcasecmp(print.name[pi], p->root.entry[j].longname) ||
-					!strcasecmp(print.name[pi], p->root.entry[j].name)) {
+				if (filename_match(print.name[pi], &p->root.entry[j])) {
 
 					if (verbose)
 						printf("%s: print '%s' (%d)\n",
@@ -445,9 +500,7 @@ int main(int argc, char ** argv)
 
 		for (int pi = 0; pi < copy.count; pi++) {
 			for (int j = 0; j < p->root.count; j++) {
-				if (!strcasecmp(copy.name[pi], p->root.entry[j].longname) ||
-					!strcasecmp(copy.name[pi], p->root.entry[j].name)) {
-
+				if (filename_match(copy.name[pi], &p->root.entry[j])) {
 					if (verbose)
 						printf("%s: copy '%s' (%d) to %s\n",
 							p->dev, copy.name[pi],
