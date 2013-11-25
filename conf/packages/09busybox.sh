@@ -28,8 +28,12 @@ install-busybox() {
 	log_install echo Done
 }
 
+deploy-busybox-local() {
+	$MAKE CROSS_COMPILE="${CROSS}-" CFLAGS="$TARGET_CFLAGS" CONFIG_PREFIX="$ROOTFS" install
+}
+
 deploy-busybox() {
-	deploy $MAKE CROSS_COMPILE="${CROSS}-" CFLAGS="$TARGET_CFLAGS" CONFIG_PREFIX="$ROOTFS" install
+	deploy deploy-busybox-local
 }
 
 PACKAGES+=" filesystem-populate"
