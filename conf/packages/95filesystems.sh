@@ -115,6 +115,7 @@ deploy-filesystem-prepack() {
 deploy-filesystem-squash() {
 	local out="$BUILD"/minifs-full-squashfs.img
 	echo -n "     Building $out "
+	rm -f "$out"
 	if mksquashfs "$ROOTFS" "$out" $(hget filesystem-squash options) \
 		-all-root \
 		-pf "$STAGING_TOOLS"/special_file_table_squash.txt \
