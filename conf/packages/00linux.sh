@@ -66,7 +66,7 @@ configure-linux-headers() {
 compile-linux-headers() {
 	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE=$(linux-get-cross) \
-			oldconfig			
+			oldconfig
 }
 
 install-linux-headers-local() {
@@ -91,9 +91,9 @@ if [ "$CONFIG_MODULES" != "" ]; then
 fi
 
 hset linux-modules depends "linux-headers crosstools rootfs-create"
-	
+
 setup-linux-modules() {
-	if [ "$BUILD/linux-obj/.config-bare" -nt ._conf_linux-bare ]; then		
+	if [ "$BUILD/linux-obj/.config-bare" -nt ._conf_linux-bare ]; then
 		rm -f ._conf_linux-modules ._conf_linux-bare
 	fi
 }
@@ -112,7 +112,7 @@ install-linux-modules() {
 	log_install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE=$(linux-get-cross) \
 		INSTALL_HDR_PATH="$KERNEL" INSTALL_MOD_PATH="$KERNEL" \
-			modules_install 
+			modules_install
 }
 deploy-linux-modules() {
 	deploy rsync -a --exclude source --exclude build "$KERNEL"/lib "$ROOTFS/"
@@ -177,13 +177,17 @@ hset linux-initrd depends "filesystems"
 hset linux-initrd phases "deploy"
 
 setup-linux-initrd() {
+	ROOTFS_INITRD="../rootfs"
+	optional_one_of \
+		$MINIFS_BOARD-setup-initrd \
+		setup-initrd || break
 	mkdir -p "$BUILD/linux-obj"
 	touch ._conf_linux-initrd
 	local conf=$(minifs_locate_config_path config_kernel.conf)
 	[[ "$conf" == "" ]] && conf="$CONFIG/config_kernel.conf"
 	if [ ! -f "$BUILD/linux-obj/.config-initrd" -o \
 		"$conf" -nt "$BUILD/linux-obj/.config-initrd" ]; then
-		sed -e 's|CONFIG_INITRAMFS_SOURCE=.*|CONFIG_INITRAMFS_SOURCE="../rootfs ../staging-tools/special_file_table_kernel.txt"|' \
+		sed -e "s|CONFIG_INITRAMFS_SOURCE=.*|CONFIG_INITRAMFS_SOURCE=\"$ROOTFS_INITRD ../staging-tools/special_file_table_kernel.txt\"|" \
 			"$conf" \
 			>"$BUILD"/linux-obj/.config-initrd
 		rm -f ._conf_linux-initrd
@@ -222,7 +226,7 @@ deploy-linux-initrd() {
 	elif [ -f "$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/uImage ]; then
 		deploy dd if="$BUILD"/linux-obj/arch/arm/boot/uImage \
 			of="$BUILD"/kernel-initrd.ub \
-			bs=128k conv=sync 
+			bs=128k conv=sync
 	elif [ -f "$BUILD"/linux-obj/$TARGET_KERNEL_NAME ]; then
 		deploy cp "$BUILD"/linux-obj/$TARGET_KERNEL_NAME \
 			"$BUILD"/$TARGET_KERNEL_NAME-full.bin
@@ -231,7 +235,7 @@ deploy-linux-initrd() {
 
 #######################################################################
 ## linux-dtb
-# 
+#
 # This bit compiles a device tree file from a source that is either
 # in the board config directory, or in the linux source tree itself
 # it gets compiled witht he 'dtc' tool that is made at the same time
@@ -248,11 +252,11 @@ deploy-linux-dtb-local() {
 	set -x
 	local dtb="$BUILD/$TARGET_KERNEL_DTB".dtb
 	local source=$(minifs_locate_config_path "$TARGET_KERNEL_DTB".dts)
-	
+
 	if [ ! -f "$source" ]; then
-		source="$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/$TARGET_KERNEL_DTB".dts		
+		source="$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/$TARGET_KERNEL_DTB".dts
 		if [ ! -f "$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/$TARGET_KERNEL_DTB".dts ]; then
-			echo "*** Unable to find a matching $TARGET_KERNEL_DTB.dts" 
+			echo "*** Unable to find a matching $TARGET_KERNEL_DTB.dts"
 			return 1
 		fi
 	fi
@@ -294,7 +298,7 @@ configure-linux-perf() {
 compile-linux-perf() {
 	compile $MAKE EXTRA_CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE=$(linux-get-cross) V=1 \
-		WERROR=0 NO_GTK2=1 NO_LIBPERL=1 NO_LIBPYTHON=1 
+		WERROR=0 NO_GTK2=1 NO_LIBPERL=1 NO_LIBPYTHON=1
 }
 
 deploy-linux-perf() {
