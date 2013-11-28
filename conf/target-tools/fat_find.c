@@ -439,11 +439,15 @@ int main(int argc, char ** argv)
 
 		for (int ei = 0; ei < expect.count; ei++) {
 			int found = 0;
+			if (verbose)
+				printf("%s (%d files): exect any: %d: '%s'\n",
+						p->dev, p->root.count, any, expect.name[ei]);
 			for (int j = 0; j < p->root.count; j++) {
+				if (verbose) printf("%s: '%s'\n", p->dev, p->root.entry[j].longname);
 				if (filename_match(expect.name[ei], &p->root.entry[j])) {
 					found++;
 					if (verbose)
-						printf("%s: found '%s'/'%s'\n", p->dev, expect.name[ei], p->root.entry[j].longname);
+						printf("%s: '%s' matches\n", p->dev, p->root.entry[j].longname);
 					if (list) {
 						char *name = p->root.entry[j].longname[0] ?
 										p->root.entry[j].longname :
@@ -457,7 +461,8 @@ int main(int argc, char ** argv)
 
 						printf("%s%s%s ", quot, name, quot);
 					}
-					break;
+					if (!any)
+						break;
 				}
 			}
 			if (!found && !any) {
