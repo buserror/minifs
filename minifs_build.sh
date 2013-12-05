@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# prerequisites : 
+# prerequisites :
 # libtool, bison, flex, genext2fs, squashfs, svn -- probably more
 # u-boot-mkimage -- for the arm targets
 
 #######################################################################
-# 
+#
 # (C) Michel Pollet <buserror@gmail.com>
 #
 #######################################################################
@@ -37,7 +37,7 @@ MINIFS_BOARD=${MINIFS_BOARD/-*}
 #
 # if you want a .dot and .pdf file with all the .elf dependencies
 # in your build folder, add this to your environment, you'll need
-# GraphViz obviously 
+# GraphViz obviously
 # export CROSS_LINKER_DEPS=1
 #######################################################################
 
@@ -137,15 +137,15 @@ TARGET_SHARED=0
 
 # compile the "tools" for the host
 ( 	set -x
-	make -C "$CONF_BASE"/host-tools DESTDIR="$STAGING_TOOLS" 
+	make -C "$CONF_BASE"/host-tools DESTDIR="$STAGING_TOOLS"
 ) >"$BUILD"/._tools.log 2>&1 || \
 	( echo '## Unable to build tools :'; cat  "$BUILD"/._tools.log; exit 1 ) || exit 1
 rm -f /tmp/pkg-config.log
 if [ "$COMMAND" == "tools" ]; then exit ;fi
 
-hset busybox version "1.21.0"
+hset busybox version "1.21.1"
 hset linux version "2.6.32.2"
-hset crosstools version "1.16.0"
+hset crosstools version "1.19.0"
 
 # PATH needs sbin (for depmod), the host tools, and the cross toolchain
 export BASE_PATH="$PATH"
@@ -156,11 +156,11 @@ export CC="ccfix $TARGET_FULL_ARCH-gcc"
 export CXX="ccfix $TARGET_FULL_ARCH-g++"
 export LD="ccfix $TARGET_FULL_ARCH-ld"
 
-export TARGET_CPPFLAGS="-I$STAGING/include -I$STAGING_USR/include" 
+export TARGET_CPPFLAGS="-I$STAGING/include -I$STAGING_USR/include"
 export CPPFLAGS="$TARGET_CPPFLAGS"
 export LDFLAGS_BASE="-L$STAGING/lib -L$STAGING_USR/lib"
-export CFLAGS="$TARGET_CFLAGS" 
-export CXXFLAGS="$CFLAGS" 
+export CFLAGS="$TARGET_CFLAGS"
+export CXXFLAGS="$CFLAGS"
 export LIBC_CFLAGS="${TARGET_LIBC_CFLAGS:-$TARGET_CFLAGS}"
 export PKG_CONFIG_PATH="$STAGING/lib/pkgconfig:$STAGING_USR/lib/pkgconfig:$STAGING_USR/share/pkgconfig"
 export PKG_CONFIG_LIBDIR="" # do not search local paths
@@ -182,7 +182,7 @@ fi
 NEEDED_HOST_COMMANDS+=" curl svn cvs svn lzma"
 
 #######################################################################
-# PACKAGES is the entire list of possible packages, as filled by the 
+# PACKAGES is the entire list of possible packages, as filled by the
 # conf/packages/*.sh scripts, in their ideal build order.
 # TARGET_PACKAGES are the ones requested by the target build script, in any
 # order
@@ -227,14 +227,14 @@ package_files=$(filename_sort $package_files)
 # echo $package_files
 
 #######################################################################
-## Source all the package files in order. 
+## Source all the package files in order.
 ## Attempts at setting them in 'groups' that is set via the
 ## XXfilename.sh numerical order
 ##
 ## This is not used for the moment
 #######################################################################
 fid=0
-for p in $package_files; do 
+for p in $package_files; do
 	name=$(basename $p)
 	order=$(expr match "$name" '0*\([0-9]*\)')
 #	echo $p $order
@@ -285,7 +285,7 @@ fi
 export TARGET_PACKAGES
 while true; do
 	changed=0; newlist=""
-	for wpack in $TARGET_PACKAGES; do 
+	for wpack in $TARGET_PACKAGES; do
 		targets=$(hget $wpack targets)
 		targets=${targets:-$wpack}
 		for pack in $targets; do
@@ -305,7 +305,7 @@ done
 ## Give a chance to each package to cry for help, before downloading
 #######################################################################
 HOSTCHECK_FAILED=0
-for package in $TARGET_PACKAGES; do 
+for package in $TARGET_PACKAGES; do
 	PACKAGE=$package
 	optional_one_of \
 		$MINIFS_BOARD-hostcheck-$package \
@@ -322,7 +322,7 @@ compile-host-tools
 #######################################################################
 pushd download >/dev/null
 # echo TARGET_PACKAGES $TARGET_PACKAGES
-for package in $TARGET_PACKAGES; do 
+for package in $TARGET_PACKAGES; do
 	fil=$(hget $package url)
 
 	if [ "$fil" = "" ]; then continue ; fi
@@ -331,9 +331,9 @@ for package in $TARGET_PACKAGES; do
 	# to the list of the ones we want to build
 	targets=$(hget $package targets)
 	BUILD_PACKAGES+=" ${targets:-$package}"
-	
+
 	if [ "$fil" = "none" ]; then  continue ; fi
-	
+
 	proto=${fil/!*}
 	fil=${fil/*!}
 	base=${fil/*\//}
@@ -344,7 +344,7 @@ for package in $TARGET_PACKAGES; do
 	host=${url/*:\/\/}
 	host=${host/\/*}
 	#echo "base=$base typ=$typ loc=$loc vers=$vers"
-	 
+
 	# maybe the package has a magic downloader ?
 	optional download-$package
 
@@ -365,7 +365,7 @@ for package in $TARGET_PACKAGES; do
 			svn)	if [ ! -d "$package.svn" ]; then
 					echo "#### svn clone $url $package.git"
 					svnopt=$(hget $package svnopt)
-					case "$svnopt" in 
+					case "$svnopt" in
 						none) svnopt=""; ;;
 						*) svnopt="-s"; ;;
 					esac
@@ -382,7 +382,7 @@ for package in $TARGET_PACKAGES; do
 			;;
 			*) $WGET "$url" -O "$loc" || { rm -f "$loc"; exit 1; } ;;
 		esac
-	elif [ "$COMMAND_PACKAGE" = "download" ]; then 
+	elif [ "$COMMAND_PACKAGE" = "download" ]; then
 		echo -n Verifying $package URL
 		case "$proto" in
 			git|svn) echo " skipped ($proto)" ;;
@@ -390,9 +390,9 @@ for package in $TARGET_PACKAGES; do
 					*.googlecode.com) echo " skipped (borken googlecode)" ;;
 					*) if ! declare -F "download-$package" >/dev/null ; then
 							$WGET \
-								-q --spider --tries=5 "$url" || { 
+								-q --spider --tries=5 "$url" || {
 								echo; echo "ERROR: $url" ;
-								exit 1;
+							#	exit 1;
 							}
 							echo " done"
 						else
@@ -431,7 +431,7 @@ for package in $TARGET_PACKAGES; do
 		if [ "$fil" != "$old" ]; then
 			echo "  ++  Rebuilding $baseroot "
 			remove_package $baseroot
-		fi 
+		fi
 	fi
 	if [ ! -d "$BUILD/$baseroot" ]; then
 		echo "####  Extracting $loc to $BUILD/$baseroot ($typ)"
@@ -465,9 +465,9 @@ for package in $TARGET_PACKAGES; do
 					done
 				popd
 			fi
-		done 
+		done
 		pushd "$BUILD/$baseroot"
-		echo Trying optional_one_of $MINIFS_BOARD-patch-$baseroot patch-$baseroot 
+		echo Trying optional_one_of $MINIFS_BOARD-patch-$baseroot patch-$baseroot
 		optional_one_of \
 			$MINIFS_BOARD-patch-$baseroot \
 			patch-$baseroot || break
@@ -496,7 +496,7 @@ configure-generic-local() {
 				--prefix="$PACKAGE_PREFIX" \
 				--sysconfdir=$sysconf
 		elif [ -f configure.ac -o -f configure.in ]; then
-			$ACLOCAL && libtoolize --copy --force --automake 
+			$ACLOCAL && libtoolize --copy --force --automake
 			autoreconf --force #;libtoolize;automake --add-missing
 		fi
 	fi
@@ -508,7 +508,7 @@ configure-generic-local() {
 			--sysconfdir=$sysconf \
 			"$@" || ret=1
 	else
-		echo Nothing to configure 
+		echo Nothing to configure
 	fi
 	set +x ;return $ret
 }
@@ -543,7 +543,7 @@ install-generic-local() {
 	# Check to see if there are lame comfig scripts around
 	scr=$(hget $PACKAGE configscript)
 	if [ "$scr" != "" ]; then
-		for sc in "$STAGING_USR"/bin/$scr "$STAGING"/bin/$scr; do 
+		for sc in "$STAGING_USR"/bin/$scr "$STAGING"/bin/$scr; do
 			if [ -x "$sc" ]; then
 				sed -e "s|=/usr|=$STAGING_USR|g" \
 					-e "s|=\"/usr|=\"$STAGING_USR|g" "$sc" \
@@ -588,7 +588,7 @@ DEPLIST=""
 #echo PACKAGES $PACKAGES
 # echo BUILD_PACKAGES $BUILD_PACKAGES
 export BUILD_PACKAGES
-for pack in $PACKAGES; do 
+for pack in $PACKAGES; do
 	# check to see if that package was requested, otherwise, skip it
 	dobuild=0
 	if env_contains BUILD_PACKAGES $pack; then
@@ -608,7 +608,7 @@ PROCESS_PACKAGES=$(echo $DEPLIST|depsort 2>/tmp/depsort.log)
 
 #######################################################################
 ## Build each packages
-## 
+##
 ## We don't do the 'deploy' phase in this pass, so they get all
 ## grouped later in the following pass
 #######################################################################
@@ -628,7 +628,7 @@ process_one_package() {
 }
 
 for pack in $PROCESS_PACKAGES; do
-	if [ ! -d $(get_package_dir $pack) ]; then 
+	if [ ! -d $(get_package_dir $pack) ]; then
 		echo "$BUILD/$dir" will not be built
 		continue
 	fi
@@ -659,7 +659,7 @@ while true; do fg 2>/dev/null || break; done
 #######################################################################
 echo "Deploying packages"
 # this pass does just the 'deploy' bits
-for pack in $PROCESS_PACKAGES; do 	
+for pack in $PROCESS_PACKAGES; do
 	if [ ! -d $(get_package_dir $pack) ]; then
 		echo "$BUILD/$dir" will not be deployed
 		continue;
@@ -667,7 +667,7 @@ for pack in $PROCESS_PACKAGES; do
 	package $pack
 		phases=$(hget $pack phases)
 		phases=${phases:-$DEFAULT_PHASES}
-		
+
 		for ph in $phases; do
 			if [[ $ph != "deploy" ]]; then continue ;fi
 			optional_one_of \
