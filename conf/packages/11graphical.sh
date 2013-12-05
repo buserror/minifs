@@ -15,8 +15,13 @@ hset libtiff url "ftp://ftp.remotesensing.org/pub/libtiff/tiff-3.9.5.tar.gz"
 
 PACKAGES+=" libfreetype"
 #hset libfreetype url "http://download.savannah.gnu.org/releases/freetype/freetype-2.3.12.tar.bz2"
-hset libfreetype url "http://download.savannah.gnu.org/releases/freetype/freetype-2.4.4.tar.bz2"
+#hset libfreetype url "http://download.savannah.gnu.org/releases/freetype/freetype-2.4.4.tar.bz2"
+hset libfreetype url "http://download.savannah.gnu.org/releases/freetype/freetype-2.5.1.tar.bz2"
+#hset libfreetype configscript "freetype-config"
 
+configure-libfreetype() {
+	configure-generic --without-png
+}
 install-libfreetype() {
 	install-generic
 	sed -e "s|prefix=/usr|prefix=$STAGING_USR|" \
@@ -38,16 +43,17 @@ deploy-font-bitstream-vera() {
 }
 
 PACKAGES+=" libfontconfig"
-hset libfontconfig url "http://www.fontconfig.org/release/fontconfig-2.8.0.tar.gz"
+#hset libfontconfig url "http://www.fontconfig.org/release/fontconfig-2.8.0.tar.gz"
+hset libfontconfig url "http://www.fontconfig.org/release/fontconfig-2.11.0.tar.gz"
 hset libfontconfig depends "libexpat libfreetype"
 
 configure-libfontconfig-local() {
 	export LDFLAGS="$LDFLAGS_RLINK"
 #	autoreconf;libtoolize;automake --add-missing
+# 		--with-freetype-config="$STAGING_USR/bin/freetype-config"
 	configure-generic-local \
 		--with-arch=$TARGET_FULL_ARCH \
-		--disable-docs  \
-		--with-freetype-config="$STAGING_USR/bin/freetype-config"
+		--disable-docs
 	# fixes cross compilation
 	sed -i -e "s:^CFLAGS = -.*$:CFLAGS = :g" \
 		fc-case/Makefile \
@@ -84,7 +90,8 @@ deploy-libfontconfig() {
 PACKAGES+=" libpixman"
 #hset libpixman url "http://xorg.freedesktop.org/archive/individual/lib/pixman-0.22.0.tar.bz2"
 #hset libpixman url "http://xorg.freedesktop.org/archive/individual/lib/pixman-0.28.2.tar.bz2"
-hset libpixman url "http://xorg.freedesktop.org/archive/individual/lib/pixman-0.29.2.tar.bz2"
+#hset libpixman url "http://xorg.freedesktop.org/archive/individual/lib/pixman-0.29.2.tar.bz2"
+hset libpixman url "http://xorg.freedesktop.org/archive/individual/lib/pixman-0.32.4.tar.bz2"
 
 configure-libpixman() {
 	local extras=""
