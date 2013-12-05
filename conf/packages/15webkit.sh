@@ -60,7 +60,8 @@ PACKAGES+=" libwebkit"
 #hset libwebkit url "git!git://git.webkit.org/WebKit.git#libwebkit-git.tar.bz2"
 #hset libwebkit url "git!git://gitorious.org/webkit/webkit.git#libwebkit-git.tar.bz2"
 #hset libwebkit url "http://ftp.de.debian.org/debian/pool/main/w/webkit/webkit_1.8.1.orig.tar.xz"
-hset libwebkit url "http://ftp.de.debian.org/debian/pool/main/w/webkitgtk/webkitgtk_1.11.91.orig.tar.xz"
+#hset libwebkit url "http://ftp.de.debian.org/debian/pool/main/w/webkitgtk/webkitgtk_1.11.91.orig.tar.xz"
+hset libwebkit url "http://ftp.de.debian.org/debian/pool/main/w/webkitgtk/webkitgtk_2.2.2.orig.tar.xz"
 hset libwebkit depends "libicu libenchant libsoup sqlite3 libxslt libgail libgtk libwebp libsecret"
 
 hostcheck-libwebkit() {
@@ -68,7 +69,7 @@ hostcheck-libwebkit() {
 }
 
 # needs on the host
-# gtk-docize 
+# gtk-docize
 # gperf
 configure-libwebkit() {
 #	local extras="--enable-debug"
@@ -76,6 +77,9 @@ configure-libwebkit() {
 	export LDFLAGS="$LDFLAGS_RLINK"
 	# GTKlauncher still want GST, even when no video is not configured
 	sed -i -e '/gst/d' Tools/GtkLauncher/main.c
+	# 2.2.2 has hardcoded pathnames
+	sed -i -e 's|<freetype/|<|g' \
+		./Source/WebCore/platform/graphics/harfbuzz/HarfBuzzFaceCairo.cpp
 	save=$CFLAGS
 	if [[ ! $TARGET_X11 ]]; then
 		# ENABLE_NETSCAPE_PLUGIN_API
@@ -110,7 +114,7 @@ hset msfonts phases "deploy"
 
 deploy-msfonts() {
 	deploy echo Deploying
-	mkdir -p "$ROOTFS"/usr/share/fonts/ 
+	mkdir -p "$ROOTFS"/usr/share/fonts/
 	rsync -av truetype "$ROOTFS"/usr/share/fonts/ >install.log 2>&1
 }
 
