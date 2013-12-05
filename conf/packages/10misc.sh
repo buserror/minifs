@@ -121,14 +121,14 @@ configure-gnutls() {
 #######################################################################
 # 110906 Updated 1.0.0e
 PACKAGES+=" openssl"
-hset openssl url "http://www.openssl.org/source/openssl-1.0.0e.tar.gz"
+hset openssl url "http://www.openssl.org/source/openssl-1.0.1e.tar.gz"
 hset openssl targets "openssl openssl-bin"
 hset openssl deploy false
 hset openssl config "linux-generic32"
 
 configure-openssl() {
 	local conf=$(hget openssl config)
-	configure ./Configure --prefix=/usr --install_prefix="$STAGING" no-asm shared $conf
+	configure ./Configure --prefix=/usr --install_prefix="$STAGING" shared $conf
 }
 compile-openssl() {
 	local base=$(awk '/^CFLAG= / {print substr($0,8);}' Makefile)
