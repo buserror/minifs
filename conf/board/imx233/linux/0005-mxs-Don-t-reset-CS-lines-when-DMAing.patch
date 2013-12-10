@@ -1,0 +1,36 @@
+From 31c2d0adad96836875fa8900000f24578652868c Mon Sep 17 00:00:00 2001
+From: Michel Pollet <buserror@gmail.com>
+Date: Fri, 5 Apr 2013 00:21:08 +0100
+Subject: [PATCH] mxs: Don't reset CS lines when DMAing
+
+Asynchronous DMA doens't like it's CS pins being yanked
+---
+ drivers/spi/spi-mxs.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/spi/spi-mxs.c b/drivers/spi/spi-mxs.c
+index bf32474..7db9611 100644
+--- a/drivers/spi/spi-mxs.c
++++ b/drivers/spi/spi-mxs.c
+@@ -484,7 +484,8 @@ static int mxs_spi_transfer_one(struct spi_master *master,
+ 
+ 	m->status = status;
+ 	spi_finalize_current_message(master);
+-
++/* NO don't, DMA might still be going */
++#if 0
+ 	/*
+ 	 * Reset all the pins to high
+ 	 */
+@@ -493,7 +494,7 @@ static int mxs_spi_transfer_one(struct spi_master *master,
+ 		for (i = 0; i < spi->csmuxcount; i++)
+ 			gpio_set_value(spi->csmux[i], 1);
+ 	}
+-
++#endif
+ 	return status;
+ }
+ 
+-- 
+1.8.4.3
+
