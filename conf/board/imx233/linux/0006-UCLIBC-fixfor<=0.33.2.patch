@@ -1,0 +1,29 @@
+From 661db7afeec44e762ea7b33cf2d88a2d55e3b321 Mon Sep 17 00:00:00 2001
+From: Michel Pollet <buserror@gmail.com>
+Date: Tue, 10 Dec 2013 14:22:57 +0000
+Subject: [PATCH] UCLIBC fix for <= 0.33.2
+
+This is needed for uclibc to compile
+
+Signed-off-by: Michel Pollet <buserror@gmail.com>
+---
+ include/uapi/linux/netlink.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/include/uapi/linux/netlink.h b/include/uapi/linux/netlink.h
+index 1a85940..490fd32 100644
+--- a/include/uapi/linux/netlink.h
++++ b/include/uapi/linux/netlink.h
+@@ -1,7 +1,9 @@
+ #ifndef _UAPI__LINUX_NETLINK_H
+ #define _UAPI__LINUX_NETLINK_H
+ 
++#ifdef CONFIG_BREAK_UCLIBC
+ #include <linux/kernel.h>
++#endif
+ #include <linux/socket.h> /* for __kernel_sa_family_t */
+ #include <linux/types.h>
+ 
+-- 
+1.8.4.3
+

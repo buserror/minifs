@@ -1,0 +1,101 @@
+From 14e12b8a5c8b086d4cb64594433738ade974cc9f Mon Sep 17 00:00:00 2001
+From: Michel Pollet <buserror@gmail.com>
+Date: Wed, 28 Nov 2012 16:00:08 +0000
+Subject: [PATCH] spidev: Introduces an optional interrupt
+
+this patchs allows the spidev driver to use an
+optional interrupt to trigger a pool() or select()
+event.
+
+This allows spidev to be used to talk to spi devices
+that have interrupt pins, like radio transceivers
+and various other devices.
+
+Signed-off-by: Michel Pollet <buserror@gmail.com>
+---
+ drivers/spi/spidev.c | 39 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
+
+diff --git a/drivers/spi/spidev.c b/drivers/spi/spidev.c
+index ca5bcfe..0332edd 100644
+--- a/drivers/spi/spidev.c
++++ b/drivers/spi/spidev.c
+@@ -33,6 +33,8 @@
+ #include <linux/compat.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
++#include <linux/interrupt.h>
++#include <linux/poll.h>
+ 
+ #include <linux/spi/spi.h>
+ #include <linux/spi/spidev.h>
+@@ -80,6 +82,7 @@ struct spidev_data {
+ 	spinlock_t		spi_lock;
+ 	struct spi_device	*spi;
+ 	struct list_head	device_entry;
++	wait_queue_head_t irq_queue;
+ 
+ 	/* buffer is NULL unless this device is open (users > 0) */
+ 	struct mutex		buf_lock;
+@@ -484,6 +487,22 @@ spidev_compat_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ #define spidev_compat_ioctl NULL
+ #endif /* CONFIG_COMPAT */
+ 
++/*
++ * Using poll on the spidev device will return a read even when an
++ * (optional) interrupt is triggered. This allows interfacing with
++ * SPi packet radios and other devices that have a parallel way
++ * of signaling the CPU for events
++ */
++static unsigned int spidev_poll(struct file * filp, poll_table *wait)
++{
++	struct spidev_data	*spidev = filp->private_data;
++
++	poll_wait(filp, &spidev->irq_queue, wait);
++
++	return POLLIN | POLLRDNORM;
++}
++
++
+ static int spidev_open(struct inode *inode, struct file *filp)
+ {
+ 	struct spidev_data	*spidev;
+@@ -560,8 +579,22 @@ static const struct file_operations spidev_fops = {
+ 	.open =		spidev_open,
+ 	.release =	spidev_release,
+ 	.llseek =	no_llseek,
++	.poll = spidev_poll,
+ };
+ 
++/*
++ * trigger for an (optional) IRQ that will wake up
++ * userland process that waits on poll() or select()
++ */
++static irqreturn_t spidev_notify_irq(int irq, void *dev)
++{
++	struct spidev_data	*spidev;
++
++	wake_up_interruptible(&spidev->irq_queue);
++
++	return IRQ_HANDLED;
++}
++
+ /*-------------------------------------------------------------------------*/
+ 
+ /* The main reason to have this class is to make mdev/udev create the
+@@ -612,6 +645,12 @@ static int spidev_probe(struct spi_device *spi)
+ 		set_bit(minor, minors);
+ 		list_add(&spidev->device_entry, &device_list);
+ 	}
++	if (spi->irq) {
++		status = request_threaded_irq(spi->irq, spidev_notify_irq, NULL, 
++					IRQF_ONESHOT, "spidev-irq", spidev);
++		if (status)
++			dev_err(&spi->dev, "warning: unable to get irq: %d\n", status);
++	}
+ 	mutex_unlock(&device_list_lock);
+ 
+ 	if (status == 0)
+-- 
+1.8.4.3
+

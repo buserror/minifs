@@ -1,0 +1,88 @@
+From 01332cbb009e19467dc6c53567520c7941f703fc Mon Sep 17 00:00:00 2001
+From: Michel Pollet <buserror@gmail.com>
+Date: Mon, 1 Apr 2013 16:17:40 +0100
+Subject: [PATCH] mxs-spi: Implement a CS mux
+
+Allows pecifying an array of GPIOs instead of using the hardware
+CS lines. These get disconnected from the pinmux, and the GPIO
+range is used as a CS 'register'.
+
+Signed-off-by: Michel Pollet <buserror@gmail.com>
+---
+ drivers/spi/spi-mxs.c | 39 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
+
+diff --git a/drivers/spi/spi-mxs.c b/drivers/spi/spi-mxs.c
+index de7b114..bf32474 100644
+--- a/drivers/spi/spi-mxs.c
++++ b/drivers/spi/spi-mxs.c
+@@ -60,6 +60,9 @@
+ struct mxs_spi {
+ 	struct mxs_ssp		ssp;
+ 	struct completion	c;
++	
++	int		csmuxcount;	/* 0 for no special mux */
++	int		csmux[8];
+ };
+ 
+ static int mxs_spi_setup_transfer(struct spi_device *dev,
+@@ -409,6 +412,13 @@ static int mxs_spi_transfer_one(struct spi_master *master,
+ 
+ 	cs = m->spi->chip_select;
+ 
++	if (spi->csmuxcount) {
++		int i = 0;
++		for (i = 0; i < spi->csmuxcount; i++)
++			gpio_set_value(spi->csmux[i], (cs >> i) & 1);
++		cs = 0;
++	}
++	
+ 	list_for_each_entry_safe(t, tmp_t, &m->transfers, transfer_list) {
+ 
+ 		status = mxs_spi_setup_transfer(m->spi, t);
+@@ -475,6 +485,15 @@ static int mxs_spi_transfer_one(struct spi_master *master,
+ 	m->status = status;
+ 	spi_finalize_current_message(master);
+ 
++	/*
++	 * Reset all the pins to high
++	 */
++	if (spi->csmuxcount) {
++		int i = 0;
++		for (i = 0; i < spi->csmuxcount; i++)
++			gpio_set_value(spi->csmux[i], 1);
++	}
++
+ 	return status;
+ }
+ 
+@@ -546,6 +565,26 @@ static int mxs_spi_probe(struct platform_device *pdev)
+ 
+ 	init_completion(&spi->c);
+ 
++	if (np) {
++		int i;
++		char name[24];
++		spi->csmuxcount = of_gpio_named_count(np, "bsi,csmux");
++		if (spi->csmuxcount > 0) {
++			printk("BSI: mxs_spi_probe found %d chipselect gpios\n", spi->csmuxcount);
++			for (i = 0; i < spi->csmuxcount; i++) {
++				spi->csmux[i] =
++					of_get_named_gpio(np, "bsi,csmux", i);
++				/* printk("BSI: mux[%d] = %d\n", i, spi->csmux[i]); */
++				/* Request GPIOs and initialize to default values */
++				
++				snprintf(name, sizeof(name), "BSI CSMUX[%d]", i);
++				gpio_request_one(spi->csmux[i], GPIOF_OUT_INIT_HIGH, name);
++				gpio_set_value(spi->csmux[i], 1);
++			}
++			master->num_chipselect = (1 << spi->csmuxcount);
++		}
++	}
++
+ 	ret = devm_request_irq(&pdev->dev, irq_err, mxs_ssp_irq_handler, 0,
+ 			       DRIVER_NAME, ssp);
+ 	if (ret)
+-- 
+1.8.4.3
+

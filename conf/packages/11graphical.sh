@@ -29,6 +29,10 @@ install-libfreetype() {
 		$STAGING_USR/bin/freetype-config \
 			>$STAGING_TOOLS/bin/freetype-config && \
 		chmod +x $STAGING_TOOLS/bin/freetype-config
+	# Some packages have hard coded <freetype/XXX.h> includes!
+	if [ -d $STAGING_USR/include/freetype2 ]; then
+		ln -sf freetype2 $STAGING_USR/include/freetype
+	fi
 }
 
 PACKAGES+=" font-bitstream-vera"
