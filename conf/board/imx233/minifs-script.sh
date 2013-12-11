@@ -13,7 +13,7 @@ board_set_versions() {
 	mxs-set-versions
 	TARGET_FS_SQUASH=0
 	TARGET_FS_EXT2=1
-	TARGET_SHARED=1 
+	TARGET_SHARED=1
 }
 
 board_prepare() {
@@ -24,11 +24,17 @@ board_prepare() {
 
 	TARGET_PACKAGES+=" targettools"
 	TARGET_PACKAGES+=" kexec-tools"
-	
+
 	TARGET_PACKAGES+=" linux-dtb elftosb"
 #	TARGET_PACKAGES+=" libsdl sdlvoxel sdlplasma libpng libsdlimage kobodeluxe mplayer"
 #	TARGET_PACKAGES+=" font-bitstream-vera rrdtool"
 }
+
+imx233-deploy-sharedlibs() {
+	deploy-sharedlibs
+	mkdir -p "$ROOTFS"/rw
+}
+
 
 bard_local() {
 	# how to use kexec from the board to launch a new kernel
