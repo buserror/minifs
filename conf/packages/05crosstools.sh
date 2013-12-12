@@ -1,6 +1,6 @@
 
 #echo GCC PATH = $GCC
-if [ ! -f "$GCC" -o "$COMMAND_PACKAGE" == "crosstools" ]; then 
+if [ ! -f "$GCC" -o "$COMMAND_PACKAGE" == "crosstools" ]; then
 	PACKAGES+=" crosstools"
 	NEED_CROSSTOOLS="crosstools"
 	TARGET_PACKAGES+=" crosstools"
@@ -30,7 +30,7 @@ patch-crosstools() {
 
 reset-crossrools-env() {
 	export PATH="$BASE_PATH"
-	unset CC CXX GCC LD CFLAGS CXXFLAGS CPPFLAGS LDFLAGS ACLOCAL ; 
+	unset CC CXX GCC LD CFLAGS CXXFLAGS CPPFLAGS LDFLAGS ACLOCAL ;
 	unset PKG_CONFIG_PATH PKG_CONFIG_LIBDIR LD_LIBRARY_PATH ;
 }
 
@@ -45,7 +45,7 @@ configure-crosstools() {
 			if [ -d "$dir"/patches ]; then
 				here=$(pwd)
 				pushd "$dir"
-				tar cf - patches | (cd "$here"; tar xvf -) 
+				tar cf - patches | (cd "$here"; tar xvf -)
 				popd
 			fi
 		done
@@ -63,19 +63,23 @@ configure-crosstools() {
 		pushd "$TOOLCHAIN_BUILD"
 			reset-crossrools-env
 			rm -f config_crosstools.conf config_uclibc.conf .config
-			if [ -f "$CONFIG"/config_crosstools.conf ]; then
-				cp "$CONFIG"/config_crosstools.conf \
-					"$CONFIG"/config_uclibc.conf .
-				cp config_crosstools.conf .config
-			fi
+			for cf in "$CONFIG"/config_crosstools.conf "$CONFIG"/config_uclibc.conf ; do
+				if [ -f "$cf" ]; then
+					cp "$cf" .
+				fi
+			done
+			cp config_crosstools.conf .config
 			"$STAGING_TOOLS"/bin/ct-ng $COMMAND_TARGET &&
 			"$STAGING_TOOLS"/bin/ct-ng show-tuple &&
-			cp .config config_crosstools.conf &&
-			cp config_crosstools.conf config_uclibc.conf \
-				"$CONFIG"/ &&
+			cp .config config_crosstools.conf
+			for cf in config_crosstools.conf config_uclibc.conf ; do
+				if [ -f "$cf" ]; then
+					cp "$cf" "$CONFIG"/
+				fi
+			done
 			rm -f config_crosstools.conf config_uclibc.conf .config
 			exit
-		popd	
+		popd
 	fi
 
 	(
@@ -85,14 +89,16 @@ configure-crosstools() {
 		# doctor new config
 		for cf in "$CONFIG"/config_crosstools.conf "$CONFIG"/config_uclibc.conf ; do
 			dst=$(basename $cf)
-			cat $cf | sed \
-				-e "s|MINIFS_TOOLCHAIN_BUILD|$TOOLCHAIN_BUILD|g" \
-				-e "s|MINIFS_TOOLCHAIN|$TOOLCHAIN|g" \
-				-e "s|MINIFS_ROOT|$BASE|g" \
-				-e "s|MINIFS_STAGING|$STAGING|g" \
-				-e "s|MINIFS_KERNEL|$BUILD/linux|g" \
-				-e "s|MINIFS_CFLAGS|$TARGET_LIBC_CFLAGS|g" \
-				 >"$TOOLCHAIN_BUILD"/$dst
+			if [ -f $cf ]; then
+				cat $cf | sed \
+					-e "s|MINIFS_TOOLCHAIN_BUILD|$TOOLCHAIN_BUILD|g" \
+					-e "s|MINIFS_TOOLCHAIN|$TOOLCHAIN|g" \
+					-e "s|MINIFS_ROOT|$BASE|g" \
+					-e "s|MINIFS_STAGING|$STAGING|g" \
+					-e "s|MINIFS_KERNEL|$BUILD/linux|g" \
+					-e "s|MINIFS_CFLAGS|$TARGET_LIBC_CFLAGS|g" \
+					 >"$TOOLCHAIN_BUILD"/$dst
+			fi
 		done
 
 		cp config_crosstools.conf .config
@@ -109,7 +115,7 @@ compile-crosstools() {
 # installing crosstools is just the beginning!
 install-crosstools() {
 	GCC=$(which $TARGET_FULL_ARCH-gcc)
-	if [ ! -f "$GCC" ]; then 
+	if [ ! -f "$GCC" ]; then
 		echo "GCC doesn't exists!! $GCC"
 		exit 1
 	fi
@@ -236,7 +242,7 @@ hset strace depends "busybox"
 configure-strace() {
 	sed -i -e 's|#undef HAVE_LINUX_NETLINK_H|#define HAVE_LINUX_NETLINK_H 1|' \
 		config.h.in
-	configure-generic # --enable-static --disable-shared LDFLAGS=-static 
+	configure-generic # --enable-static --disable-shared LDFLAGS=-static
 }
 
 deploy-strace() {
