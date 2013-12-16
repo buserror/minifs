@@ -35,6 +35,8 @@ board_prepare() {
 	hset uboot target "zynq_zed"
 	hset uboot board "zynq_zed"
 
+	TARGET_PACKAGES+=" xbootgen"
+
 	TARGET_PACKAGES+=" gdbserver strace catchsegv"
 	TARGET_PACKAGES+=" ethtool"
 	TARGET_PACKAGES+=" curl rsync"
@@ -107,5 +109,25 @@ zedboard-setup-initrd() {
 			fi
 		done
 	) >>$BUILD/._initramfs.log
+}
+
+PACKAGES+=" xbootgen"
+hset xbootgen url "git!https://github.com/buserror-uk/zynq-xbootgen.git#zynq-xbootgen.tar.bz2"
+hset xbootgen depends "uboot"
+hset xbootgen phases "deploy"
+
+deploy-xbootgen-local() {
+	(
+		host-setup
+		$MAKE O=$STAGING_TOOLS &&
+		xbootgen zynq_zedboard_fsbl.elf ../uboot/u-boot
+		if [ -f boot.bin ]; then
+			mv boot.bin ../BOOT.BIN
+		fi
+	) || exit 1
+}
+deploy-xbootgen() {
+	touch ._install_$PACKAGE
+	deploy deploy-xbootgen-local
 }
 
