@@ -72,6 +72,18 @@ export ROOTFS_KEEPERS="libnss_dns.so.2:"
 export STAGING_TOOLS="$BUILD"/staging-tools
 KERNEL="$BUILD/kernel"
 
+#######################################################################
+# PACKAGES is the entire list of possible packages, as filled by the
+# conf/packages/*.sh scripts, in their ideal build order.
+# TARGET_PACKAGES are the ones requested by the target build script, in any
+# order
+# BUILD_PACKAGES is the same, but with alias resolved so "linux" becomes
+# "linux-headers", "linux-modules" etc.
+# The script for the union of these and can then have a list of packages
+# to build.
+#######################################################################
+export PACKAGES=""
+
 source "$CONF_BASE"/minifs-script-utils.sh
 
 #######################################################################
@@ -181,17 +193,6 @@ fi
 # Modern crosstools needs all these too!
 NEEDED_HOST_COMMANDS+=" curl svn cvs svn lzma"
 
-#######################################################################
-# PACKAGES is the entire list of possible packages, as filled by the
-# conf/packages/*.sh scripts, in their ideal build order.
-# TARGET_PACKAGES are the ones requested by the target build script, in any
-# order
-# BUILD_PACKAGES is the same, but with alias resolved so "linux" becomes
-# "linux-headers", "linux-modules" etc.
-# The script for the union of these and can then have a list of packages
-# to build.
-#######################################################################
-export PACKAGES=""
 export TARGET_PACKAGES="
 	host-installwatch \
 	host-automake \
