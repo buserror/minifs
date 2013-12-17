@@ -616,15 +616,23 @@ PROCESS_PACKAGES=$(echo $DEPLIST|depsort 2>/tmp/depsort.log)
 
 export DEFAULT_PHASES="setup configure compile install deploy"
 
+get_phase_names() {
+	local pack=$1
+	local ph=$2
+	local res=""
+	for role in $MINIFS_BOARD $MINIFS_BOARD_ROLE ; do
+		res+="$role-$ph-$pack "
+	done
+	res+="$ph-$pack $ph-generic"
+	echo $res
+}
+
 process_one_package() {
-	local package=$1
+	local pack=$1
 	local phases=$2
 	for ph in $phases; do
 		if [[ $ph == "deploy" ]]; then continue ;fi
-		optional_one_of \
-			$MINIFS_BOARD-$ph-$pack \
-			$ph-$pack \
-			$ph-generic || break
+		optional_one_of $(get_phase_names $pack $ph) || break
 	done
 }
 
@@ -641,10 +649,7 @@ for pack in $PROCESS_PACKAGES; do
 			ph=$COMMAND_TARGET
 			case "$ph" in
 				shell|rebuild|clean)
-					optional_one_of \
-						$MINIFS_BOARD-$ph-$pack \
-						$ph-$pack \
-						$ph-generic || break
+					optional_one_of $(get_phase_names $pack $ph) || break
 					;;
 			esac
 		fi
@@ -671,10 +676,7 @@ for pack in $PROCESS_PACKAGES; do
 
 		for ph in $phases; do
 			if [[ $ph != "deploy" ]]; then continue ;fi
-			optional_one_of \
-				$MINIFS_BOARD-$ph-$pack \
-				$ph-$pack \
-				$ph-generic || break
+			optional_one_of $(get_phase_names $pack $ph) || break
 		done
 	end_package
 done
