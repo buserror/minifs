@@ -33,10 +33,11 @@ configure-targettools() {
 }
 compile-targettools() {
 	local tools=$(hget targettools tools)
+	local ldflags=$(hget targetools ldflags)
 	compile-generic \
 		-C $CONF_BASE/target-tools \
 		STAGING="$STAGING_USR" \
-		LDFLAGS="$LDFLAGS_BASE" \
+		LDFLAGS="$LDFLAGS_BASE $ldflags" \
 		TOOLS="$tools"
 }
 install-targettools() {
