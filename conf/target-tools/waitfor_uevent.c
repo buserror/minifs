@@ -7,12 +7,12 @@
  * modify it under the terms of the GNU Library General Public
  * License as published by the Free Software Foundation; either
  * version 2 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this library; if not, write to the
  * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
@@ -50,17 +50,17 @@ int main(int argc, char *argv[])
 	int verbose = getenv("VERBOSE") ? atoi(getenv("VERBOSE")) : 0;
 	int	netlink_type = NETLINK_KOBJECT_UEVENT;
 	int netlink_group = -1;
-	
+
 	if (argc < 3) {
 		fprintf(stderr, "%s <timeout> KEY=val ...\n", argv[0]);
 		exit(1);
 	}
-	
+
 	for (int i = 1; i < argc; i++) {
 		if (timeout == -1 && atoi(argv[i])) {
 			timeout = atoi(argv[i]);
 		} else if (argv[i][0] == '-') {
-			if (!strcmp(argv[i], "-v" || !strcmp(argv[i], "--verbose"))) {
+			if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--verbose")) {
 				verbose++;
 			} else {
 				fprintf(stderr, "%s invalid option '%s'\n", argv[0], argv[i]);

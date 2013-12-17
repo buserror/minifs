@@ -105,6 +105,7 @@ configure-linux-modules() {
 compile-linux-modules() {
 	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE=$(linux-get-cross) \
+		$(hget linux make-extra-parameters) \
 			modules -j$MINIFS_JOBS
 }
 
@@ -138,6 +139,7 @@ configure-linux-bare() {
 compile-linux-bare() {
 	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE=$(linux-get-cross) \
+		$(hget linux make-extra-parameters) \
 			$TARGET_KERNEL_NAME -j$MINIFS_JOBS
 }
 install-linux-bare() {
@@ -205,6 +207,7 @@ compile-linux-initrd() {
 	rm -f "$BUILD/linux-obj"/usr/initramfs_data.*
 	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE=$(linux-get-cross) \
+		$(hget linux make-extra-parameters) \
 			$TARGET_KERNEL_NAME -j$MINIFS_JOBS
 }
 install-linux-initrd() {
@@ -242,6 +245,7 @@ deploy-linux-initrd() {
 # as the kernel, and then gets concatenated to the kernel to create
 # a vmlinuz-xxx.dtb file
 #######################################################################
+echo TARGET_KERNEL_DTB $TARGET_KERNEL_DTB
 if [ "$TARGET_KERNEL_DTB" != "" ]; then
 	PACKAGES+=" linux-dtb"
 fi
