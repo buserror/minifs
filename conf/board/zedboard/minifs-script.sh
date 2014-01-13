@@ -18,7 +18,7 @@ board_set_versions() {
 }
 
 board_prepare() {
-
+	zynq-prepare
 	TARGET_PACKAGES+=" gdbserver strace catchsegv"
 	TARGET_PACKAGES+=" ethtool"
 	TARGET_PACKAGES+=" curl rsync"

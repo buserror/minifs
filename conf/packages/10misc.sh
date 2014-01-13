@@ -1,7 +1,7 @@
 
 # 110906 Updated 2.0.6 http://samba.org/ftp/talloc/
 PACKAGES+=" libtalloc"
-hset libtalloc url "http://samba.org/ftp/talloc/talloc-2.0.6.tar.gz"
+hset libtalloc url "http://samba.org/ftp/talloc/talloc-2.1.0.tar.gz"
 
 patch-libtalloc() {
 	cp "$PATCHES"/libtalloc-make/* .
