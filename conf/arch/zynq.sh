@@ -29,10 +29,14 @@ zynq-configure-uboot() {
 #define CONFIG_MACH_TYPE 0xd32\
 '  			./include/configs/zynq_zed.h
 	fi
-	if grep msoft-float arch/arm/cpu/armv7/config.mk >/dev/null; then
+	if ! grep vfpv3 arch/arm/cpu/armv7/config.mk >/dev/null; then
 		echo "   Patching uboot msoft-float issue"
 		sed -i -e 's/-msoft-float/-mfloat-abi=hard -mfpu=vfpv3/g' \
 			arch/arm/cpu/armv7/config.mk
+		sed -i -e 's/=armv5)/=armv5) -mfloat-abi=hard -mfpu=vfpv3/g' \
+			arch/arm/cpu/armv7/config.mk
+		sed -i -e 's/-msoft-float//g' \
+			arch/arm/config.mk
 	fi
 	configure-generic
 }
