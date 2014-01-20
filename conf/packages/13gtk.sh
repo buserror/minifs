@@ -45,7 +45,7 @@ setup-libglib() {
 
 configure-libglib-local() {
 	local uclibc=$(minifs_locate_config_path config_uclibc.conf)
-	if [ -f $uclibc ]; then
+	echo uclibc = $uclibc
 		local has_locale=$(grep 'UCLIBC_HAS_LOCALE=y' $uclibc)
 		local has_wchar=$(grep 'UCLIBC_HAS_WCHAR=y' $uclibc)
 		echo has_locale=$has_locale
