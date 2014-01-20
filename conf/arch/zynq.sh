@@ -9,7 +9,7 @@ TARGET_LIBC_CFLAGS="-g -O2 -march=armv7-a -mtune=cortex-a9 -mfpu=neon -fPIC -mth
 TARGET_CFLAGS="$TARGET_LIBC_CFLAGS"
 
 zynq-prepare() {
-	hset linux version "3.10"
+	hset linux version "3.12"
 	hset linux url "git!https://github.com/Xilinx/linux-xlnx.git#linux-zynq.tar.bz2"
 	hset linux make-extra-parameters "UIMAGE_LOADADDR=0x8000"
 
