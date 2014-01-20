@@ -15,11 +15,12 @@ endif
 TOOLS_BIN := ${patsubst %, $(STAGING)/bin/%, ${TOOLS_DST}}
 
 all:	$(STAGING)/bin $(TOOLS_BIN)
-	
+
 waitfor_uevent: $(STAGING)/bin/waitfor_uevent
 i2ctalk: $(STAGING)/bin/i2ctalk
 kmem: $(STAGING)/bin/kmem
 fbtest: $(STAGING)/bin/fbtest
+spitalk: $(STAGING)/bin/spitalk
 
 $(STAGING)/bin:
 	mkdir -p $@
