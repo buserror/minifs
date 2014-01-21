@@ -30,3 +30,11 @@ configure-alsautils() {
 deploy-alsautils() {
 	deploy deploy_binaries
 }
+
+PACKAGES+=" aften"
+hset aften url "git!https://github.com/buserror-uk/aften.git#aften-git.tar.bz2"
+hset aften destdir "$STAGING_USR"
+
+deploy-aften() {
+	deploy deploy_binaries
+}
