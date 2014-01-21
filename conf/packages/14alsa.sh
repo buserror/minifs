@@ -23,6 +23,20 @@ PACKAGES+=" alsautils"
 hset alsautils url "ftp://ftp.alsa-project.org/pub/utils/alsa-utils-1.0.24.2.tar.bz2"
 hset alsautils depends "libalsa libncurses"
 
+PACKAGES+=" lame"
+hset lame url "http://skylink.dl.sourceforge.net/project/lame/lame/3.99/lame-3.99.5.tar.gz"
+
+PACKAGES+=" twolame"
+hset twolame url "http://cznic.dl.sourceforge.net/project/twolame/twolame/0.3.13/twolame-0.3.13.tar.gz"
+
+deploy-lame() {
+	deploy deploy_binaries
+}
+
+deploy-twolame() {
+	deploy deploy_binaries
+}
+
 configure-alsautils() {
 	configure-generic --disable-xmlto --with-curses=ncurses
 }
