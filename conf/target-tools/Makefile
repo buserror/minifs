@@ -21,6 +21,7 @@ i2ctalk: $(STAGING)/bin/i2ctalk
 kmem: $(STAGING)/bin/kmem
 fbtest: $(STAGING)/bin/fbtest
 spitalk: $(STAGING)/bin/spitalk
+fat_find: $(STAGING)/bin/fat_find
 
 $(STAGING)/bin:
 	mkdir -p $@
