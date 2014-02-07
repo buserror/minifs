@@ -264,9 +264,12 @@ deploy-linux-dtb-local() {
 			return 1
 		fi
 	fi
-	"$BUILD"/linux-obj/scripts/dtc/dtc -O dtb \
-		-i "$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/" \
-		-o $dtb $source	|| return 1
+	cat $source	| $GCC -E -x assembler-with-cpp - \
+			-I $(dirname $source) \
+			-I "$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/" | tee /tmp/debug.dts | \
+		"$BUILD"/linux-obj/scripts/dtc/dtc -O dtb \
+			-i "$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/" \
+			-o $dtb || return 1
 
 	rm -f "$BUILD"/vmlinuz-bare.dtb
 	if [ -f "$BUILD"/vmlinuz-bare.bin -a -f "$dtb" ]; then
