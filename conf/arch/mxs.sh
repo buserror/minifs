@@ -5,5 +5,5 @@
 MINIFS_BOARD_ROLE+=" mxs"
 
 mxs-set-versions() {
-	hset linux version "3.12"
+	hset linux version "3.14-rc1"
 }
