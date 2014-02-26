@@ -254,17 +254,18 @@ hset linux-dtb phases "deploy"
 
 deploy-linux-dtb-local() {
 	set -x
-	local dtb="$BUILD/$TARGET_KERNEL_DTB".dtb
+	local dtb="$BUILD"/device-tree.dtb
 	local source=$(minifs_locate_config_path "$TARGET_KERNEL_DTB".dts)
 
-	if [ ! -f "$source" ]; then
-		source="$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/$TARGET_KERNEL_DTB".dts
-		if [ ! -f "$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/$TARGET_KERNEL_DTB".dts ]; then
-			echo "*** Unable to find a matching $TARGET_KERNEL_DTB.dts"
-			return 1
+	for src in $source \
+			"$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/$TARGET_KERNEL_DTB".dts \
+			"$TARGET_KERNEL_DTB"; do
+		if [ -f "$src" ]; then
+			source=$src
 		fi
-	fi
-	cat $source	| $GCC -E -x assembler-with-cpp - \
+	done
+	echo DTB is $source
+	cat $source	| $GCC -E -P -x assembler-with-cpp - \
 			-I $(dirname $source) \
 			-I "$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/" | tee /tmp/debug.dts | \
 		"$BUILD"/linux-obj/scripts/dtc/dtc -O dtb \
