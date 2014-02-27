@@ -1,12 +1,13 @@
 
 # IMPORTANT NOTE:
 # THis requires the glibc-dev:i386 to build, as the gcc -m32 needed to build
-# will fail to find headers if these system host headers are not installed 
+# will fail to find headers if these system host headers are not installed
 # on a x86_64 system. You also need a -multilib version of gcc
 PACKAGES+=" luajit"
 hset luajit version "2.0.2"
 hset luajit url "http://luajit.org/download/LuaJIT-$(hget luajit version).tar.gz"
 hset luajit desc "A Just-In-Time compiler for lua"
+hset luajit deploy_binary "true"
 
 configure-luajit() {
 	configure echo Done
@@ -20,11 +21,18 @@ compile-luajit() {
 		HOST_CC="gcc -m32"
 	) || return 1;
 }
+install-luajit-local() {
+	ln -sf libluajit-5.1.so.$(hget luajit version) \
+		$STAGING_USR/lib/libluajit-5.1.so.2
+	install-generic-local PREFIX=/usr
+}
 install-luajit() {
-	install-generic PREFIX=/usr
+	log_install install-luajit-local
 }
 deploy-luajit-local() {
-	deploy_binaries
+	if [ $(hget luajit deploy_binary) == "true" ]; then
+		deploy_binaries
+	fi
 	deploy_staging_path "/usr/share/luajit-$(hget luajit version)" "/"
 }
 deploy-luajit() {
@@ -57,7 +65,7 @@ compile-toluapp() {
 	compile-generic DESTDIR="$STAGING_USR"
 }
 install-toluapp() {
-	install-generic 
+	install-generic
 }
 
 
@@ -75,7 +83,7 @@ configure-tcc() {
 	local extra=""
 	local local_cflags;
 	case $TARGET_ARCH in
-		arm) 
+		arm)
 			extra+=" --cpu=armv4l"
 			local_cflags="-DTCC_UCLIBC -DTCC_ARM_EABI"
 			;;
