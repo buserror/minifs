@@ -1,0 +1,58 @@
+diff -cr busybox-1.21.1/miscutils/flashcp.c busybox/miscutils/flashcp.c
+*** busybox-1.21.1/miscutils/flashcp.c	Sat Jun 29 15:58:06 2013
+--- busybox/miscutils/flashcp.c	Fri Mar 14 15:43:53 2014
+***************
+*** 22,37 ****
+  
+  #define BUFSIZE (8 * 1024)
+  
+  static void progress(int mode, uoff_t count, uoff_t total)
+  {
+  	uoff_t percent;
+  
+  	if (!option_mask32) //if (!(option_mask32 & OPT_v))
+  		return;
+  	percent = count * 100;
+  	if (total)
+  		percent = (unsigned) (percent / total);
+! 	printf("\r%s: %"OFF_FMT"u/%"OFF_FMT"u (%u%%) ",
+  		(mode == 0) ? "Erasing block" : ((mode == 1) ? "Writing kb" : "Verifying kb"),
+  		count, total, (unsigned)percent);
+  	fflush_all();
+--- 22,45 ----
+  
+  #define BUFSIZE (8 * 1024)
+  
++ #define LINE_NL
++ #define LINE_PREFIX			// "\r"
++ #define LINE_SUFFIX "\n"	// ""
++ 
+  static void progress(int mode, uoff_t count, uoff_t total)
+  {
+  	uoff_t percent;
++ 	static uoff_t lastv = ~0;
+  
+  	if (!option_mask32) //if (!(option_mask32 & OPT_v))
+  		return;
+  	percent = count * 100;
+  	if (total)
+  		percent = (unsigned) (percent / total);
+! 	if ((percent >= lastv) && (percent - lastv) < 5 && percent != 100)
+! 		return;
+! 	lastv = percent;
+! 	printf(LINE_PREFIX "%s: %"OFF_FMT"u/%"OFF_FMT"u (%u%%) " LINE_SUFFIX,
+  		(mode == 0) ? "Erasing block" : ((mode == 1) ? "Writing kb" : "Verifying kb"),
+  		count, total, (unsigned)percent);
+  	fflush_all();
+***************
+*** 41,47 ****
+--- 49,57 ----
+  {
+  	if (!option_mask32) //if (!(option_mask32 & OPT_v))
+  		return;
++ #ifndef LINE_NL
+  	bb_putchar('\n');
++ #endif
+  }
+  
+  int flashcp_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
