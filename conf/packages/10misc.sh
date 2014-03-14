@@ -326,7 +326,7 @@ configure-libnetsnmp() {
 }
 
 PACKAGES+=" evtest"
-hset evtest url "http://cgit.freedesktop.org/evtest/snapshot/evtest-1.29.tar.gz"
+hset evtest url "http://cgit.freedesktop.org/evtest/snapshot/evtest-1.31.tar.gz"
 
 configure-evtest() {
 	export LDFLAGS="$LDFLAGS_RLINK -lm"
