@@ -134,6 +134,19 @@ deploy-dnsmasq() {
 	deploy deploy_binaries
 }
 
+PACKAGES+=" iperf"
+hset iperf url "http://heanet.dl.sourceforge.net/project/iperf/iperf-2.0.5.tar.gz"
+
+configure-iperf() {
+	export ac_cv_func_malloc_0_nonnull="yes"
+	configure-generic
+}
+
+
+deploy-iperf() {
+	deploy deploy_binaries
+}
+
 
 PACKAGES+=" ethtool"
 hset ethtool url "http://ftp.kernel.org/pub/software/network/ethtool/ethtool-3.1.tar.bz2"
