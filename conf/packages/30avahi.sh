@@ -34,7 +34,8 @@ configure-avahi-local() {
 		--disable-gobject \
 		--disable-mono \
 		--disable-python \
-		--enable-compat-libdns_sd
+		--enable-compat-libdns_sd \
+		--localstatedir=/tmp
 }
 configure-avahi() {
 	configure configure-avahi-local
@@ -49,9 +50,9 @@ deploy-avahi-local() {
 	cat >>"$ROOTFS"/etc/group <<-END
 	avahi:x:1000:
 	END
-	cat >>"$ROOTFS"/etc/init.d/rcS <<-EOF
+	cat >>"$ROOTFS"/etc/network-up.sh <<-EOF
 	echo "* Starting avahi..."
-	avahi-daemon -D
+	avahi-daemon -D &
 	EOF
 }
 

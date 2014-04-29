@@ -8,11 +8,28 @@ configure-dbus() {
 	configure-generic \
 		--without-x \
 		--enable-xml-docs=no \
-		--enable-doxygen-docs=no
+		--enable-doxygen-docs=no \
+		--localstatedir=/tmp
+}
+
+deploy-dbus-local() {
+	deploy_binaries
+
+	cat >>"$ROOTFS"/etc/passwd <<-END
+	messagebus:x:1002:1002:avahi:/home:/bin/false
+	END
+	cat >>"$ROOTFS"/etc/group <<-END
+	messagebus:x:1002:
+	END
+	cat >>"$ROOTFS"/etc/network-up.sh <<-EOF
+	echo "* Starting dbus bloatware..."
+	mkdir -p /tmp/run/dbus
+	dbus-daemon --system &
+	EOF
 }
 
 deploy-dbus() {
-	deploy deploy_binaries
+	deploy deploy-dbus-local
 }
 
 PACKAGES+=" bluez"
