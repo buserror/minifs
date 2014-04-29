@@ -51,7 +51,7 @@ deploy-openssh-local() {
 	cat >>"$ROOTFS"/etc/group <<-END
 	sshd:x:1001:
 	END
-	cat >>"$ROOTFS"/etc/init.d/rcS <<-EOF
+	cat >>"$ROOTFS"/etc/network-up.sh <<-EOF
 	echo "* Starting sshd..."
 	/usr/sbin/sshd
 	EOF
