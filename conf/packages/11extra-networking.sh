@@ -163,7 +163,7 @@ deploy-fuse() {
 }
 
 PACKAGES+=" sshfs"
-hset sshfs url "http://downloads.sourceforge.net/project/fuse/sshfs-fuse/2.4/sshfs-fuse-2.4.tar.gz"
+hset sshfs url "http://downloads.sourceforge.net/project/fuse/sshfs-fuse/2.5/sshfs-fuse-2.5.tar.gz"
 hset sshfs depends "fuse openssh libglib"
 
 configure-sshfs() {
