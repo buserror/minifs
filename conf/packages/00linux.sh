@@ -226,6 +226,9 @@ deploy-linux-initrd() {
 	if [ -f "$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/bzImage ]; then
 		deploy cp "$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/bzImage \
 			"$BUILD"/vmlinuz-full.bin
+	elif [ -f "$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/$TARGET_KERNEL_NAME ]; then
+		deploy cp "$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/$TARGET_KERNEL_NAME \
+			"$BUILD"/vmlinuz-full.bin
 	elif [ -f "$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/uImage ]; then
 		deploy dd if="$BUILD"/linux-obj/arch/arm/boot/uImage \
 			of="$BUILD"/kernel-initrd.ub \
