@@ -156,7 +156,7 @@ deploy-ethtool() {
 }
 
 PACKAGES+=" fuse"
-hset fuse url "http://downloads.sourceforge.net/project/fuse/fuse-2.X/2.9.2/fuse-2.9.2.tar.gz"
+hset fuse url "http://downloads.sourceforge.net/project/fuse/fuse-2.X/2.9.3/fuse-2.9.3.tar.gz"
 
 deploy-fuse() {
 	deploy deploy_binaries
