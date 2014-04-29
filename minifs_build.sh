@@ -156,7 +156,7 @@ TARGET_SHARED=0
 rm -f /tmp/pkg-config.log
 if [ "$COMMAND" == "tools" ]; then exit ;fi
 
-hset busybox version "1.21.1"
+hset busybox version "1.22.1"
 hset linux version "2.6.32.2"
 hset crosstools version "1.19.0"
 
