@@ -19,7 +19,7 @@ deploy-libdirectfb() {
 }
 
 PACKAGES+=" libffi"
-hset libffi url "ftp://sourceware.org/pub/libffi/libffi-3.0.9.tar.gz"
+hset libffi url "ftp://sourceware.org/pub/libffi/libffi-3.0.13.tar.gz"
 
 # More recent version of glib fails to conf because of lack of glib-compile-schemas
 PACKAGES+=" libglib"
