@@ -52,3 +52,30 @@ hset aften destdir "$STAGING_USR"
 deploy-aften() {
 	deploy deploy_binaries
 }
+
+PACKAGES+=" shairport"
+hset shairport url "git!https://github.com/abrasive/shairport.git#shairport-git.tar.bz2"
+hset shairport depends "libalsa openssl avahi"
+
+configure-shairport() {
+	export LDFLAGS="$LDFLAGS_RLINK"
+	configure-generic 
+	export LDFLAGS="$LDFLAGS_BASE"
+}
+
+install-shairport() {
+	install-generic PREFIX=/usr
+}
+
+deploy-shairport-local() {
+	deploy_binaries
+	
+	cat >>"$ROOTFS"/etc/network-up.sh <<-EOF
+	echo "* Starting shairport..."
+	shairport -d -a \$(hostname)
+	EOF
+}
+deploy-shairport() {
+	deploy deploy-shairport-local
+}
+
