@@ -82,3 +82,10 @@ deploy-shairport() {
 PACKAGES+=" libupnp"
 hset libupnp url "http://downloads.sourceforge.net/project/pupnp/pupnp/libUPnP%201.6.19/libupnp-1.6.19.tar.bz2"
 
+PACKAGES+=" gmrender"
+hset gmrender url "git!https://github.com/hzeller/gmrender-resurrect.git#gmrender-git.tar.bz2"
+hset gmrender depends " libupnp gst-plugins-good gst-plugins-bad gst-plugins-ugly"
+
+configure-gmrender() {
+	configure-generic LDFLAGS="$LDFLAGS_RLINK"
+}
