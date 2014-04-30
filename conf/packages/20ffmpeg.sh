@@ -149,7 +149,7 @@ hset libxvid dir "libxvid/build/generic"
 #######################################################################
 PACKAGES+=" ffmpeg"
 
-V="0.9"
+V="2.2.1"
 hset ffmpeg version $V
 hset ffmpeg url "http://ffmpeg.org/releases/ffmpeg-$V.tar.bz2"
 hset ffmpeg depends "busybox"
@@ -182,12 +182,13 @@ configure-ffmpeg() {
 		--prefix="$STAGING" \
 		--enable-cross-compile \
 		--target-os=linux \
-		--cross-prefix="${CROSS}-" \
+		--cross-prefix="${TARGET_FULL_ARCH}-" \
 		--host-cc="$GCC" \
+		--disable-txtpages --disable-doc \
 		--disable-ffplay --disable-ffserver \
 		--enable-gpl --enable-swscale --enable-pthreads \
-		--enable-fastdiv --enable-small \
-		--enable-hardcoded-tables \
+		--enable-small \
+		--disable-hardcoded-tables \
 		--enable-avcodec \
 		$extra
 	export LDFLAGS="$LDFLAGS_BASE"
