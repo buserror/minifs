@@ -73,28 +73,31 @@ hset orc url "http://code.entropywave.com/download/orc/orc-0.4.16.tar.gz"
 ## gstreamer
 #######################################################################
 # http://gstreamer.freedesktop.org/
-CONFIG_GSTREAMER_VERSION=0.10.36
+CONFIG_GSTREAMER_VERSION=1.2.4
 
 PACKAGES+=" gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly"
-hset gstreamer url "http://gstreamer.freedesktop.org/src/gstreamer/gstreamer-$CONFIG_GSTREAMER_VERSION.tar.bz2"
-hset gst-plugins-base url "http://gstreamer.freedesktop.org/src/gst-plugins-base/gst-plugins-base-$CONFIG_GSTREAMER_VERSION.tar.bz2"
+hset gstreamer url "http://gstreamer.freedesktop.org/src/gstreamer/gstreamer-$CONFIG_GSTREAMER_VERSION.tar.xz"
+hset gst-plugins-base url "http://gstreamer.freedesktop.org/src/gst-plugins-base/gst-plugins-base-$CONFIG_GSTREAMER_VERSION.tar.xz"
 hset gst-plugins-base depends "gstreamer liboil libalsa libogg libvorbis orc"
-hset gst-plugins-good url "http://gstreamer.freedesktop.org/src/gst-plugins-good/gst-plugins-good-0.10.30.tar.bz2"
+hset gst-plugins-good url "http://gstreamer.freedesktop.org/src/gst-plugins-good/gst-plugins-good-$CONFIG_GSTREAMER_VERSION.tar.xz"
 hset gst-plugins-good depends "gstreamer"
-hset gst-plugins-bad url "http://gstreamer.freedesktop.org/src/gst-plugins-bad/gst-plugins-bad-0.10.22.tar.bz2"
+hset gst-plugins-bad url "http://gstreamer.freedesktop.org/src/gst-plugins-bad/gst-plugins-bad-$CONFIG_GSTREAMER_VERSION.tar.xz"
 hset gst-plugins-bad depends "gstreamer"
-hset gst-plugins-ugly url "http://gstreamer.freedesktop.org/src/gst-plugins-ugly/gst-plugins-ugly-0.10.18.tar.bz2"
+hset gst-plugins-ugly url "http://gstreamer.freedesktop.org/src/gst-plugins-ugly/gst-plugins-ugly-$CONFIG_GSTREAMER_VERSION.tar.xz"
 hset gst-plugins-ugly depends "gstreamer gst-plugins-base libx264"
+hset gst-plugins-ugly optional "lame libmad"
 hset gstreamer targets "gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly"
 hset gstreamer optional "ffmpeg xorglibX11 libva"
 
 setup-gstreamer() {
-	ROOTFS_PLUGINS+="$ROOTFS/usr/lib/gstreamer-0.10:"
+	ROOTFS_PLUGINS+="$ROOTFS/usr/lib/gstreamer-1.1:"
 }
 
 configure-gstreamer() {
+	# disable-loadsave removes the need for libxml2
 	export LDFLAGS="$LDFLAGS_RLINK"
-	configure-generic --libexecdir="$STAGING_USR"/lib
+	configure-generic --libexecdir="$STAGING_USR"/lib \
+		--disable-loadsave
 	export LDFLAGS="$LDFLAGS_BASE"
 }
 
