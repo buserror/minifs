@@ -78,4 +78,7 @@ deploy-shairport-local() {
 deploy-shairport() {
 	deploy deploy-shairport-local
 }
+ 
+PACKAGES+=" libupnp"
+hset libupnp url "http://downloads.sourceforge.net/project/pupnp/pupnp/libUPnP%201.6.19/libupnp-1.6.19.tar.bz2"
 
