@@ -124,10 +124,13 @@ configure-gst-plugins-good() {
 ## libx264
 #######################################################################
 PACKAGES+=" libx264"
-hset libx264 url "ftp://ftp.videolan.org/pub/videolan/x264/snapshots/x264-snapshot-20111213-2245-stable.tar.bz2"
+#hset libx264 url "ftp://ftp.videolan.org/pub/videolan/x264/snapshots/x264-snapshot-20111213-2245-stable.tar.bz2"
+hset libx264 url "ftp://ftp.videolan.org/pub/videolan/x264/snapshots/x264-snapshot-20140429-2245-stable.tar.bz2"
+
 
 configure-libx264() {
-	configure-generic --enable-shared --enable-pic
+	configure-generic --enable-shared --enable-pic \
+		--cross-prefix="$CROSS-"
 }
 
 PACKAGES+=" libfaac"
