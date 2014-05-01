@@ -59,7 +59,7 @@ deploy-filesystem-populate() {
 	ln -s ../var $ROOTFS/usr/var
 	echo minifs-$MINIFS_BOARD >$ROOTFS/etc/hostname
 	tag=$(echo "minifs-$MINIFS_BOARD-" | \
-		awk '{ print $0 strftime("%Y%m%d%H%M"); }')
+		awk '{ print $0 strftime("%y%m%d%H%M"); }')
 	echo $tag >$ROOTFS/etc/minifs.tag
 	export MINIFS_TAG=$tag
 
