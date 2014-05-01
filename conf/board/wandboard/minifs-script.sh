@@ -31,8 +31,8 @@ board_prepare() {
 	hset uboot target "u-boot.imx"
 	hset uboot board "wandboard_quad"
 
-	# Pull the kernel from our private kernel branch on github
-#	hset linux url "git!https://www.github.com/wandboard-org/linux#linux-imx6.tar.bz2"
+	TARGET_PACKAGES+=" firmware-wandboard"
+	TARGET_PACKAGES+=" linux-firmware"
 
 	TARGET_PACKAGES+=" gdbserver strace catchsegv"
 	TARGET_PACKAGES+=" ethtool"
@@ -40,8 +40,6 @@ board_prepare() {
 	TARGET_PACKAGES+=" openssh sshfs" # mDNSResponder
 
 	TARGET_PACKAGES+=" i2c"
-#	TARGET_PACKAGES+=" mtd_utils "
-#	hset mtd_utils deploy-list "nandwrite mtd_debug"
 
 	TARGET_PACKAGES+=" targettools"
 
@@ -90,4 +88,24 @@ wandboard-setup-initrd() {
 			fi
 		done
 	) >>$BUILD/._initramfs.log
+}
+
+
+PACKAGES+=" firmware-wandboard"
+hset firmware-wandboard depends "linux-firmware"
+hset firmware-wandboard dir "linux-firmware"
+hset firmware-wandboard url "none"
+hset firmware-wandboard phases "deploy"
+
+deploy-firmware-wandboard-local() {
+	mkdir -p "$ROOTFS"/lib/firmware/brcm
+	cp brcm/brcmfmac4329-sdio.bin "$ROOTFS"/lib/firmware/brcm/
+	cp "$CONFIG"/brcmfmac-sdio.txt "$ROOTFS"/lib/firmware/brcm/brcmfmac-sdio.txt
+	cp "$CONFIG"/brcmfmac-sdio.txt "$ROOTFS"/lib/firmware/brcm/brcmfmac4329-sdio.txt
+}
+deploy-firmware-wandboard() {
+	if [ ! -f "._install_$PACKAGE" ]; then
+		touch "._install_$PACKAGE"
+	fi
+	deploy deploy-firmware-wandboard-local
 }

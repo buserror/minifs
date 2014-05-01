@@ -37,6 +37,8 @@ else
 	ifconfig eth0 up
 	udhcpc -b -T 1
 fi
+# Load DAC
+modprobe snd-usb-audio index=0
 
 # LAUNCH APPS -- do not delete this line
 #echo "* Starting telnetd..."
