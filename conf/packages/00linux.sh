@@ -288,7 +288,7 @@ deploy-linux-dtb() {
 }
 
 PACKAGES+=" linux-firmware"
-hset linux-firmware url "git!git://git.kernel.org/pub/scm/linux/kernel/git/dwmw2/linux-firmware.git#linux-firmware-121119-git.tar.bz2"
+hset linux-firmware url "git!git://git.kernel.org/pub/scm/linux/kernel/git/dwmw2/linux-firmware.git#linux-firmware-git.tar.bz2"
 hset linux-firmware depends "linux-modules"
 hset linux-firmware phases "none"
 
