@@ -84,8 +84,17 @@ hset libupnp url "http://downloads.sourceforge.net/project/pupnp/pupnp/libUPnP%2
 
 PACKAGES+=" gmrender"
 hset gmrender url "git!https://github.com/hzeller/gmrender-resurrect.git#gmrender-git.tar.bz2"
-hset gmrender depends " libupnp gst-plugins-good gst-plugins-bad gst-plugins-ugly"
+hset gmrender depends " libupnp gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly"
 
 configure-gmrender() {
 	configure-generic LDFLAGS="$LDFLAGS_RLINK"
+}
+
+deploy-gmrender-local() {
+	deploy_binaries
+	rsync -av --delete "$STAGING_USR"/share/gmediarender "$ROOTFS"/usr/share/ 
+}
+
+deploy-gmrender() {
+	deploy 	deploy-gmrender-local
 }
