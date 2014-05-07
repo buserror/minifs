@@ -45,6 +45,15 @@ deploy-twolame() {
 	deploy deploy_binaries
 }
 
+PACKAGES+=" libmpg123"
+hset libmpg123 url "http://netcologne.dl.sourceforge.net/project/mpg123/mpg123/1.19.0/mpg123-1.19.0.tar.bz2"
+
+deploy-libmpg123() {
+	deploy deploy_binaries
+}
+
+
+
 PACKAGES+=" aften"
 hset aften url "git!https://github.com/buserror-uk/aften.git#aften-git.tar.bz2"
 hset aften destdir "$STAGING_USR"
