@@ -61,7 +61,9 @@ PACKAGES+=" libwebkit"
 #hset libwebkit url "git!git://gitorious.org/webkit/webkit.git#libwebkit-git.tar.bz2"
 #hset libwebkit url "http://ftp.de.debian.org/debian/pool/main/w/webkit/webkit_1.8.1.orig.tar.xz"
 #hset libwebkit url "http://ftp.de.debian.org/debian/pool/main/w/webkitgtk/webkitgtk_1.11.91.orig.tar.xz"
-hset libwebkit url "http://ftp.de.debian.org/debian/pool/main/w/webkitgtk/webkitgtk_2.2.2.orig.tar.xz"
+# this one is buggy
+#hset libwebkit url "http://ftp.de.debian.org/debian/pool/main/w/webkitgtk/webkitgtk_2.2.2.orig.tar.xz"
+hset libwebkit url "http://ftp.de.debian.org/debian/pool/main/w/webkitgtk/webkitgtk_2.4.2.orig.tar.xz"
 hset libwebkit depends "libicu libenchant libsoup sqlite3 libxslt libgail libgtk libwebp libsecret"
 
 hostcheck-libwebkit() {
