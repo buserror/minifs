@@ -391,13 +391,9 @@ int main(int argc, char ** argv)
 		read_sys_int(diskpath, "ro", &ro);
 		if (verbose)
 			printf("disk %s removable=%d read-only=%d\n", disk->d_name, removable, ro);
-		while ((part = readdir(disk_dir)) != NULL && partitionCount < maxPart) {
-			if (strncmp(part->d_name, disk->d_name, strlen(disk->d_name)))
-				continue;
-	//		printf("partition %s\n", part->d_name);
+		int partcount = 0;
 
-			char dev[64];
-			sprintf(dev, "/dev/%s", part->d_name);
+		int attempt_open_fat(const char * dev) {
 			struct volume_id * tst = malloc(sizeof(*tst));
 			if (volume_id_open(tst, dev) == 0) {
 				g_libfat_volume_id = tst;
@@ -409,11 +405,31 @@ int main(int argc, char ** argv)
 					if (verbose)
 						printf("%s is a valid fat!\n", dev);
 					partition[partitionCount++] = tst;
+					return 0;
 				} else {
 					volume_id_close(tst);
 					free(tst);
 				}
-			}
+			} else
+				free(tst);
+			return -1;
+		}
+		while ((part = readdir(disk_dir)) != NULL && partitionCount < maxPart) {
+			if (strncmp(part->d_name, disk->d_name, strlen(disk->d_name)))
+				continue;
+	//		printf("partition %s\n", part->d_name);
+			partcount++;
+			char dev[64];
+			sprintf(dev, "/dev/%s", part->d_name);
+
+			attempt_open_fat(dev);
+		}
+		if (partcount == 0) {
+			// also attempt to read the whole 'disk' as a partition, this is needed
+			// for windoze formatted USB sticks and such
+			char dev[64];
+			sprintf(dev, "/dev/%s", disk->d_name);
+			attempt_open_fat(dev);
 		}
 		closedir(disk_dir);
 	}
