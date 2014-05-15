@@ -1,0 +1,69 @@
+diff -cwr webkitgtk-2.4.2/Source/WebCore/css/CSSParser.cpp libwebkit/Source/WebCore/css/CSSParser.cpp
+*** webkitgtk-2.4.2/Source/WebCore/css/CSSParser.cpp	Mon May 12 07:03:53 2014
+--- libwebkit/Source/WebCore/css/CSSParser.cpp	Wed May 14 15:51:56 2014
+***************
+*** 9476,9482 ****
+      CSSParserValue* value = m_valueList->current();
+      switch (value->id) {
+      case CSSValueAuto:
+!     case CSSValueAlphabetic:
+      case CSSValueUnder:
+          if (m_valueList->next())
+              return false;
+--- 9476,9482 ----
+      CSSParserValue* value = m_valueList->current();
+      switch (value->id) {
+      case CSSValueAuto:
+! //    case CSSValueAlphabetic:
+      case CSSValueUnder:
+          if (m_valueList->next())
+              return false;
+diff -cwr webkitgtk-2.4.2/Source/WebCore/css/CSSPrimitiveValueMappings.h libwebkit/Source/WebCore/css/CSSPrimitiveValueMappings.h
+*** webkitgtk-2.4.2/Source/WebCore/css/CSSPrimitiveValueMappings.h	Mon May 12 07:03:53 2014
+--- libwebkit/Source/WebCore/css/CSSPrimitiveValueMappings.h	Wed May 14 15:50:01 2014
+***************
+*** 2666,2674 ****
+      case TextUnderlinePositionAuto:
+          m_value.valueID = CSSValueAuto;
+          break;
+-     case TextUnderlinePositionAlphabetic:
+-         m_value.valueID = CSSValueAlphabetic;
+-         break;
+      case TextUnderlinePositionUnder:
+          m_value.valueID = CSSValueUnder;
+          break;
+--- 2666,2671 ----
+***************
+*** 2684,2691 ****
+      switch (m_value.valueID) {
+      case CSSValueAuto:
+          return TextUnderlinePositionAuto;
+-     case CSSValueAlphabetic:
+-         return TextUnderlinePositionAlphabetic;
+      case CSSValueUnder:
+          return TextUnderlinePositionUnder;
+      default:
+--- 2681,2686 ----
+diff -cwr webkitgtk-2.4.2/Tools/GtkLauncher/main.c libwebkit/Tools/GtkLauncher/main.c
+*** webkitgtk-2.4.2/Tools/GtkLauncher/main.c	Mon May 12 07:03:54 2014
+--- libwebkit/Tools/GtkLauncher/main.c	Thu May 15 12:51:24 2014
+***************
+*** 37,43 ****
+  #include <errno.h>
+  #include <gdk/gdkkeysyms.h>
+  #ifdef WTF_USE_GSTREAMER
+- #include <gst/gst.h>
+  #endif
+  #include <gtk/gtk.h>
+  #include <stdlib.h>
+--- 37,42 ----
+***************
+*** 512,518 ****
+      g_option_context_add_main_entries(context, commandLineOptions, 0);
+      g_option_context_add_group(context, gtk_get_option_group(TRUE));
+  #ifdef WTF_USE_GSTREAMER
+-     g_option_context_add_group(context, gst_init_get_option_group());
+  #endif
+      webkitSettings = webkit_web_settings_new();
+      g_object_set(webkitSettings, "enable-developer-extras", TRUE, NULL);
+--- 511,516 ----
