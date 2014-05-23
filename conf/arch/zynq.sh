@@ -56,12 +56,14 @@ PACKAGES+=" xbootgen"
 hset xbootgen url "git!https://github.com/buserror-uk/zynq-xbootgen.git#zynq-xbootgen.tar.bz2"
 hset xbootgen depends "uboot"
 hset xbootgen phases "deploy"
+hset xbootgen fsbl "zynq_zedboard_fsbl.elf"
 
 deploy-xbootgen-local() {
 	(
 		host-setup
+		set -x
 		$MAKE O=$STAGING_TOOLS &&
-		xbootgen zynq_zedboard_fsbl.elf ../uboot/u-boot
+			xbootgen $(hget xbootgen fsbl) ../uboot/u-boot
 		if [ -f boot.bin ]; then
 			mv boot.bin ../BOOT.BIN
 		fi
