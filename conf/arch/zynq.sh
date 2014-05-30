@@ -22,7 +22,7 @@ zynq-prepare() {
 }
 
 
-zynq-configure-uboot() {
+zynq-configure-uboot-obsolete() {
 	if ! grep CONFIG_MACH_TYPE ./include/configs/zynq_zed.h >/dev/null; then
 		echo "   Patching uboot git MACH_TYPE"
 		sed -i -e '/PHYS_SDRAM_1_SIZE/i \
