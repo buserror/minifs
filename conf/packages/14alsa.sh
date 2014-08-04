@@ -56,6 +56,7 @@ deploy-aften() {
 PACKAGES+=" shairport"
 hset shairport url "git!https://github.com/abrasive/shairport.git#shairport-git.tar.bz2"
 hset shairport depends "libalsa openssl avahi"
+hset shairport name "\$(hostname)"
 
 configure-shairport() {
 	export LDFLAGS="$LDFLAGS_RLINK"
@@ -72,7 +73,7 @@ deploy-shairport-local() {
 	
 	cat >>"$ROOTFS"/etc/network-up.sh <<-EOF
 	echo "* Starting shairport..."
-	shairport -d -a \$(hostname)
+	shairport -d -a $(hget shairport name)
 	EOF
 }
 deploy-shairport() {
@@ -85,6 +86,7 @@ hset libupnp url "http://downloads.sourceforge.net/project/pupnp/pupnp/libUPnP%2
 PACKAGES+=" gmrender"
 hset gmrender url "git!https://github.com/hzeller/gmrender-resurrect.git#gmrender-git.tar.bz2"
 hset gmrender depends " libupnp gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly"
+hset gmrender name "\$(hostname)"
 
 configure-gmrender() {
 	configure-generic LDFLAGS="$LDFLAGS_RLINK"
@@ -93,6 +95,10 @@ configure-gmrender() {
 deploy-gmrender-local() {
 	deploy_binaries
 	rsync -av --delete "$STAGING_USR"/share/gmediarender "$ROOTFS"/usr/share/ 
+	cat >>"$ROOTFS"/etc/network-up.sh <<-EOF
+	echo "* Starting gmrender..."
+	gmediarender -d --logfile=/dev/stdout -f $(hget gmrender name) >/tmp/gmrender.log 2>&1
+	EOF
 }
 
 deploy-gmrender() {
