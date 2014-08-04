@@ -46,6 +46,8 @@ board_prepare() {
 		# Audio stuff
 	TARGET_PACKAGES+=" libalsa aften lame twolame alsautils"
 	TARGET_PACKAGES+=" ffmpeg shairport gmrender"
+	hset shairport name "Loungeaudio"
+	hset gmrender name "Loungeaudio"
 	
 	ROOTFS_KEEPERS+="libnss_compat.so.2:"
 	ROOTFS_KEEPERS+="libnss_files.so.2:"
