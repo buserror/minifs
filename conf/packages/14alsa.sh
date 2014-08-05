@@ -88,6 +88,40 @@ deploy-shairport-local() {
 deploy-shairport() {
 	deploy deploy-shairport-local
 }
+
+PACKAGES+=" shairport-sync"
+hset shairport-sync url "git!https://github.com/mikebrady/shairport-sync.git#shairport-sync-git.tar.bz2"
+hset shairport-sync depends "libalsa openssl avahi"
+hset shairport-sync name "\$(hostname)"
+
+configure-shairport-sync-local() {
+	# remove the non working autoscrap out of the way
+	# replace with a 20 lines makefile that works
+	rm -f configure* config.*
+	cp $CONF_BASE/patches/shairport-sync/Makefile .
+	export LDFLAGS="$LDFLAGS_RLINK"
+	configure-generic-local
+	export LDFLAGS="$LDFLAGS_BASE"
+}
+configure-shairport-sync() {
+	configure configure-shairport-sync-local
+}
+
+install-shairport-sync() {
+	install-generic PREFIX=/usr
+}
+
+deploy-shairport-sync-local() {
+	deploy_binaries
+	
+	cat >>"$ROOTFS"/etc/network-up.sh <<-EOF
+	echo "* Starting shairport..."
+	shairport -d -a $(hget shairport name)
+	EOF
+}
+deploy-shairport-sync() {
+	deploy deploy-shairport-sync-local
+}
  
 PACKAGES+=" libupnp"
 hset libupnp url "http://downloads.sourceforge.net/project/pupnp/pupnp/libUPnP%201.6.19/libupnp-1.6.19.tar.bz2"
