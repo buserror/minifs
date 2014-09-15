@@ -102,7 +102,7 @@ if [ "$CONFIG" == "" ]; then
 fi
 
 # this one is always mandatory
-source "$CONFIG"/minifs-script.sh
+source "$CONFIG"/minifs-script*.sh
 
 for script in $(minifs_locate_config_path "") ; do
 	for try in "$TARGET_META_ARCH-minifs-script.sh" "$TARGET_ARCH-minifs-script.sh"; do
