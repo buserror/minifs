@@ -270,7 +270,8 @@ deploy-linux-dtb-local() {
 	echo DTB is $source
 	cat $source	| $GCC -E -P -x assembler-with-cpp - \
 			-I $(dirname $source) \
-			-I "$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/" | tee /tmp/debug.dts | \
+			-I "$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/" \
+			-I "$BUILD/linux/include" | tee /tmp/debug.dts | \
 		"$BUILD"/linux-obj/scripts/dtc/dtc -O dtb \
 			-i "$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/" \
 			-o $dtb || return 1
