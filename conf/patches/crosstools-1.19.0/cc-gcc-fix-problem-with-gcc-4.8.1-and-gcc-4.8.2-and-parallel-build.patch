@@ -1,0 +1,34 @@
+diff -r 7e569a9cb5fd -r ea83356683a8 patches/gcc/4.8.1/001-gcc_4_8_1_parallel_build_failure_file_57683.patch
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/patches/gcc/4.8.1/001-gcc_4_8_1_parallel_build_failure_file_57683.patch	Sun Nov 17 11:48:24 2013 +0100
+@@ -0,0 +1,13 @@
++--- a/gcc/Makefile.in	2013-05-22 02:00:49.000000000 +1000
+++++ b/gcc/Makefile.in	2013-06-23 19:00:25.000000000 +1000
++@@ -3801,8 +3801,8 @@ s-gtype: build/gengtype$(build_exeext) $
++ 	$(STAMP) s-gtype
++ 
++ generated_files = config.h tm.h $(TM_P_H) $(TM_H) multilib.h \
++-       $(simple_generated_h) specs.h \
++-       tree-check.h genrtl.h insn-modes.h tm-preds.h tm-constrs.h \
+++       $(simple_generated_h) specs.h tree-check.h insn-opinit.h \
+++       genrtl.h insn-modes.h tm-preds.h tm-constrs.h \
++        $(ALL_GTFILES_H) gtype-desc.c gtype-desc.h gcov-iov.h
++ 
++ # In order for parallel make to really start compiling the expensive
+diff -r 7e569a9cb5fd -r ea83356683a8 patches/gcc/4.8.2/001-gcc_4_8_2_parallel_build_failure_file_57683.patch
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/patches/gcc/4.8.2/001-gcc_4_8_2_parallel_build_failure_file_57683.patch	Sun Nov 17 11:48:24 2013 +0100
+@@ -0,0 +1,13 @@
++--- a/gcc/Makefile.in	2013-05-22 02:00:49.000000000 +1000
+++++ b/gcc/Makefile.in	2013-06-23 19:00:25.000000000 +1000
++@@ -3801,8 +3801,8 @@ s-gtype: build/gengtype$(build_exeext) $
++ 	$(STAMP) s-gtype
++ 
++ generated_files = config.h tm.h $(TM_P_H) $(TM_H) multilib.h \
++-       $(simple_generated_h) specs.h \
++-       tree-check.h genrtl.h insn-modes.h tm-preds.h tm-constrs.h \
+++       $(simple_generated_h) specs.h tree-check.h insn-opinit.h \
+++       genrtl.h insn-modes.h tm-preds.h tm-constrs.h \
++        $(ALL_GTFILES_H) gtype-desc.c gtype-desc.h gcov-iov.h
++ 
++ # In order for parallel make to really start compiling the expensive
