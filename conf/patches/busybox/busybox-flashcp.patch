@@ -16,7 +16,7 @@ diff -cr busybox-1.21.1/miscutils/flashcp.c busybox/miscutils/flashcp.c
   	if (total)
   		percent = (unsigned) (percent / total);
 ! 	printf("\r%s: %"OFF_FMT"u/%"OFF_FMT"u (%u%%) ",
-  		(mode == 0) ? "Erasing block" : ((mode == 1) ? "Writing kb" : "Verifying kb"),
+  		(mode < 0) ? "Erasing block" : ((mode == 0) ? "Writing kb" : "Verifying kb"),
   		count, total, (unsigned)percent);
   	fflush_all();
 --- 22,45 ----
