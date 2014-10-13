@@ -25,7 +25,9 @@ deploy-wireless-tools() {
 }
 
 PACKAGES+=" libnl"
-hset libnl url "http://www.infradead.org/~tgr/libnl/files/libnl-1.0-pre6.tar.gz"
+#hset libnl url "http://www.infradead.org/~tgr/libnl/files/libnl-1.0-pre6.tar.gz"
+#hset libnl url "http://www.infradead.org/~tgr/libnl/files/libnl-3.2.21.tar.gz"
+hset libnl url "http://www.infradead.org/~tgr/libnl/files/libnl-3.0.tar.gz"
 
 PACKAGES+=" libnl-tiny"
 hset libnl-tiny url "svn!svn://svn.openwrt.org/openwrt/branches/backfire/package/libnl-tiny#libnl-tiny-svn.tar.bz2"
@@ -36,10 +38,10 @@ compile-libnl-tiny() {
 	compile $MAKE -j4 CC=$GCC CFLAGS="$TARGET_CPPFLAGS $TARGET_CFLAGS"
 }
 install-libnl-tiny-local() {
-	rsync -av --exclude=linux include/ "$STAGING_USR"/include/
+	rsync -av include/ "$STAGING_USR"/include/
 	cp libnl-tiny.so "$STAGING_USR"/lib/
-	ln -sf libnl-tiny.so "$STAGING_USR"/lib/libnl.so
-	ln -sf libnl-tiny.so "$STAGING_USR"/lib/libnl-genl.so
+	ln -s libnl-tiny.so "$STAGING_USR"/lib/libnl.so
+	ln -s libnl-tiny.so "$STAGING_USR"/lib/libnl-genl.so
 }
 install-libnl-tiny() {
 	log_install install-libnl-tiny-local
