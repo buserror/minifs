@@ -23,6 +23,8 @@
  * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
  * Boston, MA  02110-1301, USA.
  */
+#define _GNU_SOURCE         /* See feature_test_macros(7) */
+
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -37,7 +39,11 @@ int main(int argc, char * argv[])
 	int pipefd[2];
 	char buf[4096];
 	int rd, i;
-	FILE *o =  fopen("/tmp/pkg-config.log", "a");
+	const char *tmpdir = getenv("TMPDIR") ? getenv("TMPDIR") : "/tmp";
+	const char *path = NULL;
+
+	asprintf(&path,"%s/pkg-config.log", tmpdir);
+	FILE *o =  fopen(path, "a");
 
 	char * package = getenv("MINIFS_PACKAGE");
 	char * staging = getenv("STAGING");

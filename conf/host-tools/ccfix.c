@@ -37,6 +37,7 @@
  * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
  * Boston, MA  02110-1301, USA.
  */
+#define _GNU_SOURCE         /* See feature_test_macros(7) */
 
 #include <sys/wait.h>
 #include <stdlib.h>
@@ -48,11 +49,14 @@
 #include <stdarg.h>
 
 FILE * out = NULL;
+const char *tmpdir = NULL;
 
 void T(const char * fmt, ...)
 {
 	if (!out) {
-		out = fopen("/tmp/ccfix.log", "a");
+		const char *path = NULL;
+		asprintf(&path, "%s/ccfix.log", tmpdir);
+		out = fopen(tmpdir, "a");
 		fprintf(out, "ccfix:%s ", getenv("MINIFS_PACKAGE"));
 	}
 	va_list vap;
@@ -69,20 +73,23 @@ int main(int argc, char * argv[])
 	const char * dc = NULL;
 	const char * march = NULL;
 	const char * pack = getenv("MINIFS_PACKAGE");
+	const char * staging = getenv("STAGING");
 	const char * conftest = NULL;
+	
+	tmpdir = getenv("TMPDIR") ? getenv("TMPDIR") : "/tmp";
 	
 	for (i = 2; i < argc; i++)
 		if (!strncmp(argv[i], "/usr/lib", 8) || !strncmp(argv[i], "/lib", 4)) {
 			T("[FIXING %s] ", argv[i]);
-			sprintf(temp, "%s%s", getenv("STAGING"), argv[i]);
+			sprintf(temp, "%s%s", staging, argv[i]);
 			argv[i] = strdup(temp);
 		} else if (!strncmp(argv[i], "-L/usr/lib", 10)) {
 			T("[FIXING %s] ", argv[i]);
-			sprintf(temp, "-L%s%s", getenv("STAGING"), argv[i]+2);
+			sprintf(temp, "-L%s%s", staging, argv[i]+2);
 			argv[i] = strdup(temp);
 		} else if (!strncmp(argv[i], "-I/usr/include", 14)) {
 			T("[FIXING %s] ", argv[i]);
-			sprintf(temp, "-I%s%s", getenv("STAGING"), argv[i]+2);
+			sprintf(temp, "-I%s%s", staging, argv[i]+2);
 			argv[i] = strdup(temp);
 		} else if (!strcmp(argv[i], "-c")) {
 			dc = argv[i];

@@ -252,10 +252,10 @@ get_installed_etc() {
 }
 
 deploy_binaries() {
-	local tmpf="/tmp/minifs-$MINIFS_BOARD/install-$PACKAGE.lst"
+	local tmpf="$TMPDIR/minifs-$MINIFS_BOARD/install-$PACKAGE.lst"
 	{
 		set -x
-		mkdir -p /tmp/minifs-$MINIFS_BOARD/
+		mkdir -p $TMPDIR/minifs-$MINIFS_BOARD/
 		get_installed_short_binaries >$tmpf
 		(cd $STAGING; rsync -av --files-from=$tmpf ./ $ROOTFS/ ) >"$tmpf.log"
 		set +x

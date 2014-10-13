@@ -91,7 +91,7 @@ deploy-filesystem-prepack() {
 	deploy echo Copying
 	echo -n "     Packing filesystem... "
 	(
-	export CROSS_LINKER_INVOKE="/tmp/cross_linker_run.sh"
+	export CROSS_LINKER_INVOKE="$TMPDIR/cross_linker_run.sh"
 	cross_linker --purge || {
 		echo "### cross_linker error, debug with $CROSS_LINKER_INVOKE"
 		exit 1

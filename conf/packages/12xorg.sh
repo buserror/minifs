@@ -7,7 +7,7 @@
 XORG_VERSION=X11R7.6
 
 XORG_MODULES=""
->/tmp/xorg_url.log
+>$TMPDIR/xorg_url.log
 
 xorg_module_geturl() {
 	local path=$1
@@ -18,7 +18,7 @@ xorg_module_geturl() {
 	fi
 	mod=$(echo $XORG_MODULES|awk "{c=split(\$0,a); for(i=0;i<c;i++) if(match(a[i],/^$module-/)) print a[i] ;}")
 	url="http://xorg.freedesktop.org/archive/individual/$path/$mod.tar.bz2#xorg-$mod.tar.bz2"
-	echo $path $module $url >>/tmp/xorg_url.log
+	echo $path $module $url >>$TMPDIR/xorg_url.log
 	echo $url
 }
 
