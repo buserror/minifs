@@ -66,6 +66,7 @@ PATCHES="$CONF_BASE"/patches
 
 export STAGING="$BUILD/staging"
 export STAGING_USR="$STAGING/usr"
+export TMPDIR="$BUILD/tmp"
 export ROOTFS="$BUILD/rootfs"
 export ROOTFS_PLUGINS=""
 export ROOTFS_KEEPERS="libnss_dns.so.2:"
@@ -134,7 +135,7 @@ CROSSTOOL_JOBS=".$MINIFS_JOBS"
 mkdir -p "$STAGING_TOOLS"/bin
 mkdir -p download "$KERNEL" "$ROOTFS" "$STAGING_USR" "$TOOLCHAIN"
 mkdir -p "$STAGING_USR"/share/aclocal $STAGING_TOOLS/share/aclocal
-mkdir -p /tmp/installwatch
+mkdir -p $TMPDIR/installwatch
 
 # Always regenerate the rootfs
 #rm -rf "$ROOTFS"/*
@@ -153,7 +154,7 @@ TARGET_SHARED=0
 	make -C "$CONF_BASE"/host-tools DESTDIR="$STAGING_TOOLS"
 ) >"$BUILD"/._tools.log 2>&1 || \
 	( echo '## Unable to build tools :'; cat  "$BUILD"/._tools.log; exit 1 ) || exit 1
-rm -f /tmp/pkg-config.log
+rm -f $TMPDIR/pkg-config.log
 if [ "$COMMAND" == "tools" ]; then exit ;fi
 
 hset busybox version "1.22.1"
@@ -531,7 +532,7 @@ compile-generic() {
 #######################################################################
 install-generic-local() {
 	local destdir=$(hget $PACKAGE destdir)
-	local makei="installwatch -r /tmp/installwatch -d /tmp/installwatch/debug -o ._dist_$PACKAGE.log $MAKE install"
+	local makei="installwatch -r $TMPDIR/installwatch -d $TMPDIR/installwatch/debug -o ._dist_$PACKAGE.log $MAKE install"
 	set -x
 	case "$destdir" in
 		none) $makei "$@" ;;
@@ -605,7 +606,7 @@ done
 #######################################################################
 # echo DEPLIST $DEPLIST
 # echo PROCESS_PACKAGES $PROCESS_PACKAGES
-PROCESS_PACKAGES=$(echo $DEPLIST|depsort 2>/tmp/depsort.log)
+PROCESS_PACKAGES=$(echo $DEPLIST|depsort 2>$TMPDIR/depsort.log)
 # echo PROCESS_PACKAGES $PROCESS_PACKAGES
 #exit
 
