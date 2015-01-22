@@ -159,7 +159,7 @@ if [ "$COMMAND" == "tools" ]; then exit ;fi
 
 hset busybox version "1.22.1"
 hset linux version "2.6.32.2"
-hset crosstools version "1.19.0"
+hset crosstools version "1.20.0"
 
 # PATH needs sbin (for depmod), the host tools, and the cross toolchain
 export BASE_PATH="$PATH"
