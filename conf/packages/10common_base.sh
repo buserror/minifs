@@ -141,19 +141,25 @@ install-util-linux() {
 #######################################################################
 PACKAGES+=" mtd_utils"
 #hset mtd_utils url "http://git.infradead.org/mtd-utils.git/snapshot/a67747b7a314e685085b62e8239442ea54959dbc.tar.gz#mtd_utils.tgz"
-hset mtd_utils url "http://ftp.de.debian.org/debian/pool/main/m/mtd-utils/mtd-utils_1.5.0.orig.tar.gz"
+hset mtd_utils url "http://ftp.de.debian.org/debian/pool/main/m/mtd-utils/mtd-utils_1.5.1.orig.tar.gz"
 # util-linux is only for libuuid
 hset mtd_utils depends "zlib lzo util-linux"
 hset mtd_utils deploy-list "nandwrite mtd_debug"
 hset mtd_utils deploy-ubifs 0
 
 configure-mtd_utils() {
-	configure echo Done
+	if [ $(hget mtd_utils deploy-ubifs) -eq 1 ]; then
+		configure echo Done
+	else
+		configure sed -i -e '/^BINS.*mkfs.ubifs/d' Makefile
+	fi
 }
 compile-mtd_utils() {
 	compile $MAKE CC=$GCC \
 		CFLAGS="$TARGET_CFLAGS -I$STAGING/include -DWITHOUT_XATTR" \
-		LDFLAGS="$LDFLAGS"
+		LDFLAGS="$LDFLAGS" \
+		MTD_BINS="$(hget mtd_utils deploy-list)" \
+		UBI_BINS=""
 }
 install-mtd_utils() {
 	log_install echo Done
