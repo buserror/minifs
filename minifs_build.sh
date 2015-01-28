@@ -437,22 +437,40 @@ for package in $TARGET_PACKAGES; do
 			remove_package $baseroot
 		fi
 	fi
+	# See if we want to keep the .git around, and if we have a 
+	# specific git tag/branch/commit to checkout
+	excluder="--exclude=.git"
+	gitref="$(hget $PACKAGE git-ref)"
+	if [ "$proto" == "git" ]; then
+		if [ "$gitref" != "" ]; then
+			excluder=""
+		fi
+	fi
 	if [ ! -d "$BUILD/$baseroot" ]; then
 		echo "####  Extracting $loc to $BUILD/$baseroot ($typ)"
 		mkdir -p "$BUILD/$baseroot"
 		echo "$fil" >"$BUILD/$baseroot/._url"
 		echo "$vers" >"$BUILD/$baseroot/._version"
 		case "$typ" in
-			bz2)	tar jx --exclude=.git -C "$BUILD/$baseroot" --strip 1 -f "$loc"	;;
-			xz)		xzcat "$loc" | tar x --exclude=.git -C "$BUILD/$baseroot" --strip 1	;;
-			gz|tgz)	tar zx --exclude=.git -C "$BUILD/$baseroot" --strip 1 -f "$loc"	;;
-			tarb)	tar zx --exclude=.git -C "$BUILD/$baseroot" -f "$loc" ;;
+			bz2)	tar jx $excluder -C "$BUILD/$baseroot" --strip 1 -f "$loc"	;;
+			xz)		xzcat "$loc" | tar x $excluder -C "$BUILD/$baseroot" --strip 1	;;
+			gz|tgz)	tar zx $excluder -C "$BUILD/$baseroot" --strip 1 -f "$loc"	;;
+			tarb)	tar zx $excluder -C "$BUILD/$baseroot" -f "$loc" ;;
 			run)	pushd "$BUILD/$baseroot"
 				optional uncompress-$package "$BASE/download/$loc"
 				popd
 				;;
 			*)	echo ### error file format '$typ' ($base) not supported" ; exit 1
 		esac
+		if [ "$gitref" != "" ]; then
+			echo "****  $PACKAGE checking out $gitref"
+			( cd "$BUILD/$baseroot" 
+				git checkout $gitref || exit 1
+				git branch -b minifs-build
+				true
+			) >"$BUILD/$baseroot/.git_checkout" 2>&1 || \
+				{ echo "$PACKAGE checkout $gitref ERROR, bailing"; exit 1; }
+		fi
 		( for pd in \
 				"$PATCHES/$baseroot" "$PATCHES/$baseroot$vers" \
 				$(minifs_path_split "patches/$baseroot") \
