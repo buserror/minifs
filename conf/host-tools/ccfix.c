@@ -54,14 +54,16 @@ const char *tmpdir = NULL;
 void T(const char * fmt, ...)
 {
 	if (!out) {
-		const char *path = NULL;
+		char *path = NULL;
 		asprintf(&path, "%s/ccfix.log", tmpdir);
-		out = fopen(tmpdir, "a");
-		fprintf(out, "ccfix:%s ", getenv("MINIFS_PACKAGE"));
+		out = fopen(path, "a");
+		if (out)
+			fprintf(out, "ccfix:%s ", getenv("MINIFS_PACKAGE"));
 	}
 	va_list vap;
 	va_start(vap, fmt);
-	vfprintf(out, fmt, vap);
+	if (out)
+		vfprintf(out, fmt, vap);
 	va_end(vap);
 }
 
@@ -77,6 +79,7 @@ int main(int argc, char * argv[])
 	const char * conftest = NULL;
 	
 	tmpdir = getenv("TMPDIR") ? getenv("TMPDIR") : "/tmp";
+	if (!*tmpdir) tmpdir = "/tmp";
 	
 	for (i = 2; i < argc; i++)
 		if (!strncmp(argv[i], "/usr/lib", 8) || !strncmp(argv[i], "/lib", 4)) {
