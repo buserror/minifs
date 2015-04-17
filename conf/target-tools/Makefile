@@ -22,6 +22,7 @@ kmem: $(STAGING)/bin/kmem
 fbtest: $(STAGING)/bin/fbtest
 spitalk: $(STAGING)/bin/spitalk
 fat_find: $(STAGING)/bin/fat_find
+uboot_env: $(STAGING)/bin/uboot_env
 
 $(STAGING)/bin:
 	mkdir -p $@
@@ -36,6 +37,26 @@ $(STAGING)/bin/fat_find : EXTRA_CFLAGS += -I$(LIBFAT)
 $(STAGING)/bin/fat_find : $(LIBFAT_SRC)
 
 $(STAGING)/bin/i2ctalk : LDF += -lm
+
+# if a uboot exists, we can compile the environment tool for it
+ifneq ($(TARGET_BOARD),)
+UBOOT	= $(wildcard ../../build-$(TARGET_BOARD)/uboot/)
+ifneq ($(UBOOT),)
+include $(UBOOT)/include/autoconf.mk
+MY_CFLAGS += -DCONFIG_ENV_SIZE=$(CONFIG_ENV_SIZE)
+MY_CFLAGS += -DCONFIG_TARGET_BOARD=$(TARGET_BOARD)
+MY_CFLAGS += -DCONFIG_H="\"uboot_env_$(TARGET_BOARD).h\""
+
+uboot_env_$(TARGET_BOARD).h: ${UBOOT}/u-boot
+	./uboot_env_extract.sh $^ >$@
+
+$(STAGING)/bin/uboot_env : lib/crc32.c
+$(STAGING)/bin/uboot_env : uboot_env_$(TARGET_BOARD).h
+
+endif
+endif
+
+$(STAGING)/bin/uboot_env : MY_CFLAGS += -std=gnu99
 
 clean:
 	rm -f $(TOOLS_BIN)
