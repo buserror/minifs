@@ -2,7 +2,7 @@
 # http://0pointer.de/lennart/projects/libdaemon/
 PACKAGES+=" libdaemon"
 hset libdaemon url "http://0pointer.de/lennart/projects/libdaemon/libdaemon-0.14.tar.gz"
-hset libdaemon depends "libdaemon"
+#hset libdaemon depends "libdaemon"
 
 configure-libdaemon-local() {
 	cat <<-END >config-fake.cache
@@ -19,6 +19,10 @@ configure-libdaemon() {
 PACKAGES+=" avahi"
 hset avahi url "http://avahi.org/download/avahi-0.6.30.tar.gz"
 hset avahi depends "libdaemon libexpat dbus"
+
+hostcheck-avahi() {
+	hostcheck_commands intltoolize
+}
 
 configure-avahi-local() {
 	configure-generic-local \
