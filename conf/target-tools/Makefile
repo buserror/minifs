@@ -39,19 +39,19 @@ $(STAGING)/bin/fat_find : $(LIBFAT_SRC)
 $(STAGING)/bin/i2ctalk : LDF += -lm
 
 # if a uboot exists, we can compile the environment tool for it
-ifneq ($(TARGET_BOARD),)
-UBOOT	= $(wildcard ../../build-$(TARGET_BOARD)/uboot/)
+ifneq ($(MINIFS_BOARD),)
+UBOOT	= $(wildcard ../../build-$(MINIFS_BOARD)/uboot/)
 ifneq ($(UBOOT),)
 include $(UBOOT)/include/autoconf.mk
 MY_CFLAGS += -DCONFIG_ENV_SIZE=$(CONFIG_ENV_SIZE)
-MY_CFLAGS += -DCONFIG_TARGET_BOARD=$(TARGET_BOARD)
-MY_CFLAGS += -DCONFIG_H="\"uboot_env_$(TARGET_BOARD).h\""
+MY_CFLAGS += -DCONFIG_MINIFS_BOARD=$(MINIFS_BOARD)
+MY_CFLAGS += -DCONFIG_H="\"uboot_env_$(MINIFS_BOARD).h\""
 
-uboot_env_$(TARGET_BOARD).h: ${UBOOT}/u-boot
+uboot_env_$(MINIFS_BOARD).h: ${UBOOT}/u-boot
 	./uboot_env_extract.sh $^ >$@
 
 $(STAGING)/bin/uboot_env : lib/crc32.c
-$(STAGING)/bin/uboot_env : uboot_env_$(TARGET_BOARD).h
+$(STAGING)/bin/uboot_env : uboot_env_$(MINIFS_BOARD).h
 
 endif
 endif
