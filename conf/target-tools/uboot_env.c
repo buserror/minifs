@@ -234,8 +234,9 @@ rawenv_load(
 	uint16_t flags )
 {
 	uint32_t tot_size = env_size - sizeof(uint32_t);
-	uint32_t crc = crc32(0, (uint8_t*)raw_env, tot_size);
-	uint32_t wanted = *((uint32_t*)(raw_env + tot_size));
+	const void * env_start = raw_env + sizeof(uint32_t);
+	uint32_t crc = crc32(0, (uint8_t*)env_start, tot_size);
+	uint32_t wanted = *((uint32_t*)(raw_env /* + tot_size*/));
 	int err = ELOAD_OK;
 	env_p env = NULL;
 
@@ -254,7 +255,7 @@ rawenv_load(
 	switch (err) {
 		case ELOAD_CRC:
 			if ((flags & LOAD_IGNORE_CRC)) {
-				env = env_load(raw_env);
+				env = env_load(env_start);
 				if (env && env->count) {
 					env->state = err;
 					break;
@@ -268,7 +269,7 @@ rawenv_load(
 			env->state = err;
 			break;
 		case ELOAD_OK:
-			env = env_load(raw_env);
+			env = env_load(env_start);
 	}
 	return env;
 }
@@ -279,10 +280,11 @@ rawenv_save(
 	char *raw_env)
 {
 	uint32_t tot_size = env_size - sizeof(uint32_t);
+	void * env_start = raw_env + sizeof(uint32_t);
 
 	memset(raw_env, -1, env_size);
 
-	char *d = raw_env;
+	char *d = env_start;
 	for (int i = 0; i < env->count; i++) {
 		// deleted or empty content variable
 		if (!env->e[i].name || !env->e[i].val)
@@ -299,8 +301,8 @@ rawenv_save(
 	}
 	*d++ = 0;
 	*d++ = 0;	// just in case the env is totally empty!
-	uint32_t crc = crc32(0, (uint8_t*)raw_env, tot_size);
-	*((uint32_t*)(raw_env + tot_size)) = crc;
+	uint32_t crc = crc32(0, env_start, tot_size);
+	*((uint32_t*)(raw_env)) = crc;
 	return 0;
 }
 
@@ -347,13 +349,20 @@ flash_open(
 				name, strerror(errno));
 			goto error;
 		}
-		if (verbose)
-			printf("%s:%s size %dMB writesize %d erasesize %dKB\n",
-				__func__, f->name,
-				f->mtd.size / 1024 / 1024,
-				f->mtd.writesize,
-				f->mtd.erasesize / 1024);
 	}
+	if (f->mtd.type == MTD_ABSENT) {
+		if (verbose)
+			printf("%s:%s is not a device, assuming a file of %dKB\n",
+				__func__, name, env_size / 1024);
+			f->mtd.size = 
+				f->mtd.writesize = f->mtd.erasesize = env_size;
+	}
+	if (verbose)
+		printf("%s:%s size %dKB writesize %d erasesize %dKB\n",
+			__func__, f->name,
+			f->mtd.size / 1024,
+			f->mtd.writesize,
+			f->mtd.erasesize / 1024);
 	return f;
 error:
 	flash_close(f);
@@ -549,7 +558,7 @@ static void usage(const char *p, int exit_code)
 		"   [-i|--init]      : reset env to default [DANGEROUS]\n"
 		"   [<var>=<value>]* : set <var>(s) to <value> and save\n"
 		"   [<var>]*         : print <var>(s) value\n"
-		"", p, CONFIG_ENV_MTD, uboot_environment_len / 1024);
+		"", p, CONFIG_ENV_MTD, env_size / 1024);
 	if (exit_code)
 		exit(exit_code);
 }
