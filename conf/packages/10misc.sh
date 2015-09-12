@@ -433,3 +433,8 @@ install-cpuburn() {
 deploy-cpuburn() {
 	deploy cp "$STAGING_USR"/bin/burn* "$ROOTFS"/bin/
 }
+
+PACKAGES+=" libconfig"
+hset libconfig url "http://www.hyperrealm.com/libconfig/libconfig-1.5.tar.gz"
+
+
