@@ -122,8 +122,9 @@ PACKAGES+=" libsoup"
 #hset libsoup url "http://ftp.gnome.org/pub/gnome/sources/libsoup/2.33/libsoup-2.33.6.tar.bz2"
 #hset libsoup url "http://ftp.gnome.org/pub/gnome/sources/libsoup/2.35/libsoup-2.35.5.tar.bz2"
 #hset libsoup url "http://ftp.gnome.org/pub/gnome/sources/libsoup/2.41/libsoup-2.41.3.tar.xz"
-hset libsoup url "http://ftp.gnome.org/pub/gnome/sources/libsoup/2.44/libsoup-2.44.2.tar.xz"
-hset libsoup depends "libglibnet"
+#hset libsoup url "http://ftp.gnome.org/pub/gnome/sources/libsoup/2.44/libsoup-2.44.2.tar.xz"
+hset libsoup url "http://ftp.acc.umu.se/pub/gnome/sources/libsoup/2.50/libsoup-2.50.0.tar.xz"
+hset libsoup depends "libglibnet libxml2"
 
 configure-libsoup() {
 	configure-generic \
