@@ -91,7 +91,8 @@ deploy-shairport() {
 
 PACKAGES+=" shairport-sync"
 hset shairport-sync url "git!https://github.com/mikebrady/shairport-sync.git#shairport-sync-git.tar.bz2"
-hset shairport-sync depends "libalsa openssl avahi"
+hset shairport-sync git-ref "2.3"
+hset shairport-sync depends "libalsa libconfig libpopt openssl avahi"
 hset shairport-sync name "\$(hostname)"
 
 configure-shairport-sync-local() {
