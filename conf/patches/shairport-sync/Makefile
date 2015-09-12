@@ -7,7 +7,7 @@ SRC := ${filter-out audio_pulse.c, ${SRC}}
 SRC := ${filter-out audio_ao.c, ${SRC}}
 SRC := ${filter-out mdns_dns_sd.c, ${SRC}}
 
-DEPS = libdaemon alsa openssl avahi-client dbus-1
+DEPS = libdaemon alsa openssl avahi-client dbus-1 libconfig popt
 ECPPFLAGS += ${shell pkg-config --cflags $(DEPS)}
 ELDFLAGS += ${shell pkg-config --libs $(DEPS)} \
 	-lrt -lm -lpthread
@@ -17,6 +17,9 @@ all: shairport
 config.h:
 	(echo '#define CONFIG_ALSA 1' ;\
 	echo '#define CONFIG_AVAHI 1' ;\
+	echo '#define CONFIG_METADATA 1' ;\
+	echo '#define HAVE_LIBSSL 1' ;\
+	echo '#define PACKAGE_VERSION "minifs"' ;\
 	)>$@
 
 shairport: config.h ${SRC} *.h
