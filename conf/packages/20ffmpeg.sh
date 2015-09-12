@@ -80,7 +80,7 @@ hset gstreamer url "http://gstreamer.freedesktop.org/src/gstreamer/gstreamer-$CO
 hset gst-plugins-base url "http://gstreamer.freedesktop.org/src/gst-plugins-base/gst-plugins-base-$CONFIG_GSTREAMER_VERSION.tar.xz"
 hset gst-plugins-base depends "gstreamer liboil libalsa libogg libvorbis orc"
 hset gst-plugins-good url "http://gstreamer.freedesktop.org/src/gst-plugins-good/gst-plugins-good-$CONFIG_GSTREAMER_VERSION.tar.xz"
-hset gst-plugins-good depends "gstreamer gst-plugins-base"
+hset gst-plugins-good depends "gstreamer gst-plugins-base libsoup"
 hset gst-plugins-bad url "http://gstreamer.freedesktop.org/src/gst-plugins-bad/gst-plugins-bad-$CONFIG_GSTREAMER_VERSION.tar.xz"
 hset gst-plugins-bad depends "gstreamer gst-plugins-base"
 hset gst-plugins-ugly url "http://gstreamer.freedesktop.org/src/gst-plugins-ugly/gst-plugins-ugly-$CONFIG_GSTREAMER_VERSION.tar.xz"
