@@ -347,7 +347,8 @@ for package in $TARGET_PACKAGES; do
 	vers=$(echo $base|sed -r 's|.*([-_](v?[0-9]+[a-z\-]*[\._]?)+)\..*|\1|')
 	host=${url/*:\/\/}
 	host=${host/\/*}
-	#echo "base=$base typ=$typ loc=$loc vers=$vers"
+	gitref="$(hget $package git-ref)"
+	# echo "base=$base typ=$typ loc=$loc vers=$vers gitref=$gitref"
 
 	# maybe the package has a magic downloader ?
 	optional download-$package
@@ -413,7 +414,11 @@ for package in $TARGET_PACKAGES; do
 				rm -rf "$package.git"
 				tar jxf "$loc" && (
 					cd "$package.git"
-					git pull
+					if [ "$gitref" != "" ]; then
+						git fetch && git checkout $gitref
+					else
+						git pull
+					fi
 				) &&
 				tar jcf "$loc" "$package.git" &&
 				rm -rf "$package.git" &&
@@ -440,7 +445,6 @@ for package in $TARGET_PACKAGES; do
 	# See if we want to keep the .git around, and if we have a 
 	# specific git tag/branch/commit to checkout
 	excluder="--exclude=.git"
-	gitref="$(hget $PACKAGE git-ref)"
 	if [ "$proto" == "git" ]; then
 		if [ "$gitref" != "" ]; then
 			excluder=""
