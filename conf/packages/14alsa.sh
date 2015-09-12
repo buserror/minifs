@@ -141,10 +141,14 @@ deploy-gmrender-local() {
 	rsync -av --delete "$STAGING_USR"/share/gmediarender "$ROOTFS"/usr/share/ 
 	cat >>"$ROOTFS"/etc/network-up.sh <<-EOF
 	echo "* Starting gmrender..."
-	gmediarender -d --logfile=/dev/stdout -f $(hget gmrender name) >/tmp/gmrender.log 2>&1
+	gmediarender -d --logfile=/tmp/gmrender-run.log -f $(hget gmrender name) --gstout-audiosink=alsasink --gstout-audiodevice=default --gstout-initial-volume-db=-10>/tmp/gmrender.log 2>&1
 	EOF
 }
 
 deploy-gmrender() {
 	deploy 	deploy-gmrender-local
 }
+
+PACKAGES+=" mpd"
+hset mpd url "http://www.musicpd.org/download/mpd/0.19/mpd-0.19.9.tar.xz"
+
