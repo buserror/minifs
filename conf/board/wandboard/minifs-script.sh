@@ -45,7 +45,7 @@ board_prepare() {
 
 		# Audio stuff
 	TARGET_PACKAGES+=" libalsa aften lame twolame alsautils"
-	TARGET_PACKAGES+=" ffmpeg shairport-sync gmrender"
+	TARGET_PACKAGES+=" ffmpeg shairport-sync mpd"
 	hset shairport name "Loungeaudio"
 	hset gmrender name "Loungeaudio"
 	
