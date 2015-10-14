@@ -73,7 +73,7 @@ hset orc url "http://code.entropywave.com/download/orc/orc-0.4.16.tar.gz"
 ## gstreamer
 #######################################################################
 # http://gstreamer.freedesktop.org/
-CONFIG_GSTREAMER_VERSION=1.2.4
+CONFIG_GSTREAMER_VERSION=1.5.2
 
 PACKAGES+=" gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly"
 hset gstreamer url "http://gstreamer.freedesktop.org/src/gstreamer/gstreamer-$CONFIG_GSTREAMER_VERSION.tar.xz"
@@ -96,9 +96,15 @@ setup-gstreamer() {
 configure-gstreamer() {
 	# disable-loadsave removes the need for libxml2
 	export LDFLAGS="$LDFLAGS_RLINK"
-	configure-generic --libexecdir="$STAGING_USR"/lib \
-		--disable-loadsave
+	configure-generic \
+		--disable-examples
 	export LDFLAGS="$LDFLAGS_BASE"
+#		--prefix=$STAGING_USR 
+#		--libexecdir="$STAGING_USR"/lib 
+}
+
+compile-gstreamer() {
+	compile-generic V=1
 }
 
 configure-gst-plugins-base() {
@@ -111,6 +117,8 @@ configure-gst-plugins-base() {
 	fi
 	sed -i -e '/[ \t]tests[ \t]/d' Makefile.am
 	rm -f configure
+	# echo | is to disable the stupid prompt
+	echo | gettextize -f
 	configure-generic \
 		--disable-vorbistest \
 		--disable-freetypetest \
