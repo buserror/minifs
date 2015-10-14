@@ -120,7 +120,7 @@ configure-gnutls() {
 #######################################################################
 # 110906 Updated 1.0.0e
 PACKAGES+=" openssl"
-hset openssl url "http://www.openssl.org/source/openssl-1.0.1e.tar.gz"
+hset openssl url "http://www.openssl.org/source/openssl-1.0.2d.tar.gz"
 hset openssl targets "openssl openssl-bin"
 hset openssl deploy false
 hset openssl config "linux-generic32"
@@ -131,11 +131,15 @@ configure-openssl() {
 }
 compile-openssl() {
 	local base=$(awk '/^CFLAG= / {print substr($0,8);}' Makefile)
-	compile $MAKE \
+	compile $MAKE $MAKE_ARGUMENTS \
 		CC="ccfix $TARGET_FULL_ARCH-gcc" \
 		AR="ccfix $TARGET_FULL_ARCH-ar r" \
 		RANLIB="$TARGET_FULL_ARCH-ranlib" \
 		CFLAG="$base $TARGET_CFLAGS"
+}
+install-openssl() {
+	# skip all the docs, it breaks anyway
+	log_install $MAKE install_sw
 }
 deploy-openssl() {
 	deploy deploy_binaries
