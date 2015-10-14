@@ -160,7 +160,7 @@ hset libxvid dir "libxvid/build/generic"
 #######################################################################
 PACKAGES+=" ffmpeg"
 
-V="2.2.1"
+V="2.7.2"
 hset ffmpeg version $V
 hset ffmpeg url "http://ffmpeg.org/releases/ffmpeg-$V.tar.bz2"
 hset ffmpeg depends "busybox"
@@ -190,7 +190,7 @@ configure-ffmpeg() {
 	fi
 	export LDFLAGS="$LDFLAGS_RLINK"
 	configure ./configure \
-		--prefix="$STAGING" \
+		--prefix="$STAGING_USR" \
 		--enable-cross-compile \
 		--target-os=linux \
 		--cross-prefix="${TARGET_FULL_ARCH}-" \
