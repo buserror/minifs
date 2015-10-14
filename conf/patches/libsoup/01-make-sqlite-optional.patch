@@ -1,0 +1,40 @@
+diff -ur libsoup-2.51.3/configure.ac libsoup.patch/configure.ac
+--- libsoup-2.51.3/configure.ac	2015-06-22 22:27:08.000000000 +0100
++++ libsoup.patch/configure.ac	2015-09-12 15:25:02.359825640 +0100
+@@ -94,7 +94,13 @@
+ AC_SUBST(XML_CFLAGS)
+ AC_SUBST(XML_LIBS)
+ 
+-PKG_CHECK_MODULES(SQLITE, sqlite3)
++AC_ARG_WITH([sqlite], AS_HELP_STRING([--with-sqlite], [Build with sqlite cookies DB]))
++
++PKG_CHECK_MODULES([SQLITE], [sqlite3], 
++	have_sqlite=yes,
++	have_sqlite=no]
++)
++AM_CONDITIONAL(HAVE_SQLITE, test $have_sqlite = yes)
+ AC_SUBST(SQLITE_CFLAGS)
+ AC_SUBST(SQLITE_LIBS)
+ 
+diff -ur libsoup-2.51.3/libsoup/Makefile.am libsoup.patch/libsoup/Makefile.am
+--- libsoup-2.51.3/libsoup/Makefile.am	2015-06-21 16:08:31.000000000 +0100
++++ libsoup.patch/libsoup/Makefile.am	2015-09-12 15:20:27.379821571 +0100
+@@ -134,7 +134,6 @@
+ 	soup-converter-wrapper.c	\
+ 	soup-cookie.c			\
+ 	soup-cookie-jar.c		\
+-	soup-cookie-jar-db.c		\
+ 	soup-cookie-jar-text.c		\
+ 	soup-date.c			\
+ 	soup-directory-input-stream.h	\
+@@ -194,6 +193,10 @@
+ 	soup-websocket-connection.c	\
+ 	soup-xmlrpc.c
+ 
++if HAVE_SQLITE
++libsoup_2_4_la_SOURCES += 	soup-cookie-jar-db.c
++endif
++
+ # TLD rules
+ EXTRA_DIST += tld-parser.py
+ 
