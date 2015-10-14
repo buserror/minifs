@@ -361,7 +361,7 @@ deploy-firmware-ralink() {
 }
 
 PACKAGES+=" kexec-tools"
-hset kexec-tools url "http://kernel.org/pub/linux/utils/kernel/kexec/kexec-tools-2.0.8.tar.xz"
+hset kexec-tools url "http://kernel.org/pub/linux/utils/kernel/kexec/kexec-tools-2.0.10.tar.xz"
 hset kexec-tools depends "busybox"
 
 deploy-kexec-tools() {
