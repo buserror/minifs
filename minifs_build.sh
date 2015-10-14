@@ -126,11 +126,9 @@ CROSS_BASE="$TOOLCHAIN/$TARGET_FULL_ARCH/"
 CROSS="$CROSS_BASE/bin/$TARGET_FULL_ARCH"
 GCC="${CROSS}-gcc"
 
-
 WGET=wget
 MAKE=make
 MAKE_ARGUMENTS="-j$MINIFS_JOBS"
-CROSSTOOL_JOBS=".$MINIFS_JOBS"
 
 mkdir -p "$STAGING_TOOLS"/bin
 mkdir -p download "$KERNEL" "$ROOTFS" "$STAGING_USR" "$TOOLCHAIN"
@@ -157,10 +155,6 @@ TARGET_SHARED=0
 rm -f $TMPDIR/pkg-config.log
 if [ "$COMMAND" == "tools" ]; then exit ;fi
 
-hset busybox version "1.22.1"
-hset linux version "2.6.32.2"
-hset crosstools version "1.20.0"
-
 # PATH needs sbin (for depmod), the host tools, and the cross toolchain
 export BASE_PATH="$PATH"
 export PATH="$TOOLCHAIN/bin:$TOOLCHAIN/$TARGET_FULL_ARCH/bin:$BUILD/staging-tools/bin:/usr/sbin:/sbin:$PATH"
@@ -170,9 +164,9 @@ export CC="ccfix $TARGET_FULL_ARCH-gcc"
 export CXX="ccfix $TARGET_FULL_ARCH-g++"
 export LD="ccfix $TARGET_FULL_ARCH-ld"
 
-export TARGET_CPPFLAGS="-I$STAGING/include -I$STAGING_USR/include"
+export TARGET_CPPFLAGS="-I$STAGING_USR/include"
 export CPPFLAGS="$TARGET_CPPFLAGS"
-export LDFLAGS_BASE="-L$STAGING/lib -L$STAGING_USR/lib"
+export LDFLAGS_BASE="-L$STAGING_USR/lib"
 export CFLAGS="$TARGET_CFLAGS"
 export CXXFLAGS="$CFLAGS"
 export LIBC_CFLAGS="${TARGET_LIBC_CFLAGS:-$TARGET_CFLAGS}"
@@ -348,20 +342,22 @@ for package in $TARGET_PACKAGES; do
 	host=${url/*:\/\/}
 	host=${host/\/*}
 	gitref="$(hget $package git-ref)"
-	# echo "base=$base typ=$typ loc=$loc vers=$vers gitref=$gitref"
 
 	# maybe the package has a magic downloader ?
 	optional download-$package
 
 	if [ ! -f "$loc" ]; then
 		case "$proto" in
+			# git repo URL are of format git!<url>#<filename to store>
 			git)
+				gitref=${gitref:-"master"}
 				if [ ! -d "$package.git" ]; then
 					echo "#### git clone $url $package.git"
-					git clone "$url" "$package.git"
+					git clone "$url" "$package.git" &&
+						git checkout $gitref
 				fi
 				if [ -d "$package.git" ]; then
-					echo "#### Compressing $url"
+					echo "#### Compressing $package to $loc"
 					tar jcf "$loc" "$package.git" &&
 						rm -rf "$package.git" &&
 						rm -rf "$BUILD/$package"
@@ -410,15 +406,13 @@ for package in $TARGET_PACKAGES; do
 	elif [ "$COMMAND_PACKAGE" = "$package" -a "$COMMAND_TARGET" = "pull" ]; then
 		case "$proto" in
 			git)
-				echo Trying to pull $package tree
+				gitref=${gitref:-"master"}
+				echo Trying to pull $package tree head $gitref
 				rm -rf "$package.git"
 				tar jxf "$loc" && (
 					cd "$package.git"
-					if [ "$gitref" != "" ]; then
-						git fetch && git checkout $gitref
-					else
-						git pull
-					fi
+					git pull &&
+					git checkout $gitref
 				) &&
 				tar jcf "$loc" "$package.git" &&
 				rm -rf "$package.git" &&
