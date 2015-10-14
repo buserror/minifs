@@ -30,9 +30,10 @@ PACKAGES+=" libnl"
 hset libnl url "http://www.infradead.org/~tgr/libnl/files/libnl-3.0.tar.gz"
 
 PACKAGES+=" libnl-tiny"
-hset libnl-tiny url "svn!svn://svn.openwrt.org/openwrt/branches/backfire/package/libnl-tiny#libnl-tiny-svn.tar.bz2"
-hset libnl-tiny svnopt "none" # no default -s
-hset libnl-tiny dir "libnl-tiny/src"
+#hset libnl-tiny url "svn!svn://svn.openwrt.org/openwrt/branches/backfire/package/libnl-tiny#libnl-tiny-svn.tar.bz2"
+#hset libnl-tiny svnopt "none" # no default -s
+#hset libnl-tiny dir "libnl-tiny/src"
+hset libnl-tiny url "git!https://github.com/sabotage-linux/libnl-tiny.git#libnl-tiny-git.tar.bz2"
 
 compile-libnl-tiny() {
 	compile $MAKE -j4 CC=$GCC CFLAGS="$TARGET_CPPFLAGS $TARGET_CFLAGS"
