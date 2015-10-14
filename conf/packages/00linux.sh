@@ -2,13 +2,19 @@
 ## contains the 4 main phases of compiling the kernel
 #######################################################################
 
-LINUX_VERSION=$(hget linux version)
-LINUX_URL=$(echo $LINUX_VERSION| awk -F[.-] --source '{
-printf("http://www.kernel.org/pub/linux/kernel/v%s%s/linux-%s.tar.xz\n",
-       $1 == "3" ? "3.x" : ($1 "." $2),
-       $NF ~ /^[0-9]+/ ? "" : "/testing",
-       $0); }')
-hset linux url $LINUX_URL
+# default (old!) kernel, not used by anyone but perhaps mini2440
+# all other boards have their own kernel versions and URLS
+#hset linux version "2.6.32.2"
+
+if [ "$(hget linux url)" = "" ]; then
+	LINUX_VERSION=$(hget linux version)
+	LINUX_URL=$(echo $LINUX_VERSION| awk -F[.-] --source '{
+	printf("http://www.kernel.org/pub/linux/kernel/v%s%s/linux-%s.tar.xz\n",
+	       $1 == "3" ? "3.x" : ($1 "." $2),
+	       $NF ~ /^[0-9]+/ ? "" : "/testing",
+	       $0); }')
+	hset linux url $LINUX_URL
+fi
 
 hset linux targets "linux-headers linux-modules linux-bare linux-initrd linux-dtb"
 
@@ -254,7 +260,7 @@ deploy-linux-initrd() {
 # as the kernel, and then gets concatenated to the kernel to create
 # a vmlinuz-xxx.dtb file
 #######################################################################
-echo TARGET_KERNEL_DTB $TARGET_KERNEL_DTB
+
 if [ "$TARGET_KERNEL_DTB" != "" ]; then
 	PACKAGES+=" linux-dtb"
 fi
