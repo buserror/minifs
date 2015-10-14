@@ -1,12 +1,12 @@
 /*
- * ccfix 
- * 
+ * ccfix
+ *
  * (c) Michel Pollet <buserror@gmail.com>
- * 
+ *
  * ccfix watches the command line passed to the compiler for things
  * that shouldn't be there. It also try to fix a few of them, as
  * sometime hacking the oackage is just too much trouble.
- * 
+ *
  * + Look for absolute (host) paths in -L and -I
  *   And replace them with equivalents in $STAGING
  * + Look for absolute pathnames, and fix them too
@@ -18,7 +18,7 @@
  *   Some packages break with libtool, so we remove any libtool
  *   parameters that might be lurking.
  * The command line is rebuilt before the real compiler is called
- * 
+ *
  * A log file in /tmp keeps trace of all the fixes and warnings, for
  * the brave who wants to go and fix the packages themselves
  *
@@ -26,12 +26,12 @@
  * modify it under the terms of the GNU Library General Public
  * License as published by the Free Software Foundation; either
  * version 2 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this library; if not, write to the
  * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
@@ -50,6 +50,7 @@
 
 FILE * out = NULL;
 const char *tmpdir = NULL;
+const char *pack = NULL;
 
 void T(const char * fmt, ...)
 {
@@ -58,7 +59,9 @@ void T(const char * fmt, ...)
 		asprintf(&path, "%s/ccfix.log", tmpdir);
 		out = fopen(path, "a");
 		if (out)
-			fprintf(out, "ccfix:%s ", getenv("MINIFS_PACKAGE"));
+			fprintf(out, "ccfix:%s ", pack);
+		else
+			fprintf(stderr, "ccfix ERROR cannot create %s\n", path);
 	}
 	va_list vap;
 	va_start(vap, fmt);
@@ -74,13 +77,14 @@ int main(int argc, char * argv[])
 	FILE * f = NULL;
 	const char * dc = NULL;
 	const char * march = NULL;
-	const char * pack = getenv("MINIFS_PACKAGE");
 	const char * staging = getenv("STAGING");
 	const char * conftest = NULL;
-	
+
+	pack = getenv("MINIFS_PACKAGE") ? getenv("MINIFS_PACKAGE") :
+			getenv("PACKAGE") ? getenv("PACKAGE") :
+			"*MISSING PACKAGE ENV*";
 	tmpdir = getenv("TMPDIR") ? getenv("TMPDIR") : "/tmp";
-	if (!*tmpdir) tmpdir = "/tmp";
-	
+
 	for (i = 2; i < argc; i++)
 		if (!strncmp(argv[i], "/usr/lib", 8) || !strncmp(argv[i], "/lib", 4)) {
 			T("[FIXING %s] ", argv[i]);
@@ -115,9 +119,9 @@ int main(int argc, char * argv[])
 	}
 	argc = di;
 	argv[argc] = NULL;
-	
+
 	if (out) {
-		for (i = 1; i < argc; i++) T("%s ", argv[i]); 
+		for (i = 1; i < argc; i++) T("%s ", argv[i]);
 		T("\n");
 		fclose(out);
 	}
