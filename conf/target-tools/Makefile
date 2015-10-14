@@ -12,6 +12,14 @@ TOOLS_DST := ${patsubst %.c, %, ${TOOLS_SRC}}
 else
 TOOLS_DST := $(TOOLS)
 endif
+# remove uboot_env in case it's not needed
+ifneq ($(MINIFS_BOARD),)
+UBOOT	= $(wildcard ../../build-$(MINIFS_BOARD)/uboot/)
+ifeq ($(UBOOT),)
+TOOLS_DST := ${patsubst uboot_env,,${TOOLS_DST}}
+endif
+endif
+
 TOOLS_BIN := ${patsubst %, $(STAGING)/bin/%, ${TOOLS_DST}}
 
 all:	$(STAGING)/bin $(TOOLS_BIN)
@@ -22,7 +30,6 @@ kmem: $(STAGING)/bin/kmem
 fbtest: $(STAGING)/bin/fbtest
 spitalk: $(STAGING)/bin/spitalk
 fat_find: $(STAGING)/bin/fat_find
-uboot_env: $(STAGING)/bin/uboot_env
 
 $(STAGING)/bin:
 	mkdir -p $@
@@ -52,11 +59,10 @@ uboot_env_$(MINIFS_BOARD).h: ${UBOOT}/u-boot
 
 $(STAGING)/bin/uboot_env : lib/crc32.c
 $(STAGING)/bin/uboot_env : uboot_env_$(MINIFS_BOARD).h
-
-endif
-endif
-
 $(STAGING)/bin/uboot_env : MY_CFLAGS += -std=gnu99
+uboot_env: $(STAGING)/bin/uboot_env
+endif
+endif
 
 clean:
 	rm -f $(TOOLS_BIN)
