@@ -149,6 +149,60 @@ deploy-gmrender() {
 	deploy 	deploy-gmrender-local
 }
 
-PACKAGES+=" mpd"
-hset mpd url "http://www.musicpd.org/download/mpd/0.19/mpd-0.19.9.tar.xz"
+PACKAGES+=" faad"
+hset faad url "http://downloads.sourceforge.net/faac/faad2-2.7.tar.bz2"
 
+PACKAGES+=" libid3tag"
+hset libid3tag url "http://http.debian.net/debian/pool/main/libi/libid3tag/libid3tag_0.15.1b.orig.tar.gz"
+
+PACKAGES+=" libmpdclient"
+hset libmpdclient url "http://www.musicpd.org/download/libmpdclient/2/libmpdclient-2.9.tar.xz"
+
+configure-libmpdclient() {
+	configure-generic --disable-documentation
+}
+
+PACKAGES+=" libsamplerate"
+hset libsamplerate url "http://www.mega-nerd.com/SRC/libsamplerate-0.1.8.tar.gz"
+
+# this piece of boatware doesn't build... we just need the headers anyway
+PACKAGES+=" libboost"
+hset libboost url "http://downloads.sourceforge.net/project/boost/boost/1.59.0/boost_1_59_0.tar.bz2"
+hset libboost optional "libicu "
+
+configure-libboost() {
+#		echo "using gcc : arm : $TARGET_FULL_ARCH-g++ ;" >user-config.jam
+		configure echo Done #./bootstrap.sh
+}
+
+compile-libboost() {
+		compile echo Done # ./b2 toolset=gcc-arm target-os=linux
+}
+install-libboost() {
+	log_install echo Lets not polute the staging with all that crap
+}
+
+PACKAGES+=" mpd"
+hset mpd url "http://www.musicpd.org/download/mpd/0.19/mpd-0.19.10.tar.xz"
+hset mpd depends "libboost libglib libexpat libalsa libcurl libsamplerate libid3tag libmpdclient libicu twolame libmpg123 faad"
+hset mpd optional "avahi "
+
+# there is a trick here, mpd /requires/ boost, but I don't want to build
+# it, and since it only uses the header, I skip the test, Add JUST the
+# header to the incluse list... that seems to work fine
+configure-mpd() {
+	configure-generic \
+		LDFLAGS="$LDFLAGS_RLINK" \
+		CPPFLAGS="$TARGET_CPPFLAGS -I$BUILD/libboost" --without-boost 
+}
+
+deploy-mpd-local() {
+	deploy_binaries
+	
+	cat >>"$ROOTFS"/etc/network-up.sh <<-EOF
+	echo "* Starting mpd..."
+	EOF
+}
+deploy-mpd() {
+	deploy deploy-mpd-local
+}
