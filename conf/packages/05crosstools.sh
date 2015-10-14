@@ -5,6 +5,10 @@ if [ ! -f "$GCC" -o "$COMMAND_PACKAGE" == "crosstools" ]; then
 	NEED_CROSSTOOLS="crosstools"
 	TARGET_PACKAGES+=" crosstools"
 fi
+
+CROSSTOOL_JOBS=".$MINIFS_JOBS"
+
+hset crosstools version "1.21.0"
 hset crosstools url "http://ymorin.is-a-geek.org/download/crosstool-ng/crosstool-ng-$(hget crosstools version).tar.bz2"
 hset crosstools depends "linux-headers "
 
@@ -49,7 +53,9 @@ configure-crosstools() {
 				popd
 			fi
 		done
-
+		if [ ! -f configure ]; then
+			./bootstrap
+		fi
 		configure ./configure --prefix="$STAGING_TOOLS" &&
 			$MAKE &&
 			$MAKE install
@@ -148,7 +154,7 @@ install-host-libtool() {
 }
 
 PACKAGES+=" host-automake"
-hset host-automake url "http://ftp.gnu.org/gnu/automake/automake-1.11.6.tar.xz"
+hset host-automake url "http://ftp.gnu.org/gnu/automake/automake-1.14.1.tar.xz"
 hset host-automake destdir "/"
 hset host-automake depends "host-autoconf"
 
