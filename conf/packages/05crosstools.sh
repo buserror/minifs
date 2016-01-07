@@ -8,7 +8,7 @@ fi
 
 CROSSTOOL_JOBS=".$MINIFS_JOBS"
 
-hset crosstools version "1.21.0"
+hset crosstools version "1.22.0"
 hset crosstools url "http://ymorin.is-a-geek.org/download/crosstool-ng/crosstool-ng-$(hget crosstools version).tar.bz2"
 hset crosstools depends "linux-headers "
 
