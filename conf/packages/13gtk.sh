@@ -137,11 +137,8 @@ configure-libsoup() {
 
 # http://www.cairographics.org/
 PACKAGES+=" libcairo"
-#hset libcairo url "http://www.cairographics.org/releases/cairo-1.8.10.tar.gz"
-#hset libcairo url "http://www.cairographics.org/releases/cairo-1.9.6.tar.gz"
-#hset libcairo url "http://www.cairographics.org/releases/cairo-1.10.2.tar.gz"
-#hset libcairo url "http://www.cairographics.org/releases/cairo-1.12.8.tar.xz"
-hset libcairo url "http://www.cairographics.org/releases/cairo-1.12.16.tar.xz"
+#hset libcairo url "http://www.cairographics.org/releases/cairo-1.12.16.tar.xz"
+hset libcairo url "http://www.cairographics.org/releases/cairo-1.14.6.tar.xz"
 hset libcairo depends "libfreetype libpng libglib libpixman"
 
 configure-libcairo() {
