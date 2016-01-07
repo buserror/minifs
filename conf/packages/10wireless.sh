@@ -50,7 +50,8 @@ install-libnl-tiny() {
 
 # http://hostap.epitest.fi/wpa_supplicant/
 PACKAGES+=" wpa-supplicant"
-hset wpa-supplicant url "http://hostap.epitest.fi/releases/wpa_supplicant-0.7.3.tar.gz"
+#hset wpa-supplicant url "http://hostap.epitest.fi/releases/wpa_supplicant-0.7.3.tar.gz"
+hset wpa-supplicant url "http://hostap.epitest.fi/releases/wpa_supplicant-2.5.tar.gz"
 hset wpa-supplicant dir "wpa-supplicant/wpa_supplicant"
 hset wpa-supplicant depends "libreadline libncurses libnl-tiny openssl"
 
