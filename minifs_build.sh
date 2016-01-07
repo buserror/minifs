@@ -182,7 +182,7 @@ KERNEL_CONFIG_FILE=$(minifs_locate_config_path config_kernel.conf)
 # Look in this target's kernel config to know if we need/want modules
 CONFIG_MODULES=$(grep '^CONFIG_MODULES=y' "$KERNEL_CONFIG_FILE")
 CONFIG_KERNEL_LZO=$(grep '^CONFIG_KERNEL_LZO=y' "$KERNEL_CONFIG_FILE")
-CONFIG_UCLIBC=$(grep 'CT_LIBC_UCLIBC_0_9_30_or_later=y' $(minifs_locate_config_path config_crosstools.conf))
+CONFIG_UCLIBC=$(grep 'CT_LIBC_UCLIBC_0_9_3.*_or_later=y' $(minifs_locate_config_path config_crosstools.conf))
 
 if [ "$CONFIG_KERNEL_LZO" != "" ]; then
 	NEEDED_HOST_COMMANDS+=" lzop"
