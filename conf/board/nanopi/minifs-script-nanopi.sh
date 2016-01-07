@@ -5,7 +5,7 @@
 #TARGET_CFLAGS="-Os -mcpu=arm926ej-s -mtune=arm920t "
 
 TARGET_KERNEL_NAME=zImage
-
+TARGET_INITRD=1
 # this file .dts must exist either in this directory (board)
 # or in the linux arch/$TARGET_ARCH/boot/dts/
 #TARGET_KERNEL_DTB=${TARGET_KERNEL_DTB:-imx23-olinuxino}
@@ -49,4 +49,41 @@ configure-nanoboot() {
 }
 compile-nanoboot() {
 	compile-generic CROSS_COMPILE="$TARGET_FULL_ARCH-"
+}
+
+#
+# Create a ramdisk image with just busybox and a few tools, this
+# mini ramdisk is responsible for finding were the real linux distro is
+# mount it and start it
+#
+nanopi-setup-initrd() {
+	mkdir -p $BUILD/initramfs
+	rm -rf $BUILD/initramfs/*
+	ROOTFS_INITRD="../initramfs"
+	echo  " Building trampoline $ROOTFS_INITRD"
+	(
+		(
+			cd $BUILD/busybox
+			echo Reinstalling busybox there
+			ROOTFS=$ROOTFS_INITRD
+			deploy-busybox-local
+		)
+		mkdir -p $STAGING/static/bin
+		make -C $CONF_BASE/target-tools \
+			STAGING=$STAGING/static MY_CFLAGS="-static -Os -std=gnu99"\
+			TOOLS="waitfor_uevent fat_find" && \
+			sstrip $STAGING/static/bin/* && \
+			cp $STAGING/static/bin/* \
+				$ROOTFS_INITRD/bin/
+	)>$BUILD/._initramfs.log
+	(
+		cd $BUILD/initramfs/
+		## Add rootfs overrides for boards
+		for pd in $(minifs_locate_config_path initramfs 1); do
+			if [ -d "$pd" ]; then
+				echo "### Installing initramfs $pd"
+				rsync -av --exclude=._\* "$pd/" "./"
+			fi
+		done
+	) >>$BUILD/._initramfs.log
 }
