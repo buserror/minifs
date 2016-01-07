@@ -68,7 +68,9 @@ install-libxml2() {
 if [ "$TARGET_LIBC" != "eglibc" ]; then
 	PACKAGES+=" libgettext"
 fi
-hset libgettext url "http://ftp.gnu.org/pub/gnu/gettext/gettext-0.18.1.1.tar.gz"
+#hset libgettext url "http://ftp.gnu.org/pub/gnu/gettext/gettext-0.18.1.1.tar.gz"
+hset libgettext url "http://ftp.gnu.org/pub/gnu/gettext/gettext-0.19.6.tar.xz"
+hset libgettext depends "libxml2 libiconv"
 
 configure-libgettext() {	
 	configure-generic \
@@ -82,6 +84,6 @@ configure-libgettext() {
                  --without-emacs \
                  --with-libncurses-prefix="$STAGING_USR" \
                  --with-libxml2-prefix="$STAGING_USR"
-	CFLAGS="$TARGET_CFLAGS"
+#	CFLAGS="$TARGET_CFLAGS"
 }
  
