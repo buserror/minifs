@@ -38,6 +38,15 @@ deploy-lame() {
 	deploy deploy_binaries
 }
 
+configure-lame-local() {
+	rm -f config.sub; automake --add-missing
+	configure-generic-local
+}
+
+configure-lame() {
+	configure configure-lame-local
+}
+
 PACKAGES+=" twolame"
 hset twolame url "http://cznic.dl.sourceforge.net/project/twolame/twolame/0.3.13/twolame-0.3.13.tar.gz"
 
