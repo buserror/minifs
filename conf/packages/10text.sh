@@ -65,14 +65,15 @@ install-libxml2() {
 }
 
 # 110906 No Changes
-if [ "$TARGET_LIBC" != "eglibc" ]; then
+if [ "$CONFIG_UCLIBC" != "" ]; then
 	PACKAGES+=" libgettext"
 fi
 #hset libgettext url "http://ftp.gnu.org/pub/gnu/gettext/gettext-0.18.1.1.tar.gz"
 hset libgettext url "http://ftp.gnu.org/pub/gnu/gettext/gettext-0.19.6.tar.xz"
 hset libgettext depends "libxml2 libiconv"
 
-configure-libgettext() {	
+configure-libgettext() {
+	rm -f configure ; sed -i -e 's/gettext-tools$//' Makefile.am
 	configure-generic \
 		--without-lispdir \
                  --disable-csharp \
