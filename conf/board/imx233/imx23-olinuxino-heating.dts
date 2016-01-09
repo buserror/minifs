@@ -5,9 +5,7 @@
  */
 
 /dts-v1/;
-
-
-/include/ "imx23.dtsi"
+#include "imx23.dtsi"
 
 / {
 	model = "i.MX23 Olinuxino Low Cost Board";
