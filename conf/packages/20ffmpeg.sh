@@ -1,4 +1,5 @@
 
+
 #######################################################################
 ## for hardware decoding
 #######################################################################
@@ -73,7 +74,7 @@ hset orc url "http://code.entropywave.com/download/orc/orc-0.4.16.tar.gz"
 ## gstreamer
 #######################################################################
 # http://gstreamer.freedesktop.org/
-CONFIG_GSTREAMER_VERSION=1.5.2
+CONFIG_GSTREAMER_VERSION=1.7.1
 
 PACKAGES+=" gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly"
 hset gstreamer url "http://gstreamer.freedesktop.org/src/gstreamer/gstreamer-$CONFIG_GSTREAMER_VERSION.tar.xz"
@@ -107,7 +108,7 @@ compile-gstreamer() {
 	compile-generic V=1
 }
 
-configure-gst-plugins-base() {
+configure-gst-plugins-base-local() {
 	local extra=""
 	export LDFLAGS="$LDFLAGS_RLINK"
 	if [[ $TARGET_X11 ]]; then
@@ -118,14 +119,17 @@ configure-gst-plugins-base() {
 	sed -i -e '/[ \t]tests[ \t]/d' Makefile.am
 	rm -f configure
 	# echo | is to disable the stupid prompt
-	echo | gettextize -f
-	configure-generic \
+	echo " " | gettextize -f
+	configure-generic-local \
 		--disable-vorbistest \
 		--disable-freetypetest \
 		--disable-oggtest \
 		--without-gudev \
 		--disable-nls $extra
 	export LDFLAGS="$LDFLAGS_BASE"
+}
+configure-gst-plugins-base() {
+	configure configure-gst-plugins-base-local
 }
 configure-gst-plugins-good() {
 	configure-generic --without-gudev --disable-nls --disable-shout2
