@@ -23,7 +23,8 @@ hset libffi url "ftp://sourceware.org/pub/libffi/libffi-3.0.13.tar.gz"
 
 # More recent version of glib fails to conf because of lack of glib-compile-schemas
 PACKAGES+=" libglib"
-hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.39/glib-2.39.1.tar.xz"
+#hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.39/glib-2.39.1.tar.xz"
+hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.47/glib-2.47.4.tar.xz"
 
 #hset libglib prefix "$STAGING_USR"
 # this is needed for uclibc not NOT otherwise!
@@ -66,7 +67,7 @@ ac_cv_func_qsort_r=no
 	export CFLAGS
 	export LDFLAGS="$LDFLAGS_RLINK -Wl,-rpath -Wl,$BUILD/libglib/gthread/.libs -Wl,-rpath -Wl,$BUILD/libglib/gmodule/.libs"
 	export NOCONFIGURE=1
-	if [ "$TARGET_LIBC" != "eglibc" ]; then
+	if [ "$CONFIG_UCLIBC" != "" ]; then
 		iconv=gnu
 	else
 		iconv=no
@@ -85,18 +86,10 @@ configure-libglib() {
 }
 
 PACKAGES+=" libglibnet"
-#hset libglibnet url "http://ftp.gnome.org/pub/gnome/sources/glib-networking/2.28/glib-networking-2.28.7.tar.bz2"
-#hset libglibnet url "http://ftp.gnome.org/pub/gnome/sources/glib-networking/2.29/glib-networking-2.29.18.tar.bz2"
-#hset libglibnet url "http://ftp.gnome.org/pub/gnome/sources/glib-networking/2.35/glib-networking-2.35.3.tar.bz2"
-#hset libglibnet url "http://ftp.gnome.org/pub/gnome/sources/glib-networking/2.35/glib-networking-2.35.9.tar.xz"
-hset libglibnet url "http://ftp.gnome.org/pub/gnome/sources/glib-networking/2.39/glib-networking-2.39.1.tar.xz"
-#hset libglibnet depends "gnutls libglib"
+#hset libglibnet url "http://ftp.gnome.org/pub/gnome/sources/glib-networking/2.39/glib-networking-2.39.1.tar.xz"
+hset libglibnet url "http://ftp.gnome.org/pub/gnome/sources/glib-networking/2.47/glib-networking-2.47.1.tar.xz"
 hset libglibnet depends "libglib"
 hset libglibnet destdir "none" # let out own "install" fix borken autocrap
-
-#setup-libglibnet() {
-	#ROOTFS_KEEPERS+="libgnutls.so:"
-#}
 
 configure-libglibnet-local() {
 	configure-generic-local \
@@ -115,13 +108,14 @@ PACKAGES+=" libglibjson"
 #hset libglibjson url "http://ftp.gnome.org/pub/GNOME/sources/json-glib/0.12/json-glib-0.12.4.tar.bz2"
 #hset libglibjson url "http://ftp.gnome.org/pub/GNOME/sources/json-glib/0.13/json-glib-0.13.4.tar.bz2"
 #hset libglibjson url "http://ftp.gnome.org/pub/GNOME/sources/json-glib/0.15/json-glib-0.15.2.tar.bz2"
-hset libglibjson url "http://ftp.gnome.org/pub/GNOME/sources/json-glib/0.16/json-glib-0.16.2.tar.bz2"
+hset libglibjson url "http://ftp.gnome.org/pub/GNOME/sources/json-glib/1.0/json-glib-1.0.4.tar.bz2"
 hset libglibjson depends "libglib"
 
 PACKAGES+=" libsoup"
 #hset libsoup url "http://ftp.gnome.org/pub/gnome/sources/libsoup/2.44/libsoup-2.44.2.tar.xz"
 #hset libsoup url "http://ftp.acc.umu.se/pub/gnome/sources/libsoup/2.50/libsoup-2.50.0.tar.xz"
-hset libsoup url "http://ftp.acc.umu.se/pub/gnome/sources/libsoup/2.51/libsoup-2.51.3.tar.xz"
+#hset libsoup url "http://ftp.acc.umu.se/pub/gnome/sources/libsoup/2.51/libsoup-2.51.3.tar.xz"
+hset libsoup url "http://ftp.acc.umu.se/pub/gnome/sources/libsoup/2.53/libsoup-2.53.2.tar.xz"
 hset libsoup depends "libglibnet libxml2"
 
 configure-libsoup-local() {
@@ -129,6 +123,7 @@ configure-libsoup-local() {
 	configure-generic-local \
 		--without-gnome \
 		--without-sqlite \
+		--enable-vala=no \
 		--disable-glibtest
 }
 configure-libsoup() {
@@ -164,7 +159,8 @@ configure-libcairo() {
 }
 
 PACKAGES+=" libharfbuzz"
-hset libharfbuzz url "http://cgit.freedesktop.org/harfbuzz/snapshot/harfbuzz-0.9.14.tar.gz"
+#hset libharfbuzz url "http://cgit.freedesktop.org/harfbuzz/snapshot/harfbuzz-0.9.14.tar.gz"
+hset libharfbuzz url "http://cgit.freedesktop.org/harfbuzz/snapshot/harfbuzz-1.1.2.tar.gz"
 hset libharfbuzz depends "libfontconfig libcairo"
 hset libharfbuzz optional "libicu"
 
@@ -177,18 +173,10 @@ configure-libharfbuzz-local() {
 configure-libharfbuzz() {
 	configure configure-libharfbuzz-local
 }
-install-libharfbuzz-local() {
-	install-generic
-	cp harfbuzz.pc "$STAGING_USR"/lib/pkgconfig/
-}
-install-libharfbuzz() {
-	log_install install-libharfbuzz-local
-}
 
 PACKAGES+=" libpango"
-#hset libpango url "http://ftp.gnome.org/pub/gnome/sources/pango/1.28/pango-1.28.3.tar.bz2"
-#hset libpango url "http://ftp.gnome.org/pub/gnome/sources/pango/1.32/pango-1.32.5.tar.xz"
-hset libpango url "http://ftp.gnome.org/pub/gnome/sources/pango/1.36/pango-1.36.1.tar.xz"
+#hset libpango url "http://ftp.gnome.org/pub/gnome/sources/pango/1.36/pango-1.36.1.tar.xz"
+hset libpango url "http://ftp.gnome.org/pub/gnome/sources/pango/1.39/pango-1.39.0.tar.xz"
 hset libpango depends "libglib libcairo libharfbuzz"
 hset libpango optional "libpng"
 
@@ -209,10 +197,8 @@ configure-libpango() {
 deploy-libpango-local() {
 	ROOTFS_PLUGINS+="$ROOTFS/usr/lib/pango:"
 	mkdir -p "$ROOTFS"/etc/	# in case it was there already
-	cp 	"$STAGING_USR"/bin/pango-querymodules \
-		"$ROOTFS"/bin/
-#	cp -r "$STAGING_USR"/etc/pango/* \
-#		"$ROOTFS"/etc/pango/
+#	cp 	"$STAGING_USR"/bin/pango-querymodules \
+#		"$ROOTFS"/bin/
 }
 
 deploy-libpango() {
@@ -220,10 +206,8 @@ deploy-libpango() {
 }
 
 PACKAGES+=" libatk"
-#hset libatk url "http://ftp.gnome.org/pub/gnome/sources/atk/1.33/atk-1.33.6.tar.bz2"
-#hset libatk url "http://ftp.gnome.org/pub/gnome/sources/atk/1.33/atk-1.33.6.tar.bz2"
-#hset libatk url "http://ftp.acc.umu.se/pub/gnome/sources/atk/2.8/atk-2.8.0.tar.xz"
-hset libatk url "http://ftp.acc.umu.se/pub/gnome/sources/atk/2.11/atk-2.11.3.tar.xz"
+#hset libatk url "http://ftp.acc.umu.se/pub/gnome/sources/atk/2.11/atk-2.11.3.tar.xz"
+hset libatk url "http://ftp.acc.umu.se/pub/gnome/sources/atk/2.18/atk-2.18.0.tar.xz"
 
 configure-libatk() {
 	# 1.33.6: prevents glib faling because of atk using G_CONST_RETURN
@@ -233,10 +217,8 @@ configure-libatk() {
 	configure-generic
 }
 PACKAGES+=" libgdkpixbuf"
-#hset libgdkpixbuf url "http://ftp.gnome.org/pub/gnome/sources/gdk-pixbuf/2.23/gdk-pixbuf-2.23.1.tar.bz2"
-#hset libgdkpixbuf url "http://ftp.gnome.org/pub/gnome/sources/gdk-pixbuf/2.26/gdk-pixbuf-2.26.5.tar.bz2"
-#hset libgdkpixbuf url "http://ftp.gnome.org/pub/gnome/sources/gdk-pixbuf/2.26/gdk-pixbuf-2.26.5.tar.xz"
-hset libgdkpixbuf url "http://ftp.gnome.org/pub/gnome/sources/gdk-pixbuf/2.30/gdk-pixbuf-2.30.1.tar.xz"
+#hset libgdkpixbuf url "http://ftp.gnome.org/pub/gnome/sources/gdk-pixbuf/2.30/gdk-pixbuf-2.30.1.tar.xz"
+hset libgdkpixbuf url "http://ftp.gnome.org/pub/gnome/sources/gdk-pixbuf/2.33/gdk-pixbuf-2.33.2.tar.xz"
 
 configure-libgdkpixbuf() {
 	printf "gio_can_sniff=yes" >fake_gtk_cache.conf
@@ -258,7 +240,8 @@ PACKAGES+=" libgtk"
 #hset libgtk url "http://ftp.gnome.org/pub/gnome/sources/gtk+/2.18/gtk+-2.18.7.tar.gz#libgtk-2.18.tar.gz"
 #hset libgtk url "http://ftp.gnome.org/pub/gnome/sources/gtk+/2.24/gtk+-2.24.3.tar.gz#libgtk-2.24.tar.gz"
 #hset libgtk url "http://ftp.gnome.org/pub/gnome/sources/gtk+/2.24/gtk+-2.24.14.tar.xz#libgtk-2.24.tar.xz"
-hset libgtk url "http://ftp.gnome.org/pub/gnome/sources/gtk+/2.24/gtk+-2.24.22.tar.xz"
+#hset libgtk url "http://ftp.gnome.org/pub/gnome/sources/gtk+/2.24/gtk+-2.24.22.tar.xz"
+hset libgtk url "http://ftp.gnome.org/pub/gnome/sources/gtk+/2.24/gtk+-2.24.29.tar.xz"
 hset libgtk depends "libpango libatk libgtkhicolor libgdkpixbuf"
 
 hostcheck-libgtk() {
@@ -327,16 +310,19 @@ deploy-libgtk() {
 }
 
 PACKAGES+=" libgtkhicolor"
-hset libgtkhicolor url "http://icon-theme.freedesktop.org/releases/hicolor-icon-theme-0.12.tar.gz"
+#hset libgtkhicolor url "http://icon-theme.freedesktop.org/releases/hicolor-icon-theme-0.12.tar.gz"
+hset libgtkhicolor url "http://icon-theme.freedesktop.org/releases/hicolor-icon-theme-0.15.tar.gz"
 
 PACKAGES+=" libcroco"
 #hset libcroco url "ftp://ftp.gnome.org/pub/GNOME/sources/libcroco/0.6/libcroco-0.6.2.tar.bz2"
-hset libcroco url "ftp://ftp.gnome.org/pub/GNOME/sources/libcroco/0.6/libcroco-0.6.8.tar.bz2"
+#hset libcroco url "ftp://ftp.gnome.org/pub/GNOME/sources/libcroco/0.6/libcroco-0.6.8.tar.bz2"
+hset libcroco url "ftp://ftp.gnome.org/pub/GNOME/sources/libcroco/0.6/libcroco-0.6.9.tar.bz2"
 
 PACKAGES+=" librsvg"
 #hset librsvg url "http://ftp.gnome.org/pub/gnome/sources/librsvg/2.32/librsvg-2.32.1.tar.bz2"
 #hset librsvg url "http://ftp.gnome.org/pub/gnome/sources/librsvg/2.36/librsvg-2.36.4.tar.bz2"
-hset librsvg url "http://ftp.gnome.org/pub/gnome/sources/librsvg/2.40/librsvg-2.40.1.tar.bz2"
+#hset librsvg url "http://ftp.gnome.org/pub/gnome/sources/librsvg/2.40/librsvg-2.40.1.tar.bz2"
+hset librsvg url "http://ftp.gnome.org/pub/gnome/sources/librsvg/2.40/librsvg-2.40.13.tar.bz2"
 hset librsvg depends "libcroco libxml2 libgtk"
 
 configure-librsvg() {
