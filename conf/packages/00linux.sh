@@ -279,11 +279,13 @@ deploy-linux-dtb-local() {
 			source=$src
 		fi
 	done
-	echo DTB is $source
-	cat $source	| $GCC -E -P -x assembler-with-cpp - \
+	echo DTS is $source
+	cat $source	| \
+		$GCC -E -P -x assembler-with-cpp - \
 			-I $(dirname $source) \
 			-I "$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/" \
-			-I "$BUILD/linux/include" | tee $TMPDIR/debug.dts | \
+			-I "$BUILD/linux/include" | \
+		tee $TMPDIR/device-tree-flat.dts | \
 		"$BUILD"/linux-obj/scripts/dtc/dtc -O dtb \
 			-i "$BUILD/linux/arch/$TARGET_KERNEL_ARCH/boot/dts/" \
 			-o $dtb || return 1
