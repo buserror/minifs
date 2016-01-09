@@ -4,18 +4,26 @@
 # will fail to find headers if these system host headers are not installed
 # on a x86_64 system. You also need a -multilib version of gcc
 PACKAGES+=" luajit"
-hset luajit version "2.0.3"
+hset luajit version "2.1.0-beta1"
 hset luajit url "http://luajit.org/download/LuaJIT-$(hget luajit version).tar.gz"
 hset luajit desc "A Just-In-Time compiler for lua"
 hset luajit deploy_binary "true"
 
+configure-luajit-local() {
+	echo Testing for 32 bits host compiler
+	{ echo "#include <asm/errno.h>"|gcc -m32 -E - >/dev/null ; } || {
+		echo "@@ 32 bits host compiler test failed YOU NEED gcc-multilib and 32 bits linux headers"
+		return 1
+	}
+	echo Done
+}
 configure-luajit() {
-	configure echo Done
+	configure configure-luajit-local
 }
 compile-luajit() {
 	(
 	unset CFLAGS
-	compile-generic PREFIX=/usr CROSS="$TARGET_FULL_ARCH"- MYLDFLAGS="$LDFLAGS" \
+	compile-generic PREFIX=/usr CROSS="ccfix $TARGET_FULL_ARCH"- MYLDFLAGS="$LDFLAGS" \
 		BUILDMODE=dynamic Q= \
 		TARGET_CFLAGS="$TARGET_CPPFLAGS $TARGET_CFLAGS" \
 		HOST_CC="gcc -m32"
