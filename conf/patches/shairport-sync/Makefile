@@ -9,8 +9,9 @@ SRC := ${filter-out mdns_dns_sd.c, ${SRC}}
 
 DEPS = libdaemon alsa openssl avahi-client dbus-1 libconfig popt
 ECPPFLAGS += ${shell pkg-config --cflags $(DEPS)}
+ECPPFLAGS += -Wno-multichar
 ELDFLAGS += ${shell pkg-config --libs $(DEPS)} \
-	-lrt -lm -lpthread
+	-lrt -lm -lpthread -lintl -liconv
 
 all: shairport
 
