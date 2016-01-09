@@ -1,9 +1,5 @@
 
-TARGET_LIBC=eglibc
-
 TARGET_META_ARCH=armv7
-TARGET_ARCH=arm
-TARGET_FULL_ARCH=$TARGET_ARCH-a9-linux-gnueabi
 TARGET_KERNEL_NAME=uImage
 TARGET_LIBC_CFLAGS="-g -O2 -march=armv7-a -mtune=cortex-a9 -mfpu=neon -fPIC -mthumb-interwork"
 TARGET_CFLAGS="$TARGET_LIBC_CFLAGS"
@@ -21,7 +17,7 @@ board_set_versions() {
 	TARGET_SHARED=1
 	TARGET_INITRD=1
 
-	hset linux version "3.14"
+	hset linux version "3.18"
 	TARGET_KERNEL_NAME=zImage
 }
 
@@ -39,9 +35,10 @@ board_prepare() {
 	TARGET_PACKAGES+=" curl rsync"
 	TARGET_PACKAGES+=" openssh sshfs" # mDNSResponder
 
-	TARGET_PACKAGES+=" i2c"
-
 	TARGET_PACKAGES+=" targettools"
+
+	TARGET_PACKAGES+=" update-package"
+	hset update-package basename "wandboard"
 
 		# Audio stuff
 	TARGET_PACKAGES+=" libalsa aften lame twolame alsautils"
