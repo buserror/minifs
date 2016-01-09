@@ -12,7 +12,7 @@ LDFLAGS-cross_linker = -lelf
 VPATH = .
 
 all : $(tools)
-	make -f Makefile.kconfig DESTDIR=$(DESTDIR)
+	#make -f Makefile.kconfig DESTDIR=$(DESTDIR)
 	
 $(BIN):
 	mkdir -p $(BIN)

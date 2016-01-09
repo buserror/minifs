@@ -102,6 +102,23 @@ if [ "$CONFIG" == "" ]; then
 	exit 1
 fi
 
+CONFIG_UCLIBC=$(grep '^CT_LIBC_uClibc' $(minifs_locate_config_path config_crosstools.conf))
+
+# Extract the toolchain tupple and other bits from crosstools config
+extra_env=$( cat $(minifs_locate_config_path config_crosstools.conf) | awk -e '
+BEGIN { eabi="none"; os="none"; }
+/^CT_ARCH_[a-z][^_]+=y/ { gsub(/[A-Z_]+|=y/, ""); arch=$0; print "TARGET_ARCH=" arch ";"; }
+/^CT_TARGET_VENDOR=/ { gsub(/^[A-Z_=]+"?|"$/, ""); vendor="-" $0; print "TARGET_VENDOR=" $0 ";"; }
+/^CT_KERNEL=/ { gsub(/^[A-Z_=]+"?|"$/, ""); os=$0; print "TARGET_OS=" os ";"; }
+/^CT_ARCH_ARM_EABI=y/ { eabi="gnueabi"; }
+/^CT_LIBC_uClibc=y/ { uclibc="uclibc"; print "CONFIG_UCLIBC=y;" }
+END { 
+	printf "TARGET_FULL_ARCH=\"%s%s-%s-%s%s%s\";\n", arch,vendor,os,uclibc,eabi,hf; 
+}
+' ; )
+echo $extra_env
+eval $extra_env
+
 # this one is always mandatory
 source "$CONFIG"/minifs-script*.sh
 
@@ -176,13 +193,11 @@ export PKG_CONFIG=pkg-config
 export ACLOCAL="aclocal -I $STAGING_USR/share/aclocal -I $STAGING_TOOLS/share/aclocal -I /usr/share/aclocal"
 export HOST_INSTALL="/usr/bin/install"
 
-
 KERNEL_CONFIG_FILE=$(minifs_locate_config_path config_kernel.conf)
 
 # Look in this target's kernel config to know if we need/want modules
 CONFIG_MODULES=$(grep '^CONFIG_MODULES=y' "$KERNEL_CONFIG_FILE")
 CONFIG_KERNEL_LZO=$(grep '^CONFIG_KERNEL_LZO=y' "$KERNEL_CONFIG_FILE")
-CONFIG_UCLIBC=$(grep 'CT_LIBC_UCLIBC_0_9_3.*_or_later=y' $(minifs_locate_config_path config_crosstools.conf))
 
 if [ "$CONFIG_KERNEL_LZO" != "" ]; then
 	NEEDED_HOST_COMMANDS+=" lzop"
@@ -268,7 +283,7 @@ if [ "$TARGET_SHARED" -eq 0 ]; then
 	echo "### Static build!!"
 	LDFLAGS_BASE="-static $LDFLAGS_BASE"
 fi
-export LDFLAGS_RLINK="$LDFLAGS_BASE -Wl,-rpath -Wl,/usr/lib -Wl,-rpath-link -Wl,$STAGING/lib -Wl,-rpath-link -Wl,$STAGING_USR/lib"
+export LDFLAGS_RLINK="$LDFLAGS_BASE -Wl,-rpath -Wl,/usr/lib -Wl,-rpath-link -Wl,$STAGING_USR/lib"
 export LDFLAGS=$LDFLAGS_BASE
 
 if [ "$COMMAND" == "depends" ]; then
