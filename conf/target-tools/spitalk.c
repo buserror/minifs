@@ -1,6 +1,6 @@
 /*
  * SPI testing utility (using spidev driver)
- * 
+ *
  * Revised for multiple transaction, half duplex SPI etc.
  *
  * Copyright (c) 2007  MontaVista Software, Inc.
@@ -106,6 +106,30 @@ static void print_usage(const char *prog)
 	exit(1);
 }
 
+static void add_tx(const char *src)
+{
+	int srcl = strlen(src);
+	const char * h = "0123456789abcdef";
+	int len = 0;
+	uint8_t buf[4096];
+	while (srcl >= 2) {
+		if (!isxdigit(src[0]) || !isxdigit(src[1])) {
+			pabort("Invalid hex format\n");
+		}
+		uint8_t b = ((index(h, tolower(src[0])) - h) << 4) | (index(h, tolower(src[1])) - h);
+		buf[len++] = b;
+		src += 2;
+		srcl -= 2;
+	}
+	if (len) {
+		uint8_t *b = malloc(len + 1);
+		queue[queuelen].tx_buf = (__u64)b;
+		memcpy(b, buf, len);
+		queue[queuelen].len = len;
+		queuelen++;
+	}
+}
+
 static void
 parse_opts(int argc, char *argv[])
 {
@@ -115,6 +139,7 @@ parse_opts(int argc, char *argv[])
 		{ "delay",   1, 0, 'd' },
 		{ "bpw",     1, 0, 'b' },
 		{ "rx",      1, 0, 'r' },
+		{ "tx",      1, 0, 't' },
 		{ "loop",    0, 0, 'l' },
 		{ "cpha",    0, 0, 'H' },
 		{ "cpol",    0, 0, 'O' },
@@ -129,7 +154,7 @@ parse_opts(int argc, char *argv[])
 	while (1) {
 		int c;
 
-		c = getopt_long(argc, argv, "D:s:d:b:r:lHOLC3NRv", lopts, NULL);
+		c = getopt_long(argc, argv, "D:s:d:b:r:t:lHOLC3NRv", lopts, NULL);
 
 		if (c == -1)
 			break;
@@ -174,6 +199,9 @@ parse_opts(int argc, char *argv[])
 			case 'v':
 				verbose++;
 				break;
+			case 't': {
+				add_tx(optarg);
+			}	break;
 			case 'r': {
 				int len = atoi(optarg);
 				uint8_t *b = malloc(len + 1);
@@ -190,28 +218,9 @@ parse_opts(int argc, char *argv[])
 	while (optind < argc) {
 	//    printf("%s ", argv[optind]);
 
-	    char * src = argv[optind];
-	    int srcl = strlen(src);
-	    const char * h = "0123456789abcdef";
-	    int len = 0;
-	    uint8_t buf[4096];
-	    while (srcl >= 2) {
-	    	if (!isxdigit(src[0]) || !isxdigit(src[1])) {
-	    		pabort("Invalid hex format\n");
-	    	}
-	    	uint8_t b = ((index(h, tolower(src[0])) - h) << 4) | (index(h, tolower(src[1])) - h);
-	    	buf[len++] = b;
-	    	src += 2;
-	    	srcl -= 2;
-	    }
-	    if (len) {
-	    	uint8_t *b = malloc(len + 1);
-			queue[queuelen].tx_buf = (__u64)b;
-			memcpy(b, buf, len);
-			queue[queuelen].len = len;
-			queuelen++;
-	    }
-	    optind++;
+		char * src = argv[optind];
+		add_tx(src);
+		optind++;
 	}
 }
 
