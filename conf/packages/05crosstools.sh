@@ -222,6 +222,8 @@ deploy-gdbserver() {
 	if [ -f "$src" ]; then
 		mkdir -p "$ROOTFS"/usr/bin
 		cp "$src" "$ROOTFS"/usr/bin/
+	else
+		echo WARNING gdbserver not found in toolchains install
 	fi
 }
 
