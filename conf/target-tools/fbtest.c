@@ -1,8 +1,8 @@
 /*
  * fbtest.c
- * 
+ *
  * (c) Michel Pollet <buserror@gmail.com>
- * 
+ *
  * A log file in /tmp keeps trace of all the fixes and warnings, for
  * the brave who wants to go and fix the packages themselves
  *
@@ -10,12 +10,12 @@
  * modify it under the terms of the GNU Library General Public
  * License as published by the Free Software Foundation; either
  * version 2 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this library; if not, write to the
  * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
@@ -140,7 +140,7 @@ struct sdef {
 	int w, h, rowbyte, pixelsize;
 };
 
-uint16_t 
+uint16_t
 color2pdef(
 	struct pdef *p,
 	uint32_t color )
@@ -166,9 +166,9 @@ rfill(struct sdef * s, struct pdef *p,
 	int x, int y, int w, int h)
 {
 	uint16_t pix = color2pdef(p, color);
-	
+
 	uint16_t *d = getsbase(s, x, y);
-	
+
 	for (int ry = 0; ry < h; ry++) {
 		uint16_t * r = d;
 		int rw = w;
@@ -180,15 +180,15 @@ rfill(struct sdef * s, struct pdef *p,
 void hline(struct sdef * s, struct pdef *p, uint32_t color, int x1, int y1, int x2)
 {
 	uint16_t pix = color2pdef(p, color);
-	
+
 	uint16_t *d = getsbase(s, x1, y1);
 	x2 -= x1;
 	while (x2--)
 		*d++ = pix;
 }
-int 
+int
 main(
-		int argc, 
+		int argc,
 		char ** argv)
 {
 
@@ -205,19 +205,19 @@ main(
 		.rowbyte = (vinfo.xres * vinfo.bits_per_pixel) / 8,
 		.pixelsize = vinfo.bits_per_pixel / 8,
 	};
-	
+
 	for (int i = 1; i < argc; i++) {
 		if (!strcmp(argv[i], "-swap"))
 			pdef_base.swap = !pdef_base.swap;
 	}
 	uint32_t color[3] = {
-		(0xff << 16) | (0x00 << 8) | (0x00 < 0),
-		(0x00 << 16) | (0xff << 8) | (0x00 < 0),
-		(0x00 << 16) | (0x00 << 8) | (0xff < 0),
+		(0xff << 16) | (0x00 << 8) | (0x00 << 0),
+		(0x00 << 16) | (0xff << 8) | (0x00 << 0),
+		(0x00 << 16) | (0x00 << 8) | (0xff << 0),
 	};
 	int w = (vinfo.xres - 5 - 5) / 3;
 	int ci = 0;
-	
+
 	for (int i = 1; i < argc; i++) {
 		if (!strcmp(argv[i], "-swap"))
 			pdef_base.swap = !pdef_base.swap;
@@ -231,7 +231,7 @@ main(
 		} else
 			printf("huh? '%s'\n", argv[i]);
 	}
-	
+
 	for (int c = 0; c < 3; c++)
 		rfill(&mfb, &pdef_base, color[c], 5 + (c * w), 5, w, vinfo.yres - 10);
 

@@ -196,7 +196,7 @@ int so_filelist_remove(so_filelist_t * list, so_file_t * file)
 
 	for (int i = 0; i < list->count; i++)
 		if (list->file[i] == file) {
-			memcpy(list->file + i, list->file + i + 1, 
+			memcpy(list->file + i, list->file + i + 1,
 				(list->count - i - 1) * sizeof(so_file_t*));
 			list->count--;
 			return 1;
@@ -249,7 +249,7 @@ so_file_t * elf_read_dynamic(const char * file)
 		close(fd);
 		return NULL;
 	}
-	
+
 	so_file_t * res = malloc(sizeof(so_file_t));
 	memset(res, 0, sizeof(so_file_t));
 
@@ -276,21 +276,21 @@ so_file_t * elf_read_dynamic(const char * file)
 			continue;
 
 		Elf_Data *s = elf_getdata(scn, NULL);
-		uint32_t size = s->d_size;
+	//	uint32_t size = s->d_size;
 	//	printf("Walking elf dynamic section '%s' %d bytes\n", name, size);
 
 		GElf_Dyn e;
 		for (int i = 0; gelf_getdyn(s, i, &e) && e.d_tag != DT_NULL; i++) {
 			switch (e.d_tag) {
 				case DT_NEEDED: {
-					res->so_needed = so_new(res->so_needed, 
+					res->so_needed = so_new(res->so_needed,
 						e.d_un.d_val, NULL);
 				}	break;
 				case DT_SONAME: {
-					res->so_name = so_new(res->so_name, 
+					res->so_name = so_new(res->so_name,
 						e.d_un.d_val, NULL);
 				}	break;
-			}	
+			}
 		}
 	}
 	// load the actual string values now
@@ -312,7 +312,7 @@ so_file_t * elf_read_dynamic(const char * file)
 
 	if (!res->so_name && !res->so_needed) {
 		printf("%s %s: so_name %p, so_needed %p !!\n", __func__, file, res->so_name, res->so_needed);
-		
+
 		free(res);
 		res = NULL;
 	}
@@ -339,7 +339,7 @@ so_dir_t * elf_scandir(so_dir_t * base, const char * dirname, int flags)
 		switch (e->d_type) {
 			case DT_DIR:
 				if (flags & DIR_RECURSIVE) {
-					printf("Loading directory %s/%s\n", 
+					printf("Loading directory %s/%s\n",
 						dirname, e->d_name);
 					sprintf(path, "%s/%s", dirname, e->d_name);
 					elf_scandir(base, path, flags);
@@ -355,7 +355,7 @@ so_dir_t * elf_scandir(so_dir_t * base, const char * dirname, int flags)
 						elf->name = strdup(e->d_name);
 						elf->hash = crc16_string(elf->name);
 						res->loaded = so_filelist_add(res->loaded, elf);
-					} 
+					}
 				}
 			}	break;
 			case DT_LNK: {	// keep track of all links too
@@ -423,8 +423,8 @@ int purge_unused_libs(so_dir_t * dir)
 						so_file_t * found = so_dir_search(dir, n->s);
 						if (found)
 							so_filelist_remove(found->used, f);
-					//	printf("removing %s from %s [%d users left] \n", 
-					//		f->name, n->s, found && found->used ? 
+					//	printf("removing %s from %s [%d users left] \n",
+					//		f->name, n->s, found && found->used ?
 					//			found->used->count : 0);
 						n = n->next;
 					}
@@ -467,9 +467,9 @@ int purge_orphan_symlinks(so_dir_t * dir)
 					struct stat o;
 					if (lstat(dpath, &o) == -1) {
 					//	printf("DANGLING %s -> %s\n", f->name, out);
-						die++; 
+						die++;
 					}
-					
+
 				}
 				if (die) {
 					cleared++;
@@ -496,7 +496,7 @@ so_dir_t * load_root_directory(so_dir_t * dir, const char * name)
 			dir = elf_scandir(dir, path, 0);
 		}
 	}
-	
+
 	return dir;
 }
 
@@ -512,7 +512,7 @@ int file_depends_on(so_file_t *f, so_str_t * onedep)
 			continue;
 		}
 		if (n->hash == onedep->hash && !strcmp(n->s, onedep->s))
-			return 1;		
+			return 1;
 		n = n->next;
 	}
 	return 0;
@@ -534,7 +534,7 @@ int file_simplify_neededs(so_file_t *f)
 		while (nn) {
 			if (n != nn) {
 			//	printf("SIM %s:     %s look for %s\n", f->name, n->s, nn->s);
-				
+
 				if (file_depends_on(n->link, nn)) {
 				//	printf("SIM %s: %s already links to %s\n", f->name, n->s, nn->s);
 					so_filelist_remove(nn->link->used, f);
@@ -544,18 +544,18 @@ int file_simplify_neededs(so_file_t *f)
 					else
 						f->so_needed = nn->next;
 				//	sp_file_dump(f);
-				//	found++;	
-				//	break;	
+				//	found++;
+				//	break;
 				}
 			}
 			last = nn;
 			nn = nn->next;
 		}
-			
+
 		n = n->next;
 	}
 	return 0;
-	
+
 }
 
 FILE * invoke = NULL;
@@ -620,7 +620,7 @@ int main(int argc, char * argv[])
 			char path[4096];
 			sprintf(path, "%s/%s", env_root, p);
 			printf("load_root_directory extra '%s'\n", p);
-			dir = load_root_directory(dir, path);			
+			dir = load_root_directory(dir, path);
 		}
 	}
 
@@ -720,19 +720,19 @@ int main(int argc, char * argv[])
 			for (int fi = 0; d->loaded && fi < d->loaded->count; fi++) {
 				so_file_t *f = d->loaded->file[fi];
 				if (f->used)
-					fprintf(dot, "\"%s\" [label=\"(%d) %s\"]\n", 
+					fprintf(dot, "\"%s\" [label=\"(%d) %s\"]\n",
 						f->so_name ? f->so_name->s : f->name,
 						f->used->count,
 						f->so_name ? f->so_name->s : f->name);
 				else
-					fprintf(dot, "\"%s\"\n", 
+					fprintf(dot, "\"%s\"\n",
 						f->so_name ? f->so_name->s : f->name);
 
 				for (int ui = 0; f->used && ui < f->used->count; ui++)
-					fprintf(dot, "\"%s\" -> \"%s\"\n", 
+					fprintf(dot, "\"%s\" -> \"%s\"\n",
 						f->used->file[ui]->so_name ?
 							f->used->file[ui]->so_name->s :
-							f->used->file[ui]->name, 
+							f->used->file[ui]->name,
 						f->so_name ? f->so_name->s : f->name);
 			}
 			d = d->next;

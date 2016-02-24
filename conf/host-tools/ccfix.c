@@ -62,6 +62,7 @@ void T(const char * fmt, ...)
 			fprintf(out, "ccfix:%s ", pack);
 		else
 			fprintf(stderr, "ccfix ERROR cannot create %s\n", path);
+		free(path);
 	}
 	va_list vap;
 	va_start(vap, fmt);
@@ -74,7 +75,6 @@ int main(int argc, char * argv[])
 {
 	static char temp[1024];
 	int i, di;
-	FILE * f = NULL;
 	const char * dc = NULL;
 	const char * march = NULL;
 	const char * staging = getenv("STAGING");

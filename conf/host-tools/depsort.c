@@ -1,18 +1,18 @@
 /*
  * depsort.c
- * 
+ *
  * (C) 2011 Michel Pollet <buserror@gmail.com>
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
  * License as published by the Free Software Foundation; either
  * version 2 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this library; if not, write to the
  * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
@@ -43,7 +43,7 @@ int main()
 {
 	char * in = NULL;
 	size_t inlen = 0, insize = 0;
-	
+
 	while (!feof(stdin)) {
 		char line[4096];
 		size_t l = fread(line, 1, sizeof(line), stdin);
@@ -61,10 +61,10 @@ int main()
 			break;
 	}
 //	printf("read %d bytes\n", (int) inlen);
-	
+
 	pack_t *pp = NULL;
 	int ppcount = 0;
-	
+
 	char * packlist = in;
 	char * packend;
 	while ((packend = strchr(packlist, ')')) != NULL) {
@@ -77,16 +77,16 @@ int main()
 		char * ps = strchr(pack, '(');
 		if (ps)
 			*ps++ = 0;
-		fprintf(stderr, "pack[%3d] '%s' [%s]\n", ppcount, pack, ps);	
-		
+		fprintf(stderr, "pack[%3d] '%s' [%s]\n", ppcount, pack, ps);
+
 		if (pp_lookup(pp, ppcount, pack)) {
 			fprintf(stderr, "*** pack %s is already declared, ignoring\n", pack);
 			continue;
 		}
 		if (!(ppcount % 8))
 			pp = realloc(pp, sizeof(pack_t) * (ppcount+8));
-		
-		pack_t * d = &pp[ppcount++]; 
+
+		pack_t * d = &pp[ppcount++];
 		pack_t zero = {0};
 		*d = zero;
 		d->name = strdup(pack);
@@ -94,13 +94,13 @@ int main()
 		while ((dep = strsep(&ps, " ")) != NULL) {
 		//	printf("pack %s dep '%s'\n", pack, dep);
 			if (d->depcount == MAX_DEP)
-				fprintf(stderr, "*** Package %d overglows dependencies list\n", pack);
+				fprintf(stderr, "*** Package %s overflows dependencies list\n", pack);
 			else if (*dep)
 				d->dep[d->depcount++] = strdup(dep);
 		}
 	}
 	fprintf(stderr, "There are %d packages\n", ppcount);
-	
+
 	int swap = 0;
 	do {
 		swap = 0;
