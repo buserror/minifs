@@ -1,6 +1,6 @@
 
 PACKAGES+=" libtalloc"
-hset libtalloc url "http://samba.org/ftp/talloc/talloc-2.1.2.tar.gz"
+hset libtalloc url "http://samba.org/ftp/talloc/talloc-2.1.6.tar.gz"
 
 patch-libtalloc() {
 	cp "$PATCHES"/libtalloc-make/* .
