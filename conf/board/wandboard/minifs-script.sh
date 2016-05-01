@@ -17,7 +17,8 @@ board_set_versions() {
 	TARGET_SHARED=1
 	TARGET_INITRD=1
 
-	hset linux version "3.18"
+#	hset linux version "3.18.28"
+	hset linux version "4.5"
 	TARGET_KERNEL_NAME=zImage
 }
 
