@@ -14,7 +14,7 @@ TOOLS_DST := $(TOOLS)
 endif
 # remove uboot_env in case it's not needed
 ifneq ($(MINIFS_BOARD),)
-UBOOT	= $(wildcard ../../build-$(MINIFS_BOARD)/uboot/)
+UBOOT	= $(wildcard ../../build-$(MINIFS_BOARD)/staging/uboot-obj/)
 ifeq ($(UBOOT),)
 TOOLS_DST := ${patsubst uboot_env,,${TOOLS_DST}}
 endif
@@ -47,7 +47,7 @@ $(STAGING)/bin/i2ctalk : LDF += -lm
 
 # if a uboot exists, we can compile the environment tool for it
 ifneq ($(MINIFS_BOARD),)
-UBOOT	= $(wildcard ../../build-$(MINIFS_BOARD)/uboot/)
+#UBOOT	= $(wildcard ../../build-$(MINIFS_BOARD)/uboot/)
 ifneq ($(UBOOT),)
 include $(UBOOT)/include/autoconf.mk
 MY_CFLAGS += -DCONFIG_ENV_SIZE=$(CONFIG_ENV_SIZE)
