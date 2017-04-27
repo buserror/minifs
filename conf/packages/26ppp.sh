@@ -12,3 +12,10 @@ deploy-ppp() {
 	deploy deploy_binaries
 }
 
+PACKAGES+=" lrzsz"
+hset lrzsz url "http://http.debian.net/debian/pool/main/l/lrzsz/lrzsz_0.12.21.orig.tar.gz"
+hset lrzsz depends "busybox"
+
+deploy-lrzsz() {
+	deploy deploy_binaries
+}
