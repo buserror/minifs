@@ -20,7 +20,7 @@ deploy-rootfs-create() {
 }
 
 if [ $TARGET_SHARED -eq 1 ]; then
-	PACKAGES+=" sharedlibs"	
+	PACKAGES+=" sharedlibs"
 	TARGET_PACKAGES+=" sharedlibs"
 fi
 
@@ -32,7 +32,7 @@ hset sharedlibs exclude "ldscripts:"
 sharedlibs-rsync() {
 	local excl=$(hget sharedlibs exclude)
 	local extras=""
-	
+
 	for pd in $(echo "$excl"| tr ":" "\n") ; do
 		if [ "$pd" != "" ]; then
 			extras+="--exclude=$pd "
@@ -45,6 +45,7 @@ sharedlibs-rsync() {
 		--exclude=._\* \
 		--exclude=\*.o \
 		--exclude=\*.map \
+		--exclude=\*.spec \
 		--exclude=\*.h \
 		--exclude=\*.a --exclude=\*.la --exclude=\*.lai \
 		--exclude=\*T \
@@ -68,11 +69,14 @@ deploy-sharedlibs-local() {
 		--exclude=\*.sh \
 		--exclude ct-ng\* \
 		"$STAGING_USR/lib/" \
-		"$ROOTFS/usr/lib/" 
+		"$ROOTFS/usr/lib/"
 	if [ "$TARGET_ARCH" = "x86_64" ]; then
-		ln -s -f lib "$ROOTFS"/lib64 
-		ln -s -f lib "$ROOTFS"/usr/lib64 
+		ln -s -f lib "$ROOTFS"/lib64
+		ln -s -f lib "$ROOTFS"/usr/lib64
 	fi
+	echo THESE ARE DANGLING LINKS
+	local dangling=$(find "$ROOTFS" -name \*.so -type f|grep -v '\-[0-9]')
+	if [ "$dangling" != "" ]; then rm -f $dangling; fi
 	optional $MINIFS_BOARD-sharedlibs-cleanup
 	set +x
 }
