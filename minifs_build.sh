@@ -112,8 +112,8 @@ BEGIN { eabi="none"; os="none"; }
 /^CT_KERNEL=/ { gsub(/^[A-Z_=]+"?|"$/, ""); os=$0; print "TARGET_OS=" os ";"; }
 /^CT_ARCH_ARM_EABI=y/ { eabi="gnueabi"; }
 /^CT_LIBC_uClibc=y/ { uclibc="uclibc"; print "CONFIG_UCLIBC=y;" }
-END { 
-	printf "TARGET_FULL_ARCH=\"%s%s-%s-%s%s%s\";\n", arch,vendor,os,uclibc,eabi,hf; 
+END {
+	printf "TARGET_FULL_ARCH=\"%s%s-%s-%s%s%s\";\n", arch,vendor,os,uclibc,eabi,hf;
 }
 ' ; )
 echo $extra_env
@@ -143,7 +143,7 @@ CROSS_BASE="$TOOLCHAIN/$TARGET_FULL_ARCH/"
 CROSS="$CROSS_BASE/bin/$TARGET_FULL_ARCH"
 GCC="${CROSS}-gcc"
 
-WGET=wget
+WGET="wget --no-check-certificate"
 MAKE=make
 MAKE_ARGUMENTS="-j$MINIFS_JOBS"
 
@@ -451,7 +451,7 @@ for package in $TARGET_PACKAGES; do
 			remove_package $baseroot
 		fi
 	fi
-	# See if we want to keep the .git around, and if we have a 
+	# See if we want to keep the .git around, and if we have a
 	# specific git tag/branch/commit to checkout
 	excluder="--exclude=.git"
 	if [ "$proto" == "git" ]; then
@@ -477,7 +477,7 @@ for package in $TARGET_PACKAGES; do
 		esac
 		if [ "$gitref" != "" ]; then
 			echo "****  $PACKAGE checking out $gitref"
-			( cd "$BUILD/$baseroot" 
+			( cd "$BUILD/$baseroot"
 				git checkout $gitref || exit 1
 				git branch -b minifs-build
 				true

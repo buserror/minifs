@@ -190,7 +190,6 @@ setup-linux-initrd() {
 		$MINIFS_BOARD-setup-initrd \
 		setup-initrd || break
 	mkdir -p "$BUILD/linux-obj"
-	echo setup is in $(pwd)
 	touch ._conf_linux-initrd
 	local conf=$(minifs_locate_config_path config_kernel.conf)
 	[[ "$conf" == "" ]] && conf="$CONFIG/config_kernel.conf"
@@ -205,7 +204,6 @@ setup-linux-initrd() {
 }
 
 configure-linux-initrd() {
-	echo configure is in $(pwd)
 	rm -f ._conf_linux-initrd
 	configure $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE=$(linux-get-cross) \
@@ -214,7 +212,6 @@ configure-linux-initrd() {
 
 compile-linux-initrd() {
 	# make sure the initramfs is rebuilt
-	echo Recompiling...
 	rm -f "$BUILD/linux-obj"/usr/gen_init_cpio
 	rm -f "$BUILD/linux-obj"/usr/initramfs_data.*
 	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
@@ -291,7 +288,7 @@ deploy-linux-dtb-local() {
 			-o $dtb || return 1
 
 	rm -f "$BUILD"/vmlinuz.dtb
-	
+
 	if [ -f "$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/zImage -a -f "$dtb" ]; then
 		cat "$BUILD"/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/zImage \
 			"$dtb" >"$BUILD"/vmlinuz.dtb
