@@ -38,7 +38,7 @@
  * uboot_env -d /dev/mtd2 -S eth eth1
  * ETH=eth=ca:fe:f0:0d:d0:0d
  * So a shell script can 'eval' this easily.
- * 
+ *
  * It it also designed to work on NAND, skip the bad blocks etc
  */
 #include <stdio.h>
@@ -354,7 +354,7 @@ flash_open(
 		if (verbose)
 			printf("%s:%s is not a device, assuming a file of %dKB\n",
 				__func__, name, env_size / 1024);
-			f->mtd.size = 
+			f->mtd.size =
 				f->mtd.writesize = f->mtd.erasesize = env_size;
 	}
 	if (verbose)
@@ -555,7 +555,7 @@ static void usage(const char *p, int exit_code)
 		"   [-s <env size>]  : default %dKB\n"
 		"   [-S|--shell]     : output as shell script\n"
 		"   [-E|--export]    : -S, and also 'export' variables\n"
-		"   [-i|--init]      : reset env to default [DANGEROUS]\n"
+		"   [--init]         : reset env to default [DANGEROUS]\n"
 		"   [<var>=<value>]* : set <var>(s) to <value> and save\n"
 		"   [<var>]*         : print <var>(s) value\n"
 		"", p, CONFIG_ENV_MTD, env_size / 1024);
