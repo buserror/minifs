@@ -1,0 +1,47 @@
+#!/bin/hush
+
+echo "* Mounting filesystems..."
+mount -t proc /proc /proc
+mount -t sysfs none /sys
+mount -t devtmpfs devtmpfs /dev 2>/dev/null
+mkdir -p /dev/pts /dev/shm
+mount -t devpts devpts /dev/pts
+mount -t tmpfs none /tmp
+# MOUNT FS -- do not delete this line
+#mount / / -o remount,noatime >/dev/null 2>&1
+
+if (cat /proc/cmdline |grep -q '\bdebug\b'); then
+	mount -t debugfs / /sys/kernel/debug/;cd /sys/kernel/debug/
+fi
+
+echo "* Starting system loggers..."
+syslogd -C16
+klogd
+
+echo /sbin/mdev >/proc/sys/kernel/hotplug
+# LOAD MODULES -- do not delete this line
+echo "* Creating devices..."
+/sbin/mdev -s
+
+echo -n "* Setting hostname: "
+hostname $(cat /etc/hostname) && hostname
+
+echo "* Configuring loopback interface..."
+ifconfig lo 127.0.0.1 up
+
+up=$(ifconfig eth0|grep addr:)
+if [ "$up" != "" ]; then
+	echo "* eth0:$up"
+else
+	echo "* Configuring network ..."
+	ifconfig eth0 192.168.1.50 netmask 255.255.255.0 up
+#	ifconfig eth1 192.168.1.51 netmask 255.255.255.0 up
+fi
+
+up=$(ifconfig usb0|grep Ethernet)
+if [ "$up" != "" ]; then
+	ifconfig usb0 172.16.0.10 netmask 255.255.255.0 up
+fi
+
+# LAUNCH APPS -- do not delete this line
+telnetd -l /bin/sh
