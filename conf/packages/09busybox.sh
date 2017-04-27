@@ -5,24 +5,30 @@ hset busybox url "http://busybox.net/downloads/busybox-$(hget busybox version).t
 hset busybox depends "crosstools host-libtool"
 
 configure-busybox() {
+	local obj=$STAGING/obj/busybox-obj
+	mkdir -p $obj
 	if [ -f "$CONFIG"/config_busybox.conf ]; then
-		configure cp -a  "$CONFIG"/config_busybox.conf .config
+		configure cp -a  "$CONFIG"/config_busybox.conf $obj/.config
 	else
-		configure $MAKE CROSS_COMPILE="${CROSS}-" CFLAGS="$TARGET_CFLAGS" CONFIG_PREFIX="$ROOTFS" defconfig
+		configure $MAKE O=$obj CROSS_COMPILE="${CROSS}-" CFLAGS="$TARGET_CFLAGS" CONFIG_PREFIX="$ROOTFS" defconfig
 		COMMAND="busybox_menuconfig"
 	fi
 	if [ "$COMMAND_PACKAGE" = "busybox" ] ; then
-		$MAKE CROSS_COMPILE="${CROSS}-" CFLAGS="$TARGET_CFLAGS" CONFIG_PREFIX="$ROOTFS" $COMMAND_TARGET
+		$MAKE O=$obj CROSS_COMPILE="${CROSS}-" CFLAGS="$TARGET_CFLAGS" CONFIG_PREFIX="$ROOTFS" $COMMAND_TARGET
 
 		echo #### busybox config done, copying it back
-		cp .config "$CONFIG"/config_busybox.conf
+		cp $obj/.config "$CONFIG"/config_busybox.conf
 		rm ._*
 		exit 0
 	fi
 }
 
 compile-busybox() {
-	compile $MAKE CROSS_COMPILE="${CROSS}-" CFLAGS="$TARGET_CFLAGS" CONFIG_PREFIX="$ROOTFS" -j8
+	local obj=$STAGING/obj/busybox-obj
+	compile $MAKE O=$obj CROSS_COMPILE="${CROSS}-" \
+		CFLAGS="$TARGET_CFLAGS" \
+		CONFIG_PREFIX="$ROOTFS" \
+		$MAKE_ARGUMENTS
 }
 
 install-busybox() {
@@ -30,7 +36,10 @@ install-busybox() {
 }
 
 deploy-busybox-local() {
-	$MAKE CROSS_COMPILE="${CROSS}-" CFLAGS="$TARGET_CFLAGS" CONFIG_PREFIX="$ROOTFS" install
+	local obj=$STAGING/obj/busybox-obj
+	$MAKE O=$obj CROSS_COMPILE="${CROSS}-" \
+		CFLAGS="$TARGET_CFLAGS" \
+		CONFIG_PREFIX="$ROOTFS" install
 }
 
 deploy-busybox() {
