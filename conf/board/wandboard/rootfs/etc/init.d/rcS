@@ -37,9 +37,14 @@ else
 	ifconfig eth0 up
 	udhcpc -b -T 1
 fi
+
+if [ -d /root/bluetooth]; then
+	cp -r /root/bluetooth /tmp/
+fi
 # Load DAC
 modprobe snd-usb-audio index=0
+modprobe btusb
 
 # LAUNCH APPS -- do not delete this line
-#echo "* Starting telnetd..."
-#telnetd -l /bin/sh
+echo "* Starting telnetd..."
+telnetd -l /bin/sh

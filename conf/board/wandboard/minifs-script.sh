@@ -38,6 +38,9 @@ board_prepare() {
 
 	TARGET_PACKAGES+=" targettools"
 
+	TARGET_PACKAGES+=" bluez4"
+	TARGET_PACKAGES+=" python2 python-dbus"
+
 	TARGET_PACKAGES+=" update-package"
 	hset update-package basename "wandboard"
 

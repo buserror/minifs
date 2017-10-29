@@ -88,6 +88,16 @@ export PACKAGES=""
 source "$CONF_BASE"/minifs-script-utils.sh
 
 #######################################################################
+# if a local config file is found, run it, it allows quick
+# testing of packages without changing the real board file etc
+#######################################################################
+for fil in .config .config-$(hostname -s) .config-$MINIFS_BOARD; do
+	if [ -f "./$fil" ]; then
+		source "./$fil"
+	fi
+done
+
+#######################################################################
 # Look for the board/XXX location in either the extra configuration
 # directory or the main conf/board/XXX one
 #######################################################################
@@ -205,24 +215,15 @@ fi
 # Modern crosstools needs all these too!
 NEEDED_HOST_COMMANDS+=" curl svn cvs svn lzma"
 
-export TARGET_PACKAGES="
+TARGET_PACKAGES+="
 	host-installwatch \
 	host-automake \
 	rootfs-create linux $NEED_CROSSTOOLS systemlibs busybox filesystems"
+export TARGET_PACKAGES
 export BUILD_PACKAGES=""
 
 # in minifs-script, optional
 optional board_set_versions
-
-#######################################################################
-# if a local config file is found, run it, it allows quick
-# testing of packages without changing the real board file etc
-#######################################################################
-for fil in .config .config-$(hostname -s) .config-$MINIFS_BOARD; do
-	if [ -f "./$fil" ]; then
-		source "./$fil"
-	fi
-done
 
 #######################################################################
 ## Load all the package scripts and sort them by name
@@ -426,7 +427,7 @@ for package in $TARGET_PACKAGES; do
 				rm -rf "$package.git"
 				tar jxf "$loc" && (
 					cd "$package.git"
-					git pull &&
+					git pull;
 					git checkout $gitref
 				) &&
 				tar jcf "$loc" "$package.git" &&
