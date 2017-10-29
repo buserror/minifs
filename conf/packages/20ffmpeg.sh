@@ -108,6 +108,10 @@ compile-gstreamer() {
 	compile-generic V=1
 }
 
+deploy-gstreamer() {
+	deploy deploy_binaries
+}
+
 configure-gst-plugins-base-local() {
 	local extra=""
 	export LDFLAGS="$LDFLAGS_RLINK"

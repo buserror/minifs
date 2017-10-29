@@ -242,10 +242,12 @@ END { for (p in l) ppr(p); }
 
 get_installed_binaries() {
 	get_installed_stuff "^$STAGING.*/s?bin/"
+	get_installed_stuff "^$STAGING.*/libexec/"
 }
 # same as previous, without the STAGING path at the front
 get_installed_short_binaries() {
 	get_installed_stuff "^$STAGING.*/s?bin/" "^$STAGING/?"
+	get_installed_stuff "^$STAGING.*/libexec/" "^$STAGING/?"
 }
 get_installed_etc() {
 	get_installed_stuff "^$STAGING.*/etc/"

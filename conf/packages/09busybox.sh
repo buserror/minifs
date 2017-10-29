@@ -1,6 +1,6 @@
 
 PACKAGES="$PACKAGES busybox"
-hset busybox version "1.24.1"
+hset busybox version "1.25.1"
 hset busybox url "http://busybox.net/downloads/busybox-$(hget busybox version).tar.bz2"
 hset busybox depends "crosstools host-libtool"
 

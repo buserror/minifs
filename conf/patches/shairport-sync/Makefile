@@ -20,6 +20,7 @@ config.h:
 	echo '#define CONFIG_AVAHI 1' ;\
 	echo '#define CONFIG_METADATA 1' ;\
 	echo '#define HAVE_LIBSSL 1' ;\
+	echo '#define SYSCONFDIR "/etc"' ;\
 	echo '#define PACKAGE_VERSION "minifs"' ;\
 	)>$@
 

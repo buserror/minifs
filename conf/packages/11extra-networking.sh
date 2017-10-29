@@ -1,7 +1,6 @@
 
 # iptables http://www.netfilter.org/projects/iptables/downloads.html
 PACKAGES+=" iptables"
-#hset iptables url "http://www.netfilter.org/projects/iptables/files/iptables-1.4.12.1.tar.bz2"
 hset iptables url "http://ftp.de.debian.org/debian/pool/main/i/iptables/iptables_1.4.14.orig.tar.bz2"
 
 configure-iptables() {
@@ -24,7 +23,7 @@ hset bird depends "libreadline busybox"
 # Secure Shell (bigger version than dropbear)
 #
 PACKAGES+=" openssh"
-hset openssh url "http://mirror.bytemark.co.uk/OpenBSD/OpenSSH/portable/openssh-6.1p1.tar.gz"
+hset openssh url "http://mirror.bytemark.co.uk/OpenBSD/OpenSSH/portable/openssh-7.3p1.tar.gz"
 hset openssh depends "openssl zlib"
 hset openssh sysconf "/etc/ssh"
 
@@ -73,7 +72,7 @@ deploy-openssh() {
 # tinc tunelling - http://www.tinc-vpn.org/
 #
 PACKAGES+=" tinc"
-hset tinc url "http://www.tinc-vpn.org/packages/tinc-1.0.14.tar.gz"
+hset tinc url "http://www.tinc-vpn.org/packages/tinc-1.0.30.tar.gz"
 hset tinc depends "zlib lzo openssl busybox"
 
 deploy-tinc-local() {
@@ -147,23 +146,29 @@ deploy-iperf() {
 	deploy deploy_binaries
 }
 
-
 PACKAGES+=" ethtool"
-hset ethtool url "http://ftp.kernel.org/pub/software/network/ethtool/ethtool-3.1.tar.bz2"
+hset ethtool url "http://ftp.kernel.org/pub/software/network/ethtool/ethtool-3.18.tar.xz"
 
 deploy-ethtool() {
 	deploy deploy_binaries
 }
 
 PACKAGES+=" fuse"
-hset fuse url "http://downloads.sourceforge.net/project/fuse/fuse-2.X/2.9.3/fuse-2.9.3.tar.gz"
+hset fuse url "https://github.com/libfuse/libfuse/releases/download/fuse-2.9.7/fuse-2.9.7.tar.gz"
+
+configure-fuse() {
+	export LDFLAGS="$LDFLAGS_RLINK"
+	configure-generic
+	export LDFLAGS="$LDFLAGS_BASE"	
+}
 
 deploy-fuse() {
 	deploy deploy_binaries
 }
 
 PACKAGES+=" sshfs"
-hset sshfs url "http://downloads.sourceforge.net/project/fuse/sshfs-fuse/2.5/sshfs-fuse-2.5.tar.gz"
+#hset sshfs url "http://downloads.sourceforge.net/project/fuse/sshfs-fuse/2.5/sshfs-fuse-2.5.tar.gz"
+hset sshfs url "https://github.com/libfuse/sshfs/releases/download/sshfs_2.8/sshfs-2.8.tar.gz"
 hset sshfs depends "fuse openssh libglib"
 
 configure-sshfs() {
@@ -177,7 +182,7 @@ deploy-sshfs() {
 }
 
 PACKAGES+=" dma"
-hset dma url "https://github.com/corecode/dma/archive/v0.8.tar.gz"
+hset dma url "https://github.com/corecode/dma/archive/v0.11.tar.gz"
 hset dma depends "openssl"
 
 compile-dma() {

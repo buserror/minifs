@@ -99,6 +99,7 @@ deploy-filesystem-prepack() {
 	if [ "$MINIFS_NOSTRIP" != "1" ]; then
 		$MINIFS_STRIP "$ROOTFS"/bin/* "$ROOTFS"/sbin/* \
 			"$ROOTFS"/usr/bin/* "$ROOTFS"/usr/sbin/* \
+			"$ROOTFS"/usr/libexec/* "$ROOTFS"/usr/libexec/*/* \
 			2>/dev/null
 		for lib in "$ROOTFS"/lib "$ROOTFS"/usr/lib; do
 			if [ -d "$lib" ]; then

@@ -120,7 +120,7 @@ configure-gnutls() {
 #######################################################################
 # 110906 Updated 1.0.0e
 PACKAGES+=" openssl"
-hset openssl url "http://www.openssl.org/source/openssl-1.0.2d.tar.gz"
+hset openssl url "http://www.openssl.org/source/openssl-1.0.2g.tar.gz"
 hset openssl targets "openssl openssl-bin"
 hset openssl deploy false
 hset openssl config "linux-generic32"
@@ -206,9 +206,8 @@ install-libnss() {
 #######################################################################
 ## curl - http://curl.haxx.se/
 #######################################################################
-# 110906 Updated 7.21.7
 PACKAGES+=" libcurl"
-hset libcurl url "http://curl.haxx.se/download/curl-7.21.7.tar.bz2"
+hset libcurl url "http://curl.haxx.se/download/curl-7.48.0.tar.bz2"
 
 PACKAGES+=" curl"
 hset curl url "none"
@@ -236,9 +235,9 @@ deploy-curl() {
 	cp "$STAGING_USR"/bin/curl "$ROOTFS"/usr/bin/
 }
 
-# 110906 Checked http://samba.anu.edu.au/rsync/
+# Checked http://samba.anu.edu.au/rsync/
 PACKAGES+=" rsync"
-hset rsync url "http://samba.anu.edu.au/ftp/rsync/src/rsync-3.0.8.tar.gz"
+hset rsync url "http://samba.anu.edu.au/ftp/rsync/src/rsync-3.1.2.tar.gz"
 hset rsync depends "busybox"
 
 deploy-rsync() {

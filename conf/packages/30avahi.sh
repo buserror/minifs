@@ -17,7 +17,8 @@ configure-libdaemon() {
 
 # http://avahi.org/
 PACKAGES+=" avahi"
-hset avahi url "http://avahi.org/download/avahi-0.6.30.tar.gz"
+#hset avahi url "http://avahi.org/download/avahi-0.6.30.tar.gz"
+hset avahi url "https://github.com/lathiat/avahi/releases/download/v0.6.32/avahi-0.6.32.tar.gz"
 hset avahi depends "libdaemon libexpat dbus"
 
 hostcheck-avahi() {
@@ -25,6 +26,7 @@ hostcheck-avahi() {
 }
 
 configure-avahi-local() {
+	export LDFLAGS="$LDFLAGS_RLINK -lintl"
 	configure-generic-local \
 		--with-distro=none \
 		--disable-glib \
@@ -34,12 +36,12 @@ configure-avahi-local() {
 		--disable-qt4 \
 		--disable-autoipd \
 		--disable-gdbm \
-		--disable-nsl \
 		--disable-gobject \
 		--disable-mono \
 		--disable-python \
 		--enable-compat-libdns_sd \
 		--localstatedir=/tmp
+	export LDFLAGS="$LDFLAGS_BASE"
 }
 configure-avahi() {
 	configure configure-avahi-local

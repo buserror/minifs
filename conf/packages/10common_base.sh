@@ -14,7 +14,7 @@ configure-zlib() {
 ## lzo - http://www.oberhumer.com/opensource/lzo/
 #######################################################################
 PACKAGES+=" lzo"
-hset lzo url "http://www.oberhumer.com/opensource/lzo/download/lzo-2.04.tar.gz"
+hset lzo url "http://www.oberhumer.com/opensource/lzo/download/lzo-2.09.tar.gz"
 hset lzo depends "busybox"
 
 #######################################################################
@@ -102,7 +102,6 @@ configure-libftdi() {
 }
 
 PACKAGES+=" util-linux"
-#hset util-linux url "http://ftp.de.debian.org/debian/pool/main/u/util-linux/util-linux_2.17.2.orig.tar.gz"
 hset util-linux url "http://ftp.de.debian.org/debian/pool/main/u/util-linux/util-linux_2.20.1.orig.tar.gz"
 # This version has even more dependencies on glibc, scanf allocator and others.
 #hset util-linux url "http://ftp.de.debian.org/debian/pool/main/u/util-linux/util-linux_2.25.2.orig.tar.xz"
@@ -121,6 +120,8 @@ export CFLAGS="$TARGET_CFLAGS -DHAVE_PROGRAM_INVOCATION_SHORT_NAME"
 		--without-sulogin \
 		--without-udev \
 		--without-python \
+		--without-wall \
+		--without-agetty \
 		--disable-uuidd \
 		scanf_cv_type_modifier=yes
 	export CFLAGS="$TARGET_CFLAGS"
@@ -140,7 +141,6 @@ install-util-linux() {
 ## mtd_utils
 #######################################################################
 PACKAGES+=" mtd_utils"
-#hset mtd_utils url "http://git.infradead.org/mtd-utils.git/snapshot/a67747b7a314e685085b62e8239442ea54959dbc.tar.gz#mtd_utils.tgz"
 hset mtd_utils url "http://ftp.de.debian.org/debian/pool/main/m/mtd-utils/mtd-utils_1.5.1.orig.tar.gz"
 # util-linux is only for libuuid
 hset mtd_utils depends "zlib lzo util-linux"
