@@ -137,8 +137,8 @@ readfunc(
 //	printf("%s %s read offset %d\n", __func__, id->dev, (int)offset);
 	ssize_t r = read(id->fd, buf, secsize);
 	if (r == -1) {
-		printf("volume_id_get_buffer ERROR %ld\n", (long)r);
-		perror("volume_id_get_buffer");
+	//	printf("volume_id_get_buffer ERROR %ld\n", (long)r);
+	//	perror("volume_id_get_buffer");
 		return -1;
 	}
 	return secsize;
@@ -288,7 +288,7 @@ volume_id_close(struct volume_id * id)
 int read_sys_int(const char * path, const char * name, int * res)
 {
 	char fname[256];
-	sprintf(fname, "%s/%s", path, name);
+	snprintf(fname, sizeof(fname), "%s/%s", path, name);
 	int fd = open(fname, O_RDONLY);
 	if (fd == -1)
 		return -1;
@@ -382,7 +382,7 @@ int main(int argc, char ** argv)
 			continue;
 	//	printf("disk %s\n", disk->d_name);
 		char diskpath[128];
-		sprintf(diskpath, "/sys/block/%s", disk->d_name);
+		snprintf(diskpath, sizeof(diskpath), "/sys/block/%s", disk->d_name);
 		DIR * disk_dir = opendir(diskpath);
 		struct dirent * part;
 		int ro = -1;
@@ -420,7 +420,7 @@ int main(int argc, char ** argv)
 	//		printf("partition %s\n", part->d_name);
 			partcount++;
 			char dev[64];
-			sprintf(dev, "/dev/%s", part->d_name);
+			snprintf(dev, sizeof(dev), "/dev/%s", part->d_name);
 
 			attempt_open_fat(dev);
 		}
@@ -428,7 +428,7 @@ int main(int argc, char ** argv)
 			// also attempt to read the whole 'disk' as a partition, this is needed
 			// for windoze formatted USB sticks and such
 			char dev[64];
-			sprintf(dev, "/dev/%s", disk->d_name);
+			snprintf(dev, sizeof(dev), "/dev/%s", disk->d_name);
 			attempt_open_fat(dev);
 		}
 		closedir(disk_dir);
