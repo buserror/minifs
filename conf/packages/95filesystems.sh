@@ -1,38 +1,5 @@
 
 
-#######################################################################
-# Create the text files used to make the device files in ROOTFS
-# the count parameter can't be used because of mksquashfs
-# name    	type mode uid gid major minor start inc count
-#######################################################################
-cat << EOF | tee "$STAGING_TOOLS"/special_file_table.txt |\
-	awk '{nod=$2=="c"||$2=="b";print nod?"nod":"dir",$1,"0"$3,$4,$5, nod? $2" "$6" "$7:"";}' \
-	>"$STAGING_TOOLS"/special_file_table_kernel.txt
-/dev		d    755  0    0    -    -    -    -    -
-/dev/console	c    600  0    0    5    1    0    0    -
-/dev/ptmx	c    666  0    0    5    2    0    0    -
-/dev/null	c    666  0    0    1    3    0    0    -
-/dev/mem	c    640  0    0    1    1    0    0    -
-/dev/tty0	c    666  0    0    4    0    0    -    -
-/dev/tty1	c    666  0    0    4    1    0    -    -
-/dev/tty2	c    666  0    0    4    2    0    -    -
-/dev/tty3	c    666  0    0    4    3    0    -    -
-/dev/tty4	c    666  0    0    4    4    0    -    -
-/dev/tty5	c    666  0    0    4    5    0    -    -
-/root		d    700  0    0    -    -    -    -    -
-/tmp		d    777  0    0    -    -    -    -    -
-/sys		d    755  0    0    -    -    -    -    -
-/proc		d    755  0    0    -    -    -    -    -
-/mnt		d    755  0    0    -    -    -    -    -
-/var		d    755  0    0    -    -    -    -    -
-/var/log	d    755  0    0    -    -    -    -    -
-/var/cache	d    755  0    0    -    -    -    -    -
-/var/run	d    755  0    0    -    -    -    -    -
-EOF
-cat "$STAGING_TOOLS"/special_file_table.txt |
-	awk '{print $1,$2,$3,$4,$5,$6,$7}' |
-	sed 's/[- ]*$//g' >"$STAGING_TOOLS"/special_file_table_squash.txt
-
 PACKAGES+=" filesystem-prepack"
 hset filesystem-prepack url "none"
 
@@ -67,9 +34,9 @@ PACKAGES+=" $FILESYSTEMS"
 hset filesystems targets " filesystems $FILESYSTEMS"
 
 hset filesystem-prepack dir "."
-hset filesystem-prepack phases "deploy"
+hset filesystem-prepack phases "setup deploy"
 hset filesystem-squash dir "."
-hset filesystem-squash phases "deploy"
+hset filesystem-squash phases "setup deploy"
 hset filesystem-squash depends "filesystems"
 hset filesystem-ext dir "."
 hset filesystem-ext phases "deploy"
@@ -86,6 +53,43 @@ hset filesystem-initrd depends "filesystems"
 
 MINIFS_CROSS_STRIP="${CROSS}-strip"
 MINIFS_STRIP=sstrip
+
+setup-filesystem-prepack() {
+	echo setup-filesystem-prepack
+#######################################################################
+# Create the text files used to make the device files in ROOTFS
+# the count parameter can't be used because of mksquashfs
+# name    	type mode uid gid major minor start inc count
+#######################################################################
+cat << EOF >"$STAGING_TOOLS"/special_file_table.txt
+/dev		d    755  0    0    -    -    -    -    -
+/dev/console	c    600  0    0    5    1    0    0    -
+/dev/ptmx	c    666  0    0    5    2    0    0    -
+/dev/null	c    666  0    0    1    3    0    0    -
+/dev/mem	c    640  0    0    1    1    0    0    -
+/dev/tty0	c    666  0    0    4    0    0    -    -
+/dev/tty1	c    666  0    0    4    1    0    -    -
+/dev/tty2	c    666  0    0    4    2    0    -    -
+/dev/tty3	c    666  0    0    4    3    0    -    -
+/dev/tty4	c    666  0    0    4    4    0    -    -
+/dev/tty5	c    666  0    0    4    5    0    -    -
+/root		d    700  0    0    -    -    -    -    -
+/tmp		d    777  0    0    -    -    -    -    -
+/sys		d    755  0    0    -    -    -    -    -
+/proc		d    755  0    0    -    -    -    -    -
+/mnt		d    755  0    0    -    -    -    -    -
+/var		d    755  0    0    -    -    -    -    -
+/var/log	d    755  0    0    -    -    -    -    -
+/var/cache	d    755  0    0    -    -    -    -    -
+/var/run	d    755  0    0    -    -    -    -    -
+EOF
+	if [ "$FS_SPECIAL_FILES" != "" ]; then
+		echo "$FS_SPECIAL_FILES" | tr ":" "\n" >>"$STAGING_TOOLS"/special_file_table.txt
+	fi
+	cat "$STAGING_TOOLS"/special_file_table.txt | \
+		awk '{nod=$2=="c"||$2=="b";print nod?"nod":"dir",$1,"0"$3,$4,$5, nod? $2" "$6" "$7:"";}' \
+			>"$STAGING_TOOLS"/special_file_table_kernel.txt
+}
 
 deploy-filesystem-prepack() {
 	deploy echo Copying
@@ -112,6 +116,13 @@ deploy-filesystem-prepack() {
 		echo "FAILED"; exit 1
 	}
 	echo "Done"
+}
+
+setup-filesystem-squash() {
+	echo setup-filesystem-squash
+	cat "$STAGING_TOOLS"/special_file_table.txt |
+		awk '{print $1,$2,$3,$4,$5,$6,$7}' |
+		sed 's/[- ]*$//g' >"$STAGING_TOOLS"/special_file_table_squash.txt
 }
 
 deploy-filesystem-squash() {
