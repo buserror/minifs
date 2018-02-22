@@ -4,7 +4,7 @@ PACKAGES+=" iptables"
 hset iptables url "http://ftp.de.debian.org/debian/pool/main/i/iptables/iptables_1.4.14.orig.tar.bz2"
 
 configure-iptables() {
-	configure-generic 
+	configure-generic
 	#--disable-ipv6
 }
 deploy-iptables() {
@@ -147,7 +147,7 @@ deploy-iperf() {
 }
 
 PACKAGES+=" ethtool"
-hset ethtool url "http://ftp.kernel.org/pub/software/network/ethtool/ethtool-3.18.tar.xz"
+hset ethtool url "http://www.kernel.org/pub/software/network/ethtool/ethtool-3.18.tar.xz"
 
 deploy-ethtool() {
 	deploy deploy_binaries
@@ -159,7 +159,7 @@ hset fuse url "https://github.com/libfuse/libfuse/releases/download/fuse-2.9.7/f
 configure-fuse() {
 	export LDFLAGS="$LDFLAGS_RLINK"
 	configure-generic
-	export LDFLAGS="$LDFLAGS_BASE"	
+	export LDFLAGS="$LDFLAGS_BASE"
 }
 
 deploy-fuse() {
@@ -174,7 +174,7 @@ hset sshfs depends "fuse openssh libglib"
 configure-sshfs() {
 	export LDFLAGS="$LDFLAGS_RLINK"
 	configure-generic
-	export LDFLAGS="$LDFLAGS_BASE"	
+	export LDFLAGS="$LDFLAGS_BASE"
 }
 
 deploy-sshfs() {
