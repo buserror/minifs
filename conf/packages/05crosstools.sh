@@ -11,8 +11,15 @@ CROSSTOOL_JOBS=".$MINIFS_JOBS"
 #hset crosstools version "1.22.0"
 #hset crosstools url "http://ymorin.is-a-geek.org/download/crosstool-ng/crosstool-ng-$(hget crosstools version).tar.bz2"
 
+#hset crosstools url "git!https://github.com/crosstool-ng/crosstool-ng.git#crosstol-ng-$MINIFS_BOARD.tar.bz2"
+#hset crosstools git-ref 'da3f8c4ec5345b709a330eebab01cd62c574295d'
+
+#hset crosstools version "1.23.0"
+#hset crosstools url "http://crosstool-ng.org/download/crosstool-ng/crosstool-ng-$(hget crosstools version).tar.bz2"
+
 hset crosstools url "git!https://github.com/crosstool-ng/crosstool-ng.git#crosstol-ng-$MINIFS_BOARD.tar.bz2"
-hset crosstools git-ref 'da3f8c4ec5345b709a330eebab01cd62c574295d'
+hset crosstools git-ref 'fd9fe523b22cb6281f26081232a3f8f3aee7fda1'
+
 hset crosstools depends "linux-headers "
 
 # ${HOME}/x-tools/${CT_TARGET}
@@ -146,7 +153,7 @@ configure-host-libtool() {
 		configure ./configure \
 			--prefix=$STAGING_TOOLS \
 			--build=$(gcc -dumpmachine) \
-			--host=$TARGET_FULL_ARCH \
+			--host=$TARGET_SMALL_ARCH \
 			--program-prefix="$TARGET_FULL_ARCH"- CC=$TARGET_FULL_ARCH-gcc
 	) || exit 1
 }
@@ -157,7 +164,8 @@ install-host-libtool() {
 }
 
 PACKAGES+=" host-automake"
-hset host-automake url "http://ftp.gnu.org/gnu/automake/automake-1.14.1.tar.xz"
+#hset host-automake url "http://ftp.gnu.org/gnu/automake/automake-1.14.1.tar.xz"
+hset host-automake url "http://ftp.gnu.org/gnu/automake/automake-1.15.1.tar.xz"
 hset host-automake destdir "/"
 hset host-automake depends "host-autoconf"
 
@@ -167,7 +175,7 @@ configure-host-automake() {
 		configure ./configure \
 			--prefix=$STAGING_TOOLS \
 			--build=$(gcc -dumpmachine) \
-			--host=$TARGET_FULL_ARCH
+			--host=$TARGET_SMALL_ARCH
 	) || exit 1
 }
 
@@ -266,5 +274,28 @@ hset gdb url "http://ftp.gnu.org/gnu/gdb/gdb-7.3.1.tar.bz2"
 hset gdb depends "libtool libncurses"
 
 deploy-gdb() {
+	deploy deploy_binaries
+}
+
+PACKAGES+=" host-gdb"
+hset host-gdb url "http://ftp.gnu.org/gnu/gdb/gdb-8.0.1.tar.xz"
+hset host-gdb destdir "/"
+
+configure-host-gdb() {
+	(
+		host-setup
+		configure ./configure \
+			--prefix=$STAGING_TOOLS \
+			--build=$(gcc -dumpmachine) \
+			--host=$TARGET_FULL_ARCH
+	) || exit 1
+}
+
+PACKAGES+=" gdbserver-gdb"
+hset gdbserver-gdb url "http://ftp.gnu.org/gnu/gdb/gdb-8.0.1.tar.xz"
+hset gdbserver-gdb dir "gdbserver-gdb/gdb/gdbserver"
+hset gdbserver-gdb depends "busybox"
+
+deploy-gdbserver-gdb() {
 	deploy deploy_binaries
 }
