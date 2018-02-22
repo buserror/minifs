@@ -117,13 +117,15 @@ CONFIG_UCLIBC=$(grep '^CT_LIBC_uClibc' $(minifs_locate_config_path config_crosst
 # Extract the toolchain tupple and other bits from crosstools config
 extra_env=$( cat $(minifs_locate_config_path config_crosstools.conf) | awk -e '
 BEGIN { eabi="none"; os="none"; }
-/^CT_ARCH_[a-z][^_]+=y/ { gsub(/[A-Z_]+|=y/, ""); arch=$0; print "TARGET_ARCH=" arch ";"; }
+/^CT_ARCH=/ { gsub(/^[A-Z_=]+"?|"$/, ""); arch=$0; print "TARGET_ARCH=" arch ";"; }
+/^CT_LIBC=/ { gsub(/^[A-Z_=]+"?|"$/, ""); libc=tolower($0); print "TARGET_LIBC=" libc ";"; }
 /^CT_TARGET_VENDOR=/ { gsub(/^[A-Z_=]+"?|"$/, ""); vendor="-" $0; print "TARGET_VENDOR=" $0 ";"; }
 /^CT_KERNEL=/ { gsub(/^[A-Z_=]+"?|"$/, ""); os=$0; print "TARGET_OS=" os ";"; }
-/^CT_ARCH_ARM_EABI=y/ { eabi="gnueabi"; }
+/^CT_ARCH_ARM_EABI=y/ { eabi="eabi"; }
 /^CT_LIBC_uClibc=y/ { uclibc="uclibc"; print "CONFIG_UCLIBC=y;" }
 END {
-	printf "TARGET_FULL_ARCH=\"%s%s-%s-%s%s%s\";\n", arch,vendor,os,uclibc,eabi,hf;
+	printf "TARGET_SMALL_ARCH=\"%s-%s\";\n", arch,os;
+	printf "TARGET_FULL_ARCH=\"%s%s-%s-%s%s%s\";\n", arch,vendor,os,libc,eabi,hf;
 }
 ' ; )
 echo $extra_env
@@ -662,11 +664,33 @@ get_phase_names() {
 	echo $res
 }
 
+#######################################################################
+## Now, run the setup phases for packages that wanted it
+#######################################################################
+echo "Setup packages"
+# this pass does just the 'setup' bits
+for pack in $PROCESS_PACKAGES; do
+	if [ ! -d $(get_package_dir $pack) ]; then
+		echo "$BUILD/$dir" will not be setup
+		continue;
+	fi
+	package $pack
+		phases=$(hget $pack phases)
+		phases=${phases:-$DEFAULT_PHASES}
+
+		for ph in $phases; do
+			if [[ $ph != "setup" ]]; then continue ;fi
+			optional_one_of $(get_phase_names $pack $ph) || break
+		done
+	end_package
+done
+
 process_one_package() {
 	local pack=$1
 	local phases=$2
 	for ph in $phases; do
 		if [[ $ph == "deploy" ]]; then continue ;fi
+		if [[ $ph == "setup" ]]; then continue ;fi
 		optional_one_of $(get_phase_names $pack $ph) || break
 	done
 }
