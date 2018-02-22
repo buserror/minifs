@@ -8,12 +8,16 @@ PACKAGES+=" libreadline"
 hset libreadline url "ftp://ftp.gnu.org/gnu/readline/readline-6.2.tar.gz"
 
 # 110906 Updated 5.9 http://www.gnu.org/software/ncurses/
+# 180203 Updated 6.1 http://www.gnu.org/software/ncurses/
 PACKAGES+=" libncurses"
-hset libncurses url "http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.9.tar.gz"
-hset libncurses configscript "ncurses5-config"
+hset libncurses url "http://ftp.gnu.org/pub/gnu/ncurses/ncurses-6.1.tar.gz"
+hset libncurses configscript "ncurses6-config"
 
 configure-libncurses() {
-	configure-generic \
+    #provide some sort of compatibility for people using ncurses5
+	ln -sf ncurses6-config "$STAGING_TOOLS"/bin/ncurses5-config
+    # CPPFLAGS is needed because of debian version of mawk, somehow
+	configure-generic CPPFLAGS="-P" \
 		--without-ada --without-progs \
 		--without-tests --enable-pc-files
 }
@@ -74,8 +78,9 @@ hset libgettext url "http://ftp.gnu.org/pub/gnu/gettext/gettext-0.19.8.tar.xz"
 hset libgettext depends "libxml2 libiconv"
 
 configure-libgettext() {
-	#rm -f configure ; 
+	#rm -f configure ;
 	sed -i -e 's/gettext-tools$//' Makefile.am
+	aclocal
 	configure-generic \
 		--without-lispdir \
                  --disable-csharp \
@@ -89,4 +94,4 @@ configure-libgettext() {
                  --with-libxml2-prefix="$STAGING_USR"
 #	CFLAGS="$TARGET_CFLAGS"
 }
- 
+
