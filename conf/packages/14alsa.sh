@@ -1,9 +1,9 @@
-PACKAGES+=" alsadrivers"
-hset alsadrivers url "ftp://ftp.alsa-project.org/pub/driver/alsa-driver-1.0.29.tar.bz2"
-hset alsadrivers depends "linux-modules"
+#PACKAGES+=" alsadrivers"
+#hset alsadrivers url "ftp://ftp.alsa-project.org/pub/driver/alsa-driver-1.0.29.tar.bz2"
+#hset alsadrivers depends "linux-modules"
 
 PACKAGES+=" libalsa"
-hset libalsa url "ftp://ftp.alsa-project.org/pub/lib/alsa-lib-1.0.29.tar.bz2"
+hset libalsa url "ftp://ftp.alsa-project.org/pub/lib/alsa-lib-1.1.5.tar.bz2"
 #hset libalsa depends "alsadrivers"
 
 configure-libalsa() {
@@ -16,11 +16,11 @@ deploy-libalsa() {
 }
 
 PACKAGES+=" alsaplugins"
-hset alsaplugins url "ftp://ftp.alsa-project.org/pub/plugins/alsa-plugins-1.0.29.tar.bz2"
+hset alsaplugins url "ftp://ftp.alsa-project.org/pub/plugins/alsa-plugins-1.1.5.tar.bz2"
 hset alsaplugins depends "libalsa"
 
 PACKAGES+=" alsautils"
-hset alsautils url "ftp://ftp.alsa-project.org/pub/utils/alsa-utils-1.0.29.tar.bz2"
+hset alsautils url "ftp://ftp.alsa-project.org/pub/utils/alsa-utils-1.1.5.tar.bz2"
 hset alsautils depends "libalsa libncurses"
 
 configure-alsautils() {
@@ -78,7 +78,7 @@ hset shairport name "\$(hostname)"
 
 configure-shairport() {
 	export LDFLAGS="$LDFLAGS_RLINK"
-	configure-generic 
+	configure-generic
 	export LDFLAGS="$LDFLAGS_BASE"
 }
 
@@ -88,7 +88,7 @@ install-shairport() {
 
 deploy-shairport-local() {
 	deploy_binaries
-	
+
 	cat >>"$ROOTFS"/etc/network-up.sh <<-EOF
 	echo "* Starting shairport..."
 	shairport -d -a $(hget shairport name)
@@ -123,7 +123,7 @@ install-shairport-sync() {
 
 deploy-shairport-sync-local() {
 	deploy_binaries
-	
+
 	cat >>"$ROOTFS"/etc/network-up.sh <<-EOF
 	echo "* Starting shairport..."
 	shairport -d -a $(hget shairport name)
@@ -132,7 +132,7 @@ deploy-shairport-sync-local() {
 deploy-shairport-sync() {
 	deploy deploy-shairport-sync-local
 }
- 
+
 PACKAGES+=" libupnp"
 hset libupnp url "http://downloads.sourceforge.net/project/pupnp/pupnp/libUPnP%201.6.19/libupnp-1.6.19.tar.bz2"
 
@@ -147,7 +147,7 @@ configure-gmrender() {
 
 deploy-gmrender-local() {
 	deploy_binaries
-	rsync -av --delete "$STAGING_USR"/share/gmediarender "$ROOTFS"/usr/share/ 
+	rsync -av --delete "$STAGING_USR"/share/gmediarender "$ROOTFS"/usr/share/
 	cat >>"$ROOTFS"/etc/network-up.sh <<-EOF
 	echo "* Starting gmrender..."
 	gmediarender -d --logfile=/tmp/gmrender-run.log -f $(hget gmrender name) --gstout-audiosink=alsasink --gstout-audiodevice=default --gstout-initial-volume-db=-10>/tmp/gmrender.log 2>&1
@@ -202,12 +202,12 @@ hset mpd optional "avahi "
 configure-mpd() {
 	configure-generic \
 		LDFLAGS="$LDFLAGS_RLINK" \
-		CPPFLAGS="$TARGET_CPPFLAGS -I$BUILD/libboost" --without-boost 
+		CPPFLAGS="$TARGET_CPPFLAGS -I$BUILD/libboost" --without-boost
 }
 
 deploy-mpd-local() {
 	deploy_binaries
-	
+
 	cat >>"$ROOTFS"/etc/network-up.sh <<-EOF
 	echo "* Starting mpd..."
 	EOF
