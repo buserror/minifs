@@ -10,7 +10,7 @@ hset libva optional "xorglibX11"
 
 configure-libva() {
 	export LDFLAGS="$LDFLAGS_RLINK"
-	if env_contains TARGET_PACKAGES libxcb ; then 
+	if env_contains TARGET_PACKAGES libxcb ; then
 		LDFLAGS+=" -lxcb"
 	fi
 	configure-generic
@@ -22,9 +22,9 @@ hset libvdpau url "http://cgit.freedesktop.org/~aplattner/libvdpau/snapshot/libv
 hset libvdpau optional "nvidia"
 
 # we don't want this library to clobber the nvidia one, so we install
-# only the headers 
+# only the headers
 install-libvdpau() {
-	if env_contains TARGET_PACKAGES nvidia ; then 
+	if env_contains TARGET_PACKAGES nvidia ; then
 		log_install cp -r include/vdpau "$STAGING_USR"/include/
 	else
 		install-generic
@@ -100,8 +100,8 @@ configure-gstreamer() {
 	configure-generic \
 		--disable-examples
 	export LDFLAGS="$LDFLAGS_BASE"
-#		--prefix=$STAGING_USR 
-#		--libexecdir="$STAGING_USR"/lib 
+#		--prefix=$STAGING_USR
+#		--libexecdir="$STAGING_USR"/lib
 }
 
 compile-gstreamer() {
@@ -168,7 +168,7 @@ hset libxvid dir "libxvid/build/generic"
 #######################################################################
 PACKAGES+=" ffmpeg"
 
-V="2.7.2"
+V="2.8.9"
 hset ffmpeg version $V
 hset ffmpeg url "http://ffmpeg.org/releases/ffmpeg-$V.tar.bz2"
 hset ffmpeg depends "busybox"
