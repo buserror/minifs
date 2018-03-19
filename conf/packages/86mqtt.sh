@@ -26,6 +26,20 @@ install-mosquitto() {
 	install-generic prefix= CROSS_COMPILE="$TARGET_FULL_ARCH-"
 }
 
+deploy-mosquitto-local() {
+	deploy_binaries
+	cat >>"$ROOTFS"/etc/passwd <<-END
+	mosquitto:x:1010:1010:sshd:/home:/bin/false
+	END
+	cat >>"$ROOTFS"/etc/group <<-END
+	mosquitto:x:1010:
+	END
+	cat >>"$ROOTFS"/etc/network-up.sh <<-EOF
+	echo "* Starting mosquitto..."
+	/usr/sbin/mosquitto -d
+	EOF
+}
+
 deploy-mosquitto() {
-	deploy deploy_binaries
+	deploy deploy-mosquitto-local
 }
