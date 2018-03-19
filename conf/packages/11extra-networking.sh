@@ -62,7 +62,8 @@ deploy-openssh-local() {
 	mkdir -p "$ROOTFS"/var/log &&
 		touch "$ROOTFS"/var/log/lastlog
 	mkdir -p $ROOTFS/etc/ssh/ $ROOTFS/var/empty/ && \
-		cp $CONFIG/ssh_host_* $ROOTFS/etc/ssh/
+		cp $CONFIG/ssh_host_* $ROOTFS/etc/ssh/ &&
+			chmod 0600 $ROOTFS/etc/ssh/ssh_host_*_key
 }
 deploy-openssh() {
 	deploy deploy-openssh-local
