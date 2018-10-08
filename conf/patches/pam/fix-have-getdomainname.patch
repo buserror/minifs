@@ -1,0 +1,39 @@
+diff -ru Linux-PAM-1.3.0/modules/pam_access/pam_access.c Linux-PAM-1.3.0-ARM/modules/pam_access/pam_access.c
+--- Linux-PAM-1.3.0/modules/pam_access/pam_access.c	2016-03-24 07:50:21.000000000 -0400
++++ Linux-PAM-1.3.0-ARM/modules/pam_access/pam_access.c	2017-01-24 16:24:00.221273618 -0500
+@@ -469,6 +469,8 @@
+   char *mydomain = NULL;
+   char domainname_res[256];
+ 
++#if defined(HAVE_GETDOMAINNAME)
++
+   if (getdomainname (domainname_res, sizeof (domainname_res)) == 0)
+     {
+       if (domainname_res[0] != '\0' && strcmp (domainname_res, "(none)") != 0)
+@@ -476,6 +478,7 @@
+           mydomain = domainname_res;
+         }
+     }
++#endif
+ 
+ #ifdef HAVE_INNETGR
+   retval = innetgr (netgroup, machine, user, mydomain);
+diff -ru Linux-PAM-1.3.0/modules/pam_issue/pam_issue.c Linux-PAM-1.3.0-ARM/modules/pam_issue/pam_issue.c
+--- Linux-PAM-1.3.0/modules/pam_issue/pam_issue.c	2016-03-24 07:50:21.000000000 -0400
++++ Linux-PAM-1.3.0-ARM/modules/pam_issue/pam_issue.c	2017-01-24 16:25:09.157942017 -0500
+@@ -201,10 +201,15 @@
+ 		{
+ 		    char domainname[256];
+ 
++#if defined(HAVE_GETDOMAINNAME)
++
+ 		    if (getdomainname(domainname, sizeof(domainname)) >= 0) {
+ 			domainname[sizeof(domainname)-1] = '\0';
+ 			strncat(buf, domainname, sizeof(buf) - 1);
+ 		    }
++#else
++            strncat(buf, "local", sizeof(buf) - 1);
++#endif
+ 		}
+ 		break;
+ 	      case 'd':
