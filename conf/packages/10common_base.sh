@@ -102,13 +102,16 @@ configure-libftdi() {
 }
 
 PACKAGES+=" util-linux"
-hset util-linux url "http://ftp.de.debian.org/debian/pool/main/u/util-linux/util-linux_2.20.1.orig.tar.gz"
+# Old stable version, works with uclibc
+#hset util-linux url "http://ftp.de.debian.org/debian/pool/main/u/util-linux/util-linux_2.20.1.orig.tar.gz"
 # This version has even more dependencies on glibc, scanf allocator and others.
 #hset util-linux url "http://ftp.de.debian.org/debian/pool/main/u/util-linux/util-linux_2.25.2.orig.tar.xz"
+# This one compiles with musl C library, amazingly
+hset util-linux url "http://ftp.de.debian.org/debian/pool/main/u/util-linux/util-linux_2.32.orig.tar.xz"
 hset util-linux destdir "$STAGING"
 
 configure-util-linux() {
-export CFLAGS="$TARGET_CFLAGS -DHAVE_PROGRAM_INVOCATION_SHORT_NAME"
+	export CFLAGS="$TARGET_CFLAGS -DHAVE_PROGRAM_INVOCATION_SHORT_NAME"
 	configure-generic \
 		--disable-tls \
 		--disable-libblkid \
@@ -141,27 +144,35 @@ install-util-linux() {
 ## mtd_utils
 #######################################################################
 PACKAGES+=" mtd_utils"
-hset mtd_utils url "http://ftp.de.debian.org/debian/pool/main/m/mtd-utils/mtd-utils_1.5.1.orig.tar.gz"
+#hset mtd_utils url "http://ftp.de.debian.org/debian/pool/main/m/mtd-utils/mtd-utils_1.5.1.orig.tar.gz"
+hset mtd_utils url "http://ftp.de.debian.org/debian/pool/main/m/mtd-utils/mtd-utils_2.0.1.orig.tar.gz"
 # util-linux is only for libuuid
 hset mtd_utils depends "zlib lzo util-linux"
 hset mtd_utils deploy-list "nandwrite mtd_debug"
 hset mtd_utils deploy-ubifs 0
+hset mtd_utils configure "--without-ubifs --without-xattr"
 
-configure-mtd_utils() {
+# when using musl C library
+if [ "$TARGET_LIBC" == "musl" ]; then
+	hset mtd_utils depends "zlib lzo util-linux librpmatch"
+fi
+
+configure-mtd_utils-old() {
+
 	if [ $(hget mtd_utils deploy-ubifs) -eq 1 ]; then
 		configure echo Done
 	else
 		configure sed -i -e '/^BINS.*mkfs.ubifs/d' Makefile
 	fi
 }
-compile-mtd_utils() {
+compile-mtd_utils-old() {
 	compile $MAKE CC=$GCC \
 		CFLAGS="$TARGET_CFLAGS -I$STAGING/include -DWITHOUT_XATTR" \
 		LDFLAGS="$LDFLAGS" \
 		MTD_BINS="$(hget mtd_utils deploy-list)" \
 		UBI_BINS=""
 }
-install-mtd_utils() {
+install-mtd_utils-old() {
 	log_install echo Done
 }
 deploy-mtd_utils-local() {
