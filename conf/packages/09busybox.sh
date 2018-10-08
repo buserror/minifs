@@ -1,8 +1,9 @@
 
 PACKAGES="$PACKAGES busybox"
-hset busybox version "1.28.0"
+hset busybox version "1.29.1"
 hset busybox url "http://busybox.net/downloads/busybox-$(hget busybox version).tar.bz2"
 hset busybox depends "crosstools host-libtool"
+hset busybox optional "pam"
 
 configure-busybox() {
 	local obj=$STAGING/obj/busybox-obj
