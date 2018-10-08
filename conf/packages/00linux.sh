@@ -215,7 +215,7 @@ compile-linux-initrd() {
 	rm -f "$BUILD/linux-obj"/usr/gen_init_cpio
 	rm -f "$BUILD/linux-obj"/usr/initramfs_data.*
 	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
-		CROSS_COMPILE=$(linux-get-cross) \
+		CROSS_COMPILE=$(linux-get-cross) COMPILE_LINUX_INITRD=1 \
 		$(hget linux make-extra-parameters) \
 			$TARGET_KERNEL_NAME -j$MINIFS_JOBS
 }
