@@ -1,5 +1,72 @@
 
 
+if [ $TARGET_SHARED -eq 1 ]; then
+	PACKAGES+=" sharedlibs"
+	TARGET_PACKAGES+=" sharedlibs"
+fi
+
+hset sharedlibs url "none"
+hset sharedlibs dir "."
+hset sharedlibs phases "deploy"
+hset sharedlibs exclude "ldscripts:"
+
+sharedlibs-rsync() {
+	local excl=$(hget sharedlibs exclude)
+	local extras=""
+
+	for pd in $(echo "$excl"| tr ":" "\n") ; do
+		if [ "$pd" != "" ]; then
+			extras+="--exclude=$pd "
+		fi
+	done
+	echo EXTRAS rsync $extras
+	rsync -av \
+		--chmod=u=rwX \
+		--exclude=ldscripts \
+		--exclude=._\* \
+		--exclude=\*.o \
+		--exclude=\*.map \
+		--exclude=\*.spec \
+		--exclude=\*.h \
+		--exclude=\*.a --exclude=\*.la --exclude=\*.lai \
+		--exclude=\*T \
+		--exclude pkgconfig \
+		$extras \
+		$*
+}
+deploy-sharedlibs-local() {
+	set -x
+	mkdir -p "$ROOTFS/lib/" "$ROOTFS/usr/lib/"
+	local exclude="  "
+	for sysroot in sysroot sys-root; do
+		sharedlibs-rsync \
+			"$CROSS_BASE/$TARGET_FULL_ARCH"/$sysroot/lib/ \
+			"$ROOTFS/lib/"
+		sharedlibs-rsync \
+			"$CROSS_BASE/$TARGET_FULL_ARCH"/$sysroot/usr/lib/ \
+			"$ROOTFS/usr/lib/"
+	done
+	sharedlibs-rsync \
+		--exclude=\*.sh \
+		--exclude ct-ng\* \
+		"$STAGING_USR/lib/" \
+		"$ROOTFS/usr/lib/"
+	if [ "$TARGET_ARCH" = "x86_64" ]; then
+		ln -s -f lib "$ROOTFS"/lib64
+		ln -s -f lib "$ROOTFS"/usr/lib64
+	fi
+	echo THESE ARE DANGLING LINKS
+	local dangling=$(find "$ROOTFS" -name \*.so -type f|grep -v '\-[0-9]')
+	if [ "$dangling" != "" ]; then rm -f $dangling; fi
+	optional $MINIFS_BOARD-sharedlibs-cleanup
+	set +x
+}
+deploy-sharedlibs() {
+	echo "    Installing shared libraries"
+	touch "._install_$PACKAGE"
+	deploy deploy-sharedlibs-local
+}
+
 PACKAGES+=" filesystem-prepack"
 hset filesystem-prepack url "none"
 
@@ -100,15 +167,19 @@ deploy-filesystem-prepack() {
 		echo "### cross_linker error, debug with $CROSS_LINKER_INVOKE"
 		exit 1
 	}
+	# Use MINIFS_NOSTRIP=1 for an unstripped rootfs
+	# Use MINIFS_NOSTRIP='regex' to prevent the files matching regex
+	# to be stripped
 	if [ "$MINIFS_NOSTRIP" != "1" ]; then
-		$MINIFS_STRIP "$ROOTFS"/bin/* "$ROOTFS"/sbin/* \
+		local strip=$(ls "$ROOTFS"/bin/* "$ROOTFS"/sbin/* \
 			"$ROOTFS"/usr/bin/* "$ROOTFS"/usr/sbin/* \
-			"$ROOTFS"/usr/libexec/* "$ROOTFS"/usr/libexec/*/* \
-			2>/dev/null
+			| egrep -v "${MINIFS_NOSTRIP-''}")
+		$MINIFS_STRIP $strip 2>/dev/null
 		for lib in "$ROOTFS"/lib "$ROOTFS"/usr/lib; do
 			if [ -d "$lib" ]; then
-				find "$lib" -type f -exec "${CROSS}-strip" \
-					--strip-unneeded {} \;
+				strip=$(find "$lib" -type f \
+				| egrep -v "${MINIFS_NOSTRIP-''}")
+				$MINIFS_CROSS_STRIP --strip-unneeded $strip || true
 			fi
 		done
 	fi
@@ -129,6 +200,12 @@ deploy-filesystem-squash() {
 	local out="$BUILD"/minifs-full-squashfs.img
 	echo -n "     Building $out "
 	rm -f "$out"
+	if declare -F $MINIFS_BOARD-create-manifest-file >/dev/null; then
+		# The parameter "0" makes the script create a manifest file
+		# that's included in the minifs image and resides in the  
+		# "/etc" folder on the target.
+		$MINIFS_BOARD-create-manifest-file 0
+	fi
 	if mksquashfs "$ROOTFS" "$out" $(hget filesystem-squash options) \
 		-all-root \
 		-pf "$STAGING_TOOLS"/special_file_table_squash.txt \
