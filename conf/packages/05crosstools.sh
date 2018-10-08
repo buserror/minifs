@@ -4,6 +4,7 @@ if [ ! -f "$GCC" -o "$COMMAND_PACKAGE" == "crosstools" ]; then
 	PACKAGES+=" crosstools"
 	NEED_CROSSTOOLS="crosstools"
 	TARGET_PACKAGES+=" crosstools"
+	echo Building toolchain
 fi
 
 CROSSTOOL_JOBS=".$MINIFS_JOBS"
@@ -17,10 +18,11 @@ CROSSTOOL_JOBS=".$MINIFS_JOBS"
 #hset crosstools version "1.23.0"
 #hset crosstools url "http://crosstool-ng.org/download/crosstool-ng/crosstool-ng-$(hget crosstools version).tar.bz2"
 
-hset crosstools url "git!https://github.com/crosstool-ng/crosstool-ng.git#crosstol-ng-$MINIFS_BOARD.tar.bz2"
-hset crosstools git-ref 'fd9fe523b22cb6281f26081232a3f8f3aee7fda1'
+hset crosstools url "git!https://github.com/crosstool-ng/crosstool-ng.git#crosstool-ng-$MINIFS_BOARD.tar.bz2"
+#hset crosstools git-ref 'fd9fe523b22cb6281f26081232a3f8f3aee7fda1'
+hset crosstolls git-ref 'd5900debd397b8909d9cafeb9a1093fb7a5dc6e6'
 
-hset crosstools depends "linux-headers "
+hset crosstools depends "linux-headers " #host-libtool host-automake"
 
 # ${HOME}/x-tools/${CT_TARGET}
 # MINIFS_TOOLCHAIN/${CT_TARGET}
@@ -68,7 +70,7 @@ configure-crosstools() {
 		fi
 		configure ./configure --prefix="$STAGING_TOOLS" &&
 			$MAKE &&
-			$MAKE install
+			$MAKE install || exit 1
 	)
 
 	mkdir -p "$TOOLCHAIN_BUILD"
@@ -118,10 +120,11 @@ configure-crosstools() {
 		done
 
 		cp config_crosstools.conf .config
-
 		"$STAGING_TOOLS"/bin/ct-ng show-tuple
-		"$STAGING_TOOLS"/bin/ct-ng build$CROSSTOOL_JOBS
-	)
+		"$STAGING_TOOLS"/bin/ct-ng build$CROSSTOOL_JOBS || exit 1
+	); ret=$?
+
+	return $ret
 }
 
 compile-crosstools() {
@@ -132,7 +135,8 @@ compile-crosstools() {
 install-crosstools() {
 	GCC=$(which $TARGET_FULL_ARCH-gcc)
 	if [ ! -f "$GCC" ]; then
-		echo "GCC doesn't exists!! $GCC"
+		echo "ERROR: TARGET_FULL_ARCH-gcc doesn't exists!! $GCC"
+		echo PATH= $PATH
 		exit 1
 	fi
 	log_install echo Done
@@ -140,7 +144,7 @@ install-crosstools() {
 
 
 PACKAGES+=" host-libtool"
-hset host-libtool url "http://ftp.gnu.org/gnu/libtool/libtool-2.4.2.tar.gz"
+hset host-libtool url "http://ftp.gnu.org/gnu/libtool/libtool-2.4.6.tar.gz"
 hset host-libtool destdir "/"
 hset host-libtool depends "host-installwatch"
 
@@ -255,7 +259,8 @@ deploy-catchsegv() {
 
 PACKAGES+=" strace"
 #hset strace url "http://kent.dl.sourceforge.net/project/strace/strace/4.5.19/strace-4.5.19.tar.bz2"
-hset strace url "http://downloads.sourceforge.net/project/strace/strace/4.7/strace-4.7.tar.xz"
+#hset strace url "http://softlayer-dal.dl.sourceforge.net/project/strace/strace/4.9/strace-4.9.tar.xz"
+hset strace url "http://downloads.sourceforge.net/project/strace/strace/4.9/strace-4.9.tar.xz"
 hset strace depends "busybox"
 
 configure-strace() {
