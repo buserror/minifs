@@ -48,7 +48,7 @@ configure-lame() {
 }
 
 PACKAGES+=" twolame"
-hset twolame url "http://cznic.dl.sourceforge.net/project/twolame/twolame/0.3.13/twolame-0.3.13.tar.gz"
+hset twolame url "https://vorboss.dl.sourceforge.net/project/twolame/twolame/0.3.13/twolame-0.3.13.tar.gz"
 
 deploy-twolame() {
 	deploy deploy_binaries
