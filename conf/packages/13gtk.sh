@@ -28,7 +28,7 @@ hset libglib url "http://ftp.gnome.org/pub/gnome/sources/glib/2.47/glib-2.47.4.t
 
 #hset libglib prefix "$STAGING_USR"
 # this is needed for uclibc not NOT otherwise!
-hset libglib depends "libffi libiconv libgettext"
+hset libglib depends "libffi libiconv libgettext zlib"
 
 hostcheck-libglib() {
 	hostcheck_commands glib-genmarshal glib-compile-schemas || {
