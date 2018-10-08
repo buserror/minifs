@@ -25,10 +25,12 @@
  * Boston, MA  02110-1301, USA.
  */
 #define _GNU_SOURCE	// for fnmatch
+#define  _FILE_OFFSET_BITS 64
 #include <features.h>
 #include <sys/types.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -398,6 +400,23 @@ int main(int argc, char ** argv)
 			if (volume_id_open(tst, dev) == 0) {
 				g_libfat_volume_id = tst;
 				tst->fat = libfat_open(readfunc, 0);
+				if (verbose) {
+					switch (tst->fat->fat_type) {
+						case FAT12:
+							printf("%s: FAT type = FAT12\n", __func__);
+							break;
+						case FAT16:
+							printf("%s: FAT type = FAT16\n", __func__);
+							break;
+						case FAT28:
+							printf("%s: FAT type = FAT28\n", __func__);
+							break;
+						default:
+							printf("%s: FAT type = unknown (%d)\n", __func__,
+									(int)tst->fat->fat_type);
+							break;
+					}
+				}
 				if (tst->fat != NULL) {
 					tst->removable = removable;
 					tst->ro = ro;
@@ -491,7 +510,8 @@ int main(int argc, char ** argv)
 		if (!p)
 			continue;
 		if (!list)
-			printf("%s ", p->dev);
+			if (verbose)
+				printf("%s ", p->dev);
 		for (int pi = 0; pi < print.count; pi++) {
 			for (int j = 0; j < p->root.count; j++) {
 				if (filename_match(print.name[pi], &p->root.entry[j])) {
@@ -522,12 +542,28 @@ int main(int argc, char ** argv)
 		for (int pi = 0; pi < copy.count; pi++) {
 			for (int j = 0; j < p->root.count; j++) {
 				if (filename_match(copy.name[pi], &p->root.entry[j])) {
+					int fd = -1;
 					if (verbose)
 						printf("%s: copy '%s' (%d) to %s\n",
 							p->dev, copy.name[pi],
 							(int)p->root.entry[j].size,
 							outdir);
-					int fd = open(p->root.entry[j].longname, O_CREAT|O_TRUNC|O_WRONLY, 0644);
+
+					if (strncmp(p->root.entry[j].name, p->root.entry[j].longname, 1) != 0) {
+						if (verbose)
+							printf("fat_find: special case for disks formatted on a Windows platform\n");
+
+						/* This is a special case for disks formatted on a Windows */
+						/* platform */
+
+						/* When a disk is formatted on a Windows platform, the long */
+						/* filename entry is sometimes not populated when the filename */
+						/* is a short filename (i.e., 8.3 filename format) */
+						fd = open(p->root.entry[j].name, O_CREAT|O_TRUNC|O_WRONLY, 0644);
+					} else {
+						fd = open(p->root.entry[j].longname, O_CREAT|O_TRUNC|O_WRONLY, 0644);
+					}
+
 					if (fd == -1) {
 						fprintf(stderr, "%s could not copy %s from %s to %s\n", argv[0],
 								p->root.entry[j].longname, p->dev, outdir);
