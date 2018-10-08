@@ -5,7 +5,7 @@ hset libjpeg url "http://www.ijg.org/files/jpegsrc.v8b.tar.gz"
 
 # http://www.libpng.org/pub/png/libpng.html
 PACKAGES+=" libpng"
-hset libpng url "http://heanet.dl.sourceforge.net/project/libpng/libpng14/older-releases/1.4.9/libpng-1.4.9.tar.gz"
+hset libpng url "https://svwh.dl.sourceforge.net/project/libpng/libpng14/older-releases/1.4.9/libpng-1.4.9.tar.gz"
 hset libpng depends "zlib"
 hset libpng configscript "libpng-config"
 
