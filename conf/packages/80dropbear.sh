@@ -3,18 +3,19 @@
 #######################################################################
 PACKAGES+=" dropbear"
 
-V="2012.55"
+V="2017.75"
 hset dropbear version $V
 hset dropbear url "http://matt.ucc.asn.au/dropbear/releases/dropbear-$V.tar.bz2"
 hset dropbear prefix "/"
 hset dropbear depends "busybox zlib"
+hset dropbear optional "pam"
 
 configure-dropbear() {
 	if [ "$TARGET_SHARED" -eq 0 ]; then
 		configure-generic \
-			--enable-static --disable-shared LDFLAGS=-static 
+			--enable-static --disable-shared LDFLAGS=-static --enable-pam
 	else
-		configure-generic
+		configure-generic --enable-pam
 	fi
 }
 
