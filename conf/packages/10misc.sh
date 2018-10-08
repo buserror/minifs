@@ -1,14 +1,28 @@
 
+# 160606 Updated 2.1.7 http://samba.org/ftp/talloc/
 PACKAGES+=" libtalloc"
-hset libtalloc url "http://samba.org/ftp/talloc/talloc-2.1.6.tar.gz"
+hset libtalloc url "http://samba.org/ftp/talloc/talloc-2.1.7.tar.gz"
 
 patch-libtalloc() {
 	cp "$PATCHES"/libtalloc-make/* .
 }
 
-# 111013 Updated 2.0.15 http://www.monkey.org/~provos/libevent/
+# Updated 2.0.22
 PACKAGES+=" libevent"
-hset libevent url "https://github.com/downloads/libevent/libevent/libevent-2.0.15-stable.tar.gz"
+hset libevent url "https://github.com/libevent/libevent/releases/download/release-2.0.22-stable/libevent-2.0.22-stable.tar.gz"
+
+configure-libevent() {
+	configure-generic \
+		--disable-debug-mode \
+		--disable-thread-support \
+		--disable-malloc-replacement \
+		--enable-function-sections
+}
+
+compile-libevent() {
+	compile-generic \
+		CFLAGS="-Os"
+}
 
 # 110906 Updated 1.5 http://tmux.sourceforge.net/
 PACKAGES+=" tmux"
@@ -441,3 +455,29 @@ PACKAGES+=" libconfig"
 hset libconfig url "http://www.hyperrealm.com/libconfig/libconfig-1.5.tar.gz"
 
 
+PACKAGES+=" librpmatch"
+hset librpmatch url "https://github.com/pullmoll/musl-rpmatch/archive/v1.0.tar.gz"
+
+# bypass the pile of autoshit that doesn't work to build a library with just that c/h file we need
+
+compile_librpmatch-local() {
+cat << EOF >config.h
+#define HAVE_STDIO_H 1
+#define HAVE_STDLIB_H 1
+#define HAVE_STRING_H 1
+#define HAVE_REGEX_H 1
+#define HAVE_LIBINTL_H 1
+#define HAVE_LOCALE_H 1
+EOF
+
+	"$TARGET_FULL_ARCH"-gcc $TARGET_CFLAGS -c *.c && \
+		"$TARGET_FULL_ARCH"-ar cr "$PACKAGE.a"
+}
+
+compile-librpmatch() {
+	compile compile_librpmatch-local
+}
+
+install-librpmatch() {
+	log_install cp "$PACKAGE.a" "$STAGING_USR"/lib/
+}
