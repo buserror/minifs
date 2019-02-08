@@ -70,6 +70,11 @@ deploy-openssh-local() {
 	mkdir -p $ROOTFS/etc/ssh/ $ROOTFS/var/empty/ && \
 		cp $CONFIG/ssh_host_* $ROOTFS/etc/ssh/ &&
 			chmod 0600 $ROOTFS/etc/ssh/ssh_host_*_key
+	sed -i \
+		-e 's|#PermitRootLogin.*|PermitRootLogin yes|' \
+		-e 's|#PasswordAuthentication.*|PasswordAuthentication yes|' \
+		-e 's|#MaxAuthTries.*|MaxAuthTries 10|' \
+		$ROOTFS/etc/ssh/sshd_config
 }
 deploy-openssh() {
 	deploy deploy-openssh-local
