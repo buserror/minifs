@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
 		char * src = buf;
 		uint16_t found = 0;
 		while (i < len) {
-			if (verbose)
+			if (verbose > 1)
 				printf("> %s (offset %d)\n", src, (int)(src-buf));
 
 			char * equal = strchr(src, '=');
@@ -132,19 +132,22 @@ int main(int argc, char *argv[])
 						!strncmp(lookup[li].key, src, kl)) {
 					if (fnmatch(lookup[li].val, equal+1, 0) == 0) {
 						found |= (1 << li);
-						printf("Found match %s=%s for %s\n",
-								lookup[li].key, lookup[li].val, src);
+						if (verbose)
+							printf("Found match %s=%s for %s\n",
+									lookup[li].key, lookup[li].val, src);
 					} else {
-						printf("didn't match %s=%s for %s\n",
-								lookup[li].key, lookup[li].val, src);
+						if (verbose)
+							printf("didn't match %s=%s for %s\n",
+									lookup[li].key, lookup[li].val, src);
 						break;
 					}
 				}
 			}
 		//	printf("match mask %04x should be %04x\n", found, (1 << lookupCount)-1);
 			if (found == (1 << lookupCount)-1) {
-				printf("%s: (%ld/%ld) Event matched !\n", argv[0],
-						timeout - (tim.tv_usec / 1000), timeout);
+				if (verbose)
+					printf("%s: (%ld/%ld) Event matched !\n", argv[0],
+							timeout - (tim.tv_usec / 1000), timeout);
 				exit(0);
 			}
 			int l = strlen(src) + 1;
@@ -152,6 +155,7 @@ int main(int argc, char *argv[])
 			src += l;
 		}
 	}
-	fprintf(stderr, "%s timeout, no matching event\n", argv[0]);
+	if (verbose)
+		fprintf(stderr, "%s timeout, no matching event\n", argv[0]);
 	exit(1);
 }
