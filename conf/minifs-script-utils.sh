@@ -70,7 +70,7 @@ optional_one_of () {
 		if declare -F $f >/dev/null; then
 			# echo optional-one-of running $f
 			$f
-			return
+			return $?
 		fi
 	done
 }
