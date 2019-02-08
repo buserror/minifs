@@ -1,0 +1,28 @@
+From b3d02b53425b7f4e786452bad2a5b8270ec0bb74 Mon Sep 17 00:00:00 2001
+Message-Id: <b3d02b53425b7f4e786452bad2a5b8270ec0bb74.1427892089.git.amorel@nagra>
+From: Anthony Morel <amorel@nagra>
+Date: Wed, 1 Apr 2015 12:09:59 +0100
+Subject: [PATCH 1/2] simplefrontend: Workaround incomplete wav header parsing
+
+---
+ simplefrontend/audio_wave.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/simplefrontend/audio_wave.c b/simplefrontend/audio_wave.c
+index b1b67b7..16a3fed 100644
+--- a/simplefrontend/audio_wave.c
++++ b/simplefrontend/audio_wave.c
+@@ -179,8 +179,8 @@ wave_info_t *wave_init(char *inPath)
+         default:
+             /* Unknown Unsupported Frequency */
+             printf(">>> Unknown samp freq %ld Hz in Wave Header\n", samplerate);
+-            printf(">>> Default 44.1 kHz samp freq selected\n");
+-            samplerate = 44100;
++            printf(">>> Default 48 kHz samp freq selected\n");
++            samplerate = 48000;
+             break;
+         }
+ 
+-- 
+2.0.0
+

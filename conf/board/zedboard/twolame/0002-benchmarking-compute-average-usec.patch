@@ -1,0 +1,166 @@
+From 47f55feb720a7c81d94a6568c73f8c9ec881ccf8 Mon Sep 17 00:00:00 2001
+Message-Id: <47f55feb720a7c81d94a6568c73f8c9ec881ccf8.1427892089.git.amorel@nagra>
+In-Reply-To: <b3d02b53425b7f4e786452bad2a5b8270ec0bb74.1427892089.git.amorel@nagra>
+References: <b3d02b53425b7f4e786452bad2a5b8270ec0bb74.1427892089.git.amorel@nagra>
+From: Anthony Morel <amorel@nagra>
+Date: Wed, 1 Apr 2015 13:07:41 +0100
+Subject: [PATCH 2/2] benchmarking: compute average usec
+
+Running on i7 laptop
+
+41 usec for subband coding
+129 usec for psychofft
+36 usec for quantize
+10 usec for serialize
+
+amorel@nagra:~/git/twolame-0.3.13/simplefrontend$ ./stwolame a_16.wav
+/dev/null
+Using libtwolame version 0.3.13.
+Parsing Wave File Header
+>>> Unknown samp freq 824633720880000 Hz in Wave Header
+>>> Default 48 kHz samp freq selected
+>>> Input Wave File is Stereo
+[10293]
+10294x	41	129	36	10
+
+Finished nicely.
+---
+ libtwolame/common.h  | 11 ++++++++++-
+ libtwolame/twolame.c | 30 +++++++++++++++++++++++++++++-
+ 2 files changed, 39 insertions(+), 2 deletions(-)
+
+diff --git a/libtwolame/common.h b/libtwolame/common.h
+index 6daeb60..ef8b9e4 100644
+--- a/libtwolame/common.h
++++ b/libtwolame/common.h
+@@ -34,7 +34,7 @@
+ 
+ #include "twolame.h"
+ 
+-
++#include <stdint.h>
+ 
+ /***************************************************************************************
+  Common Definitions
+@@ -367,6 +367,15 @@ struct twolame_options_struct {
+     int tablenum;
+ 
+     int vbrstats[15];
++
++    // Benchmarking
++    struct {
++	uint32_t frame_count;
++    	uint32_t subband;
++    	uint32_t psychofft;
++    	uint32_t quantize;
++    	uint32_t serialize;
++    } usec;
+ };
+ 
+ #endif                          // _COMMON_H
+diff --git a/libtwolame/twolame.c b/libtwolame/twolame.c
+index fa4bcc0..f6d36c0 100644
+--- a/libtwolame/twolame.c
++++ b/libtwolame/twolame.c
+@@ -49,6 +49,7 @@
+ 
+ #include "bitbuffer_inline.h"
+ 
++#include <sys/time.h>
+ 
+ /*
+   twolame_init
+@@ -118,6 +119,11 @@ twolame_options *twolame_init(void)
+ 
+     memset(newoptions->vbrstats, 0, sizeof(newoptions->vbrstats));
+ 
++    newoptions->usec.subband = 0;
++    newoptions->usec.psychofft = 0;
++    newoptions->usec.quantize = 0;
++    newoptions->usec.serialize = 0;
++
+     return (newoptions);
+ }
+ 
+@@ -420,12 +426,15 @@ static void scale_and_mix_samples(twolame_options * glopts)
+ 	Returns the size of the frame
+ 	or -1 if there is an error
+ */
++#define delta_time(tv2, tv1) (1000000 * (tv2.tv_sec - tv1.tv_sec) + (tv2.tv_usec - tv1.tv_usec))
++
+ static int encode_frame(twolame_options * glopts, bit_stream * bs)
+ {
+     int nch = glopts->num_channels_out;
+     int sb, ch, adb, i;
+     unsigned long frameBits, initial_bits;
+     short sam[2][1056];
++    struct timeval  tv1, tv2;
+ 
+     if (!glopts->twolame_init) {
+         fprintf(stderr, "Please call twolame_init_params() before starting encoding.\n");
+@@ -459,7 +468,7 @@ static int encode_frame(twolame_options * glopts, bit_stream * bs)
+ 
+     adb -= glopts->num_ancillary_bits;
+ 
+-
++    gettimeofday(&tv1, NULL);
+     /* MFC 26 July 2003 Doing DAB became a bit harder in the reorganisation of the code. Now there
+        is no guarantee that there is more than one frame in the bitbuffer. But DAB requires that
+        the CRC for the *current* frame be written at the end of the *previous* frame. Workaround:
+@@ -490,6 +499,9 @@ static int encode_frame(twolame_options * glopts, bit_stream * bs)
+         combine_lr(*glopts->sb_sample, *glopts->j_sample, glopts->sblimit);
+         scalefactor_calc(glopts->j_sample, &glopts->j_scale, 1, glopts->sblimit);
+     }
++    gettimeofday(&tv2, NULL);
++    glopts->usec.frame_count++;
++    glopts->usec.subband += delta_time(tv2, tv1);
+ 
+     if ((glopts->quickmode == TRUE) && (++glopts->psycount % glopts->quickcount != 0)) {
+         /* We're using quick mode, so we're only calculating the model every 'quickcount' frames.
+@@ -536,6 +548,8 @@ static int encode_frame(twolame_options * glopts, bit_stream * bs)
+             }
+         }
+     }
++    gettimeofday(&tv1, NULL);
++    glopts->usec.psychofft += delta_time(tv1, tv2);
+ 
+ 
+     sf_transmission_pattern(glopts, glopts->scalar, glopts->scfsi);
+@@ -552,6 +566,11 @@ static int encode_frame(twolame_options * glopts, bit_stream * bs)
+ 
+     subband_quantization(glopts, glopts->scalar, *glopts->sb_sample, glopts->j_scale,
+                          *glopts->j_sample, glopts->bit_alloc, *glopts->subband);
++
++    gettimeofday(&tv2, NULL);
++    glopts->usec.quantize += delta_time(tv2, tv1);
++
++
+     write_samples(glopts, *glopts->subband, glopts->bit_alloc, bs);
+ 
+     // If not all the bits were used, write out a stack of zeros 
+@@ -578,6 +597,9 @@ static int encode_frame(twolame_options * glopts, bit_stream * bs)
+     for (i = 0; i < glopts->num_ancillary_bits; i++)
+         buffer_put1bit(bs, 0);
+ 
++    gettimeofday(&tv1, NULL);
++    glopts->usec.serialize += delta_time(tv1, tv2);
++
+ 
+     // Calulate the number of bits in this frame
+     frameBits = buffer_sstell(bs) - initial_bits;
+@@ -916,6 +938,12 @@ void twolame_close(twolame_options ** glopts)
+     if (opts == NULL)
+         return;
+ 
++    fprintf(stderr, "\n%dx\t%d\t%d\t%d\t%d\n", opts->usec.frame_count,
++		    opts->usec.subband   / opts->usec.frame_count,
++		    opts->usec.psychofft / opts->usec.frame_count,
++		    opts->usec.quantize  / opts->usec.frame_count,
++		    opts->usec.serialize / opts->usec.frame_count);
++
+     // free mem
+     psycho_4_deinit(&opts->p4mem);
+     psycho_3_deinit(&opts->p3mem);
+-- 
+2.0.0
+

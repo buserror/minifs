@@ -1,0 +1,10 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: termbox
+Description: Libncurses alternative
+Version: 1.1.2
+Libs:  -L${libdir} -ltermbox
+Cflags: -I${includedir}
