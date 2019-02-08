@@ -13,7 +13,7 @@ configure-valgrind-local() {
 		rm -f configure
 		# cheat!!
 		# we need to fake the fact we are in 32 bits
-		TARGET_FULL_ARCH=${TARGET_FULL_ARCH/64/}
+		# TARGET_FULL_ARCH=${TARGET_FULL_ARCH/64/}
 		# Another hack, tell it we are armv7  not just plain arm
 		TARGET_FULL_ARCH=${TARGET_FULL_ARCH/arm-/armv7-}
 		configure-generic-local

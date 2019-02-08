@@ -19,6 +19,7 @@
 
 set +o posix #needed for dashes in function names
 set -m # enable job control
+export LANG=C
 
 MINIFS_BOARD=${MINIFS_BOARD:-"atom"}
 
@@ -112,27 +113,29 @@ if [ "$CONFIG" == "" ]; then
 	exit 1
 fi
 
-CONFIG_UCLIBC=$(grep '^CT_LIBC_uClibc' $(minifs_locate_config_path config_crosstools.conf))
-
-# Extract the toolchain tupple and other bits from crosstools config
-extra_env=$( cat $(minifs_locate_config_path config_crosstools.conf) | awk -e '
-BEGIN { eabi="none"; os="none"; }
-/^CT_ARCH=/ { gsub(/^[A-Z_=]+"?|"$/, ""); arch=$0; print "TARGET_ARCH=" arch ";"; }
-/^CT_LIBC=/ { gsub(/^[A-Z_=]+"?|"$/, ""); libc=tolower($0); print "TARGET_LIBC=" libc ";"; }
-/^CT_TARGET_VENDOR=/ { gsub(/^[A-Z_=]+"?|"$/, ""); vendor="-" $0; print "TARGET_VENDOR=" $0 ";"; }
-/^CT_KERNEL=/ { gsub(/^[A-Z_=]+"?|"$/, ""); os=$0; print "TARGET_OS=" os ";"; }
-/^CT_ARCH_ARM_EABI=y/ { eabi="eabi"; }
-/^CT_LIBC_uClibc=y/ { uclibc="uclibc"; print "CONFIG_UCLIBC=y;" }
-END {
-	printf "TARGET_SMALL_ARCH=\"%s-%s\";\n", arch,os;
-	printf "TARGET_FULL_ARCH=\"%s%s-%s-%s%s%s\";\n", arch,vendor,os,libc,eabi,hf;
-}
-' ; )
-echo $extra_env
-eval $extra_env
-
 # this one is always mandatory
 source "$CONFIG"/minifs-script*.sh
+echo TOOLCHAIN_EXIST=$TOOLCHAIN_EXISTS TARGET_FULL_ARCH=$TARGET_FULL_ARCH
+if [[ -z "$TOOLCHAIN_EXISTS" && -z "$TARGET_FULL_ARCH" ]]; then
+	CONFIG_UCLIBC=$(grep '^CT_LIBC_uClibc' $(minifs_locate_config_path config_crosstools.conf))
+
+	# Extract the toolchain tupple and other bits from crosstools config
+	extra_env=$( cat $(minifs_locate_config_path config_crosstools.conf) | awk -e '
+	BEGIN { eabi="none"; os="none"; }
+	/^CT_ARCH=/ { gsub(/^[A-Z_=]+"?|"$/, ""); arch=$0; print "TARGET_ARCH=" arch ";"; }
+	/^CT_LIBC=/ { gsub(/^[A-Z_=]+"?|"$/, ""); libc=tolower($0); print "TARGET_LIBC=" libc ";"; }
+	/^CT_TARGET_VENDOR=/ { gsub(/^[A-Z_=]+"?|"$/, ""); vendor="-" $0; print "TARGET_VENDOR=" $0 ";"; }
+	/^CT_KERNEL=/ { gsub(/^[A-Z_=]+"?|"$/, ""); os=$0; print "TARGET_OS=" os ";"; }
+	/^CT_ARCH_ARM_EABI=y/ { eabi="eabi"; }
+	/^CT_LIBC_uClibc=y/ { uclibc="uclibc"; print "CONFIG_UCLIBC=y;" }
+	END {
+		printf "TARGET_SMALL_ARCH=\"%s-%s\";\n", arch,os;
+		printf "TARGET_FULL_ARCH=\"%s%s-%s-%s%s%s\";\n", arch,vendor,os,libc,eabi,hf;
+	}
+	' ; )
+	echo $extra_env
+	eval $extra_env
+fi
 
 for script in $(minifs_locate_config_path "") ; do
 	for try in "$TARGET_META_ARCH-minifs-script.sh" "$TARGET_ARCH-minifs-script.sh"; do
@@ -149,11 +152,13 @@ if [ "$COMMAND_TARGET" == "remove" ]; then
 	exit
 fi
 
-TOOLCHAIN="$BASE/toolchain"
-TOOLCHAIN_BUILD="$BASE/build-toolchain"
-CROSS_BASE="$TOOLCHAIN/$TARGET_FULL_ARCH/"
-CROSS="$CROSS_BASE/bin/$TARGET_FULL_ARCH"
-GCC="${CROSS}-gcc"
+if [[ -z "$TOOLCHAIN_EXISTS" ]]; then
+	TOOLCHAIN="$BASE/toolchain"
+	TOOLCHAIN_BUILD="$BASE/build-toolchain"
+	CROSS_BASE="$TOOLCHAIN/$TARGET_FULL_ARCH/"
+	CROSS="$CROSS_BASE/bin/$TARGET_FULL_ARCH"
+	GCC="${CROSS}-gcc"
+fi
 
 WGET="wget --no-check-certificate"
 MAKE=make
@@ -535,6 +540,7 @@ configure-generic-local() {
 				--sysconfdir=$sysconf
 		elif [ -f configure.ac -o -f configure.in ]; then
 			$ACLOCAL && libtoolize --copy --force --automake
+			automake --add-missing
 			autoreconf --force #;libtoolize;automake --add-missing
 		fi
 	fi
@@ -544,6 +550,7 @@ configure-generic-local() {
 			--host=$TARGET_FULL_ARCH \
 			--prefix="$PACKAGE_PREFIX" \
 			--sysconfdir=$sysconf \
+			$(hget $PACKAGE configure) \
 			"$@" || ret=1
 	else
 		echo Nothing to configure
@@ -623,26 +630,43 @@ shell-generic() {
 ## Find out which package we want/have, and order them by build order
 #######################################################################
 DEPLIST=""
+PROCESS_PACKAGES=""
 #echo PACKAGES $PACKAGES
 # echo BUILD_PACKAGES $BUILD_PACKAGES
 export BUILD_PACKAGES
 for pack in $PACKAGES; do
 	# check to see if that package was requested, otherwise, skip it
-	dobuild=0
+	# dobuild=0
 	if env_contains BUILD_PACKAGES $pack; then
 		PROCESS_PACKAGES+=" $pack"
 		DEPLIST+=" $pack($(hget $pack depends) $(hget $pack optional))"
 	fi
 done
-
-#######################################################################
-## Call the dependency sorter, and get back the result
-#######################################################################
-# echo DEPLIST $DEPLIST
-# echo PROCESS_PACKAGES $PROCESS_PACKAGES
 PROCESS_PACKAGES=$(echo $DEPLIST|depsort 2>$TMPDIR/depsort.log)
-# echo PROCESS_PACKAGES $PROCESS_PACKAGES
-#exit
+
+if false; then
+	DEPLIST2=""
+	PROCESS_PACKAGES2=""
+	export PACKAGES
+	for pack in $BUILD_PACKAGES; do
+		# check to see if that package was requested, otherwise, skip it
+		if env_contains PACKAGES $pack; then
+			PROCESS_PACKAGES2+=" $pack $(hget $pack depends)"
+		fi
+	done
+	for pack in $PROCESS_PACKAGES2; do
+		if env_contains PACKAGES $pack; then
+			DEPLIST2+=" $pack($(hget $pack depends))"
+		else
+			echo "W: Package $pack is used, but doesn't exists"
+		fi
+	done
+	PROCESS_PACKAGES2=$(echo $DEPLIST2|depsort 2>$TMPDIR/depsort2.log)
+
+	echo PP $PROCESS_PACKAGES
+	echo PP $PROCESS_PACKAGES2
+	exit
+fi
 
 #######################################################################
 ## Build each packages
@@ -688,11 +712,13 @@ done
 process_one_package() {
 	local pack=$1
 	local phases=$2
+	local ret=0
 	for ph in $phases; do
 		if [[ $ph == "deploy" ]]; then continue ;fi
 		if [[ $ph == "setup" ]]; then continue ;fi
-		optional_one_of $(get_phase_names $pack $ph) || break
+		optional_one_of $(get_phase_names $pack $ph) || { ret=$?; break; }
 	done
+	return $ret
 }
 
 for pack in $PROCESS_PACKAGES; do
@@ -708,16 +734,40 @@ for pack in $PROCESS_PACKAGES; do
 			ph=$COMMAND_TARGET
 			case "$ph" in
 				shell|rebuild|clean)
-					optional_one_of $(get_phase_names $pack $ph) || break
+					optional_one_of $(get_phase_names $pack $ph) || { packret=$?; break; }
 					;;
 			esac
 		fi
-		process_one_package $pack "$phases"
+		process_one_package $pack "$phases" || { packret=$?; break; }
 	end_package
 done
 
+# Check if any package failed
+if [[ $packret -ne 0 ]]
+then
+    echo "Package build failed (status = $packret)"
+    exit $packret
+fi
+
+waitret=0
+
 # Wait for every jobs to have finished
-while true; do fg 2>/dev/null || break; done
+while true; do
+    wait -n || { waitret=$?; break; }
+done
+
+if [[ $waitret -eq 127 ]]
+then
+    if [[ $TOOLCHAIN_ONLY = "yes" ]]
+    then
+        echo "Toolchain build finished."
+        exit 0
+    fi
+else
+    echo "Build failed (status = $waitret)"
+    exit $waitret
+fi
+
 
 #######################################################################
 ## Now, run the deploy phases for packages that wanted it
