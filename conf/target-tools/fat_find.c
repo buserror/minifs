@@ -400,29 +400,28 @@ int main(int argc, char ** argv)
 			if (volume_id_open(tst, dev) == 0) {
 				g_libfat_volume_id = tst;
 				tst->fat = libfat_open(readfunc, 0);
-				if (verbose) {
-					switch (tst->fat->fat_type) {
-						case FAT12:
-							printf("%s: FAT type = FAT12\n", __func__);
-							break;
-						case FAT16:
-							printf("%s: FAT type = FAT16\n", __func__);
-							break;
-						case FAT28:
-							printf("%s: FAT type = FAT28\n", __func__);
-							break;
-						default:
-							printf("%s: FAT type = unknown (%d)\n", __func__,
-									(int)tst->fat->fat_type);
-							break;
-					}
-				}
 				if (tst->fat != NULL) {
 					tst->removable = removable;
 					tst->ro = ro;
 					volume_id_read_dir(tst->fat, 0, &tst->root);
-					if (verbose)
+					if (verbose) {
+						switch (tst->fat->fat_type) {
+							case FAT12:
+								printf("%s: FAT type = FAT12\n", __func__);
+								break;
+							case FAT16:
+								printf("%s: FAT type = FAT16\n", __func__);
+								break;
+							case FAT28:
+								printf("%s: FAT type = FAT28\n", __func__);
+								break;
+							default:
+								printf("%s: FAT type = unknown (%d)\n", __func__,
+										(int)tst->fat->fat_type);
+								break;
+						}
 						printf("%s is a valid fat!\n", dev);
+					}
 					partition[partitionCount++] = tst;
 					return 0;
 				} else {
