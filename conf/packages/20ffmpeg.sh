@@ -4,7 +4,7 @@
 #######################################################################
 # http://cgit.freedesktop.org/libva/
 PACKAGES+=" libva"
-hset libva url "http://cgit.freedesktop.org/libva/snapshot/libva-1.0.15.tar.bz2"
+hset libva url "http://cgit.freedesktop.org/libva/snapshot/libva-1.7.3.tar.bz2"
 hset libva optional "xorglibX11"
 
 configure-libva() {
@@ -17,7 +17,7 @@ configure-libva() {
 }
 
 PACKAGES+=" libvdpau"
-hset libvdpau url "http://cgit.freedesktop.org/~aplattner/libvdpau/snapshot/libvdpau-0.4.1.tar.bz2"
+hset libvdpau url "http://cgit.freedesktop.org/~aplattner/libvdpau/snapshot/libvdpau-1.1.1.tar.bz2"
 hset libvdpau optional "nvidia"
 
 # we don't want this library to clobber the nvidia one, so we install
@@ -31,7 +31,7 @@ install-libvdpau() {
 }
 
 PACKAGES+=" libva-vdpau"
-hset libva-vdpau url "http://cgit.freedesktop.org/vaapi/vdpau-driver/snapshot/vdpau-driver-0.7.3.tar.bz2"
+hset libva-vdpau url "http://cgit.freedesktop.org/vaapi/vdpau-driver/snapshot/vdpau-driver-0.7.4.tar.bz2"
 hset libva-vdpau depends "libva libvdpau nvidia"
 
 
@@ -167,7 +167,7 @@ hset libxvid dir "libxvid/build/generic"
 #######################################################################
 PACKAGES+=" ffmpeg"
 
-V="2.8.9"
+V="2.8.15"
 hset ffmpeg version $V
 hset ffmpeg url "http://ffmpeg.org/releases/ffmpeg-$V.tar.bz2"
 hset ffmpeg depends "busybox"
@@ -180,7 +180,7 @@ hostcheck-ffmpeg() {
 
 configure-ffmpeg() {
 	local extra=""
-	extra="--arch=$TARGET_ARCH"
+	extra="--arch=$TARGET_SMALL_ARCH"
 	extra+=" --enable-static --enable-shared --enable-pic --enable-nonfree"
 
 	if env_contains TARGET_PACKAGES libx264 ; then
