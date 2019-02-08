@@ -2,10 +2,6 @@
 ## contains the 4 main phases of compiling the kernel
 #######################################################################
 
-# default (old!) kernel, not used by anyone but perhaps mini2440
-# all other boards have their own kernel versions and URLS
-#hset linux version "2.6.32.2"
-
 if [ "$(hget linux url)" = "" ]; then
 	LINUX_VERSION=$(hget linux version)
 	LINUX_URL=$(echo $LINUX_VERSION| awk -F[.-] --source '{
@@ -27,11 +23,21 @@ hset linux-dtb dir "linux"
 # the headers gets installed first, the other phases are later
 PACKAGES+=" linux-headers"
 
+hset linux-headers optional "uclibc musl"
+
 export TARGET_KERNEL_ARCH="${TARGET_KERNEL_ARCH:-$TARGET_ARCH}"
 
 linux-get-cross() {
 	local cross=$(hget linux cross-prefix)
 	echo "${cross:-${CROSS}}-"
+}
+linux-get-cflags() {
+	if [ "$TARGET_KERNEL_ARCH" == "x86" ]; then
+	# kernel doesn't like -march=skylake etc, so remove it
+		echo $TARGET_CFLAGS|sed -e 's|-march=[a-z ]\+||g'
+	else
+		echo $TARGET_CFLAGS
+	fi
 }
 
 #######################################################################
@@ -46,7 +52,7 @@ setup-linux-headers() {
 		if [ -f "$conf" ]; then
 			cp "$conf"  "$BUILD/linux-obj"/.config
 		fi
-		$MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
+		$MAKE CFLAGS="$(linux-get-cflags)" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 			CROSS_COMPILE=$(linux-get-cross) \
 				$COMMAND_TARGET
 		if [ -f "$BUILD/linux-obj/.config" ]; then
@@ -70,13 +76,13 @@ configure-linux-headers() {
 }
 
 compile-linux-headers() {
-	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
+	compile $MAKE CFLAGS="$(linux-get-cflags)" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE=$(linux-get-cross) \
 			oldconfig
 }
 
 install-linux-headers-local() {
-	$MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
+	$MAKE CFLAGS="$(linux-get-cflags)" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE=$(linux-get-cross) \
 		INSTALL_HDR_PATH="$KERNEL" \
 			headers_install
@@ -97,6 +103,8 @@ if [ "$CONFIG_MODULES" != "" ]; then
 fi
 
 hset linux-modules depends "linux-headers crosstools rootfs-create"
+#hset linux-modules optional "libelf"
+hset linux-modules optional "elfutils"
 
 setup-linux-modules() {
 	if [ "$BUILD/linux-obj/.config-bare" -nt ._conf_linux-bare ]; then
@@ -109,22 +117,49 @@ configure-linux-modules() {
 }
 
 compile-linux-modules() {
-	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
+	compile $MAKE CFLAGS="$(linux-get-cflags)" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE=$(linux-get-cross) \
 		$(hget linux make-extra-parameters) \
 			modules -j$MINIFS_JOBS
 }
 
-install-linux-modules() {
-	log_install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
+# if kernel was built, get it's version from there, otherwise look at makefile
+get-kernel-version-postmake() {
+	local fn="$BUILD/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/version.o"
+	if [ -f "$fn" ]; then
+		strings "$fn"|head -1|awk '{print $1}'
+		return
+	fi
+	(
+		VV=$(head -5 $BUILD/linux/Makefile |sed -e '/^#/d' -e 's/ //g'|awk '{print $0 ";"}')
+		eval $VV
+		echo "$VERSION.$PATCHLEVEL.$SUBLEVEL"
+	)
+}
+
+install-linux-modules-local() {
+	$MAKE CFLAGS="$(linux-get-cflags)" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE=$(linux-get-cross) \
 		INSTALL_HDR_PATH="$KERNEL" INSTALL_MOD_PATH="$KERNEL" \
-			modules_install
+			modules_install && \
+	depmod -b "$KERNEL" $(get-kernel-version-postmake)
 }
-deploy-linux-modules() {
-	deploy rsync -a --exclude source --exclude build "$KERNEL"/lib "$ROOTFS/"
+
+install-linux-modules() {
+	log_install install-linux-modules-local
+}
+
+deploy-linux-modules-local() {
+	rsync -a --delete \
+		--exclude source --exclude build \
+		--exclude '*.bin' --exclude '*.symbols*'  \
+		--exclude '*.soft*' --exclude '*.alias*' \
+		"$KERNEL"/lib "$ROOTFS/" || return 1
 	find "$ROOTFS"/lib/modules/ -name \*.ko | \
 		xargs "$(linux-get-cross)strip" -R .note -R .comment --strip-unneeded
+}
+deploy-linux-modules() {
+	deploy deploy-linux-modules-local
 }
 
 #######################################################################
@@ -143,13 +178,13 @@ configure-linux-bare() {
 	configure echo Done
 }
 compile-linux-bare() {
-	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
+	compile $MAKE CFLAGS="$(linux-get-cflags)" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE=$(linux-get-cross) \
 		$(hget linux make-extra-parameters) \
 			$TARGET_KERNEL_NAME -j$MINIFS_JOBS
 }
 install-linux-bare() {
-	log_install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
+	log_install $MAKE CFLAGS="$(linux-get-cflags)" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE=$(linux-get-cross) \
 		INSTALL_PATH="$KERNEL" INSTALL_MOD_PATH="$KERNEL" \
 		INSTALLKERNEL="no-default-install" \
@@ -205,7 +240,7 @@ setup-linux-initrd() {
 
 configure-linux-initrd() {
 	rm -f ._conf_linux-initrd
-	configure $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
+	configure $MAKE CFLAGS="$(linux-get-cflags)" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE=$(linux-get-cross) \
 			oldconfig >>"$LOGFILE" 2>&1
 }
@@ -214,13 +249,13 @@ compile-linux-initrd() {
 	# make sure the initramfs is rebuilt
 	rm -f "$BUILD/linux-obj"/usr/gen_init_cpio
 	rm -f "$BUILD/linux-obj"/usr/initramfs_data.*
-	compile $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
+	compile $MAKE CFLAGS="$(linux-get-cflags)" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE=$(linux-get-cross) COMPILE_LINUX_INITRD=1 \
 		$(hget linux make-extra-parameters) \
 			$TARGET_KERNEL_NAME -j$MINIFS_JOBS
 }
 install-linux-initrd() {
-	log_install $MAKE CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
+	log_install $MAKE CFLAGS="$(linux-get-cflags)" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE=$(linux-get-cross) \
 		INSTALL_PATH="$KERNEL" INSTALL_MOD_PATH="$KERNEL" \
 		INSTALLKERNEL="no-default-install" \
@@ -306,6 +341,20 @@ hset linux-firmware url "git!git://git.kernel.org/pub/scm/linux/kernel/git/dwmw2
 hset linux-firmware depends "linux-modules"
 hset linux-firmware phases "none"
 
+PACKAGES+=" libelf"
+hset libelf url "http://www.mr511.de/software/libelf-0.8.13.tar.gz"
+hset libelf prefix "$STAGING_USR"
+hset libelf destdir "none"
+
+install-libelf-local() {
+	install-generic-local PREFIX=$STAGING_USR
+	cp $STAGING_USR/include/libelf/*.h $STAGING_USR/include/
+}
+
+install-libelf() {
+	log_install install-libelf-local
+}
+
 #
 # linux-perf is the perf tool that is present in th kernel tree. Unfortunately
 # it requires a much recent/different libelf than what is compiled by crosstool-ng
@@ -321,7 +370,7 @@ configure-linux-perf() {
 }
 
 compile-linux-perf() {
-	compile $MAKE EXTRA_CFLAGS="$TARGET_CFLAGS" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
+	compile $MAKE EXTRA_CFLAGS="$(linux-get-cflags)" ARCH=$TARGET_KERNEL_ARCH O="$BUILD/linux-obj" \
 		CROSS_COMPILE=$(linux-get-cross) V=1 \
 		WERROR=0 NO_GTK2=1 NO_LIBPERL=1 NO_LIBPYTHON=1
 }
