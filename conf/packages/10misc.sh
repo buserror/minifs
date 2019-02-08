@@ -4,7 +4,7 @@ PACKAGES+=" libtalloc"
 hset libtalloc url "http://samba.org/ftp/talloc/talloc-2.1.7.tar.gz"
 
 patch-libtalloc() {
-	cp "$PATCHES"/libtalloc-make/* .
+	cp "$PATCHES/$PACKAGE-make/"* .
 }
 
 # Updated 2.0.22
@@ -134,7 +134,7 @@ configure-gnutls() {
 #######################################################################
 # 110906 Updated 1.0.0e
 PACKAGES+=" openssl"
-hset openssl url "http://www.openssl.org/source/openssl-1.0.2g.tar.gz"
+hset openssl url "http://www.openssl.org/source/openssl-1.0.2q.tar.gz"
 hset openssl targets "openssl openssl-bin"
 hset openssl deploy false
 hset openssl config "linux-generic32"
@@ -481,3 +481,7 @@ compile-librpmatch() {
 install-librpmatch() {
 	log_install cp "$PACKAGE.a" "$STAGING_USR"/lib/
 }
+
+PACKAGES+=" pciutils"
+hset pciutils url "https://github.com/pciutils/pciutils/archive/v3.6.2.tar.gz"
+
