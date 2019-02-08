@@ -26,6 +26,16 @@ deploy-libncurses() {
 	deploy cp -ra "$STAGING_USR"/share/terminfo "$ROOTFS"/usr/share/
 }
 
+PACKAGES+=" libtermbox"
+hset libtermbox url "https://github.com/nsf/termbox/archive/v1.1.2.tar.gz"
+hset libtermbox dir "libtermbox/src"
+
+patch-libtermbox() {
+    echo patching $PACKAGE in $(pwd)
+    echo PACKAGE dir is $(get_package_dir $PACKAGE)
+    cp "$PATCHES/$PACKAGE-make/"* src/
+}
+
 PACKAGES+=" libnewt"
 hset libnewt url "http://ftp.de.debian.org/debian/pool/main/n/newt/newt_0.52.14.orig.tar.gz"
 hset libnewt depends "slang libpopt"
