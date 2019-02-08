@@ -2,9 +2,7 @@
 #echo GCC PATH = $GCC
 if [ ! -f "$GCC" -o "$COMMAND_PACKAGE" == "crosstools" ]; then
 	PACKAGES+=" crosstools"
-	NEED_CROSSTOOLS="crosstools"
 	TARGET_PACKAGES+=" crosstools"
-	echo Building toolchain
 fi
 
 CROSSTOOL_JOBS=".$MINIFS_JOBS"
@@ -194,7 +192,7 @@ configure-host-autoconf() {
 		configure ./configure \
 			--prefix=$STAGING_TOOLS \
 			--build=$(gcc -dumpmachine) \
-			--host=$TARGET_FULL_ARCH
+			--host=$TARGET_SMALL_ARCH
 	) || exit 1
 }
 
@@ -258,8 +256,6 @@ deploy-catchsegv() {
 }
 
 PACKAGES+=" strace"
-#hset strace url "http://kent.dl.sourceforge.net/project/strace/strace/4.5.19/strace-4.5.19.tar.bz2"
-#hset strace url "http://softlayer-dal.dl.sourceforge.net/project/strace/strace/4.9/strace-4.9.tar.xz"
 hset strace url "http://downloads.sourceforge.net/project/strace/strace/4.9/strace-4.9.tar.xz"
 hset strace depends "busybox"
 
