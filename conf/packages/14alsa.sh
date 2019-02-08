@@ -1,13 +1,13 @@
-#PACKAGES+=" alsadrivers"
-#hset alsadrivers url "ftp://ftp.alsa-project.org/pub/driver/alsa-driver-1.0.29.tar.bz2"
-#hset alsadrivers depends "linux-modules"
 
 PACKAGES+=" libalsa"
-hset libalsa url "ftp://ftp.alsa-project.org/pub/lib/alsa-lib-1.1.5.tar.bz2"
-#hset libalsa depends "alsadrivers"
+hset libalsa url "ftp://ftp.alsa-project.org/pub/lib/alsa-lib-1.1.8.tar.bz2"
 
+configure-libalsa-local() {
+	rm -f config.sub; automake --add-missing
+	configure-generic-local --disable-python
+}
 configure-libalsa() {
-	configure-generic --disable-python
+	configure configure-libalsa-local
 }
 
 deploy-libalsa() {
@@ -16,17 +16,20 @@ deploy-libalsa() {
 }
 
 PACKAGES+=" alsaplugins"
-hset alsaplugins url "ftp://ftp.alsa-project.org/pub/plugins/alsa-plugins-1.1.5.tar.bz2"
+hset alsaplugins url "ftp://ftp.alsa-project.org/pub/plugins/alsa-plugins-1.1.8.tar.bz2"
 hset alsaplugins depends "libalsa"
 
 PACKAGES+=" alsautils"
-hset alsautils url "ftp://ftp.alsa-project.org/pub/utils/alsa-utils-1.1.5.tar.bz2"
+hset alsautils url "ftp://ftp.alsa-project.org/pub/utils/alsa-utils-1.1.8.tar.bz2"
 hset alsautils depends "libalsa libncurses"
 
-configure-alsautils() {
-	configure-generic --disable-xmlto --with-curses=ncurses
+configure-alsautils-local() {
+	rm -f config.sub; automake --add-missing
+	configure-generic-local --disable-xmlto --with-curses=ncurses
 }
-
+configure-alsautils() {
+	configure configure-alsautils-local
+}
 deploy-alsautils() {
 	deploy deploy_binaries
 }
