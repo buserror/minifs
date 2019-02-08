@@ -38,14 +38,27 @@ deploy-sharedlibs-local() {
 	set -x
 	mkdir -p "$ROOTFS/lib/" "$ROOTFS/usr/lib/"
 	local exclude="  "
-	for sysroot in sysroot sys-root; do
-		sharedlibs-rsync \
-			"$CROSS_BASE/$TARGET_FULL_ARCH"/$sysroot/lib/ \
-			"$ROOTFS/lib/"
-		sharedlibs-rsync \
-			"$CROSS_BASE/$TARGET_FULL_ARCH"/$sysroot/usr/lib/ \
-			"$ROOTFS/usr/lib/"
-	done
+	local didit="";
+	if [[ $CROSS_BASE ]]; then
+		for sysroot in sysroot sys-root; do
+			if [ ! -d "$CROSS_BASE/$TARGET_FULL_ARCH"/$sysroot ]; then
+				continue;
+			fi
+			didit=1
+			sharedlibs-rsync --exclude=\*.py \
+				"$CROSS_BASE/$TARGET_FULL_ARCH"/$sysroot/lib/ \
+				"$ROOTFS/lib/"
+			sharedlibs-rsync --exclude=\*.py \
+				"$CROSS_BASE/$TARGET_FULL_ARCH"/$sysroot/usr/lib/ \
+				"$ROOTFS/usr/lib/"
+		done
+		# not a sysroot toolchain, so we need to copy the whole lib directory
+		if [[ ! $didit ]]; then
+			sharedlibs-rsync --exclude=\*.py \
+				"$CROSS_BASE/$TARGET_FULL_ARCH"/lib/ \
+				"$ROOTFS/lib/"
+		fi
+	fi
 	sharedlibs-rsync \
 		--exclude=\*.sh \
 		--exclude ct-ng\* \
@@ -55,9 +68,9 @@ deploy-sharedlibs-local() {
 		ln -s -f lib "$ROOTFS"/lib64
 		ln -s -f lib "$ROOTFS"/usr/lib64
 	fi
-	echo THESE ARE DANGLING LINKS
 	local dangling=$(find "$ROOTFS" -name \*.so -type f|grep -v '\-[0-9]')
 	if [ "$dangling" != "" ]; then rm -f $dangling; fi
+	echo THESE ARE DANGLING LINKS: $danglings
 	optional $MINIFS_BOARD-sharedlibs-cleanup
 	set +x
 }
@@ -202,7 +215,7 @@ deploy-filesystem-squash() {
 	rm -f "$out"
 	if declare -F $MINIFS_BOARD-create-manifest-file >/dev/null; then
 		# The parameter "0" makes the script create a manifest file
-		# that's included in the minifs image and resides in the  
+		# that's included in the minifs image and resides in the
 		# "/etc" folder on the target.
 		$MINIFS_BOARD-create-manifest-file 0
 	fi
