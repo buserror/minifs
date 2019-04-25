@@ -51,9 +51,11 @@ configure-libicu() {
 }
 
 PACKAGES+=" libwebp"
-hset libwebp url "https://webp.googlecode.com/files/libwebp-0.2.1.tar.gz"
+#hset libwebp url "https://webp.googlecode.com/files/libwebp-0.2.1.tar.gz"
+hset libwebp url "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/archive/libwebp-0.2.1.tar.gz"
 PACKAGES+=" libsecret"
-hset libsecret url "http://ftp.de.debian.org/debian/pool/main/libs/libsecret/libsecret_0.15.orig.tar.xz"
+#hset libsecret url "http://ftp.de.debian.org/debian/pool/main/libs/libsecret/libsecret_0.15.orig.tar.xz"
+hset libsecret url "http://ftp.de.debian.org/debian/pool/main/libs/libsecret/libsecret_0.18.5.orig.tar.xz"
 hset libsecret depends "libgcrypt"
 
 PACKAGES+=" libwebkit"
@@ -63,7 +65,9 @@ PACKAGES+=" libwebkit"
 #hset libwebkit url "http://ftp.de.debian.org/debian/pool/main/w/webkitgtk/webkitgtk_1.11.91.orig.tar.xz"
 # this one is buggy
 #hset libwebkit url "http://ftp.de.debian.org/debian/pool/main/w/webkitgtk/webkitgtk_2.2.2.orig.tar.xz"
-hset libwebkit url "http://ftp.de.debian.org/debian/pool/main/w/webkitgtk/webkitgtk_2.4.2.orig.tar.xz"
+#hset libwebkit url "http://ftp.de.debian.org/debian/pool/main/w/webkitgtk/webkitgtk_2.4.2.orig.tar.xz"
+#NOTE: we can also use "https://webkitgtk.org/releases/webkitgtk-2.4.9.tar.xz" in case the Debian link disappears
+hset libwebkit url "http://ftp.de.debian.org/debian/pool/main/w/webkitgtk/webkitgtk_2.4.9.orig.tar.xz"
 hset libwebkit depends "libicu libenchant libsoup sqlite3 libxslt libgail libgtk libwebp libsecret"
 
 hostcheck-libwebkit() {
@@ -145,4 +149,3 @@ deploy-flashplugin() {
 	touch ._install_flashplugin
 	deploy deploy-flashplugin-local
 }
-
