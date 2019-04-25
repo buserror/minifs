@@ -66,7 +66,7 @@ hset xcbproto url "http://xcb.freedesktop.org/dist/xcb-proto-1.6.tar.bz2"
 #hset libxcb url "http://xcb.freedesktop.org/dist/libxcb-1.5.tar.bz2"
 hset libxcb url "http://xcb.freedesktop.org/dist/libxcb-1.7.tar.bz2"
 hset libxcb depends "libpthreadstubs xcbproto $XCB_LIBS"
-hset xkeyboardconfig url "http://xlibs.freedesktop.org/xkbdesc/xkeyboard-config-1.7.tar.bz2"
+hset xkeyboardconfig url "https://www.x.org/archive/individual/data/xkeyboard-config/xkeyboard-config-1.7.tar.bz2"
 
 hostcheck-libxcb() {
 	hostcheck_commands xsltproc
@@ -79,10 +79,10 @@ hset xcb-util-image depends "xcb-util"
 hset xcb-util-keysyms url "http://xcb.freedesktop.org/dist/xcb-util-keysyms-0.3.8.tar.bz2"
 hset xcb-util-keysyms depends "xcb-util"
 
-PACKAGES+=" xtrans" 
+PACKAGES+=" xtrans"
 hset xtrans url $(xorg_module_geturl "lib" "xtrans")
 
-PACKAGES+=" xorglibX11" 
+PACKAGES+=" xorglibX11"
 hset xorglibX11 url $(xorg_module_geturl "lib" libX11)
 hset xorglibX11 depends "libxcb xtrans xorgxproto"
 
@@ -119,7 +119,7 @@ configure-xorglibSM() {
 	save=$CFLAGS
 	CFLAGS+=" -fPIC"
 	configure-generic
-	CFLAGS=$save	
+	CFLAGS=$save
 }
 
 XORG_FONTS+=" xorgfontutil xorgfontadobe"
@@ -140,7 +140,7 @@ configure-xorgfontadobe() {
 
 PACKAGES+=" $XORG_LIBS $XORG_FONTS"
 
-PACKAGES+=" xkbcomp" 
+PACKAGES+=" xkbcomp"
 hset xkbcomp url $(xorg_module_geturl "app" "xkbcomp")
 hset xkbcomp depends "xkeyboardconfig xorglibxkbfile"
 
@@ -148,13 +148,13 @@ configure-xkbcomp() {
 	export LDFLAGS="$LDFLAGS_RLINK -lxcb"
 	rm -f configure
 	configure-generic
-	export LDFLAGS="$LDFLAGS_BASE"	
+	export LDFLAGS="$LDFLAGS_BASE"
 }
 deploy-xkbcomp() {
 	deploy deploy_binaries
 }
 
-PACKAGES+=" xhost" 
+PACKAGES+=" xhost"
 hset xhost url $(xorg_module_geturl "app" "xhost")
 hset xhost depends "xorgserver"
 
@@ -162,7 +162,7 @@ configure-xhost() {
 	export LDFLAGS="$LDFLAGS_RLINK -lxcb"
 	rm -f configure
 	configure-generic
-	export LDFLAGS="$LDFLAGS_BASE"	
+	export LDFLAGS="$LDFLAGS_BASE"
 }
 deploy-xhost() {
 	deploy deploy_binaries
@@ -195,7 +195,7 @@ hostcheck-libmesa() {
 	local py="libxml2"
 	{ echo import $py|python >/dev/null 2>&1; } || {
 			echo "### ERROR $PACKAGE needs python modules $py"
-			HOSTCHECK_FAILED=1		
+			HOSTCHECK_FAILED=1
 	}
 }
 
@@ -230,8 +230,6 @@ hset xorgserver depends \
 	xorgfontadobe \
 	 openssl"
 
-#	--enable-kdrive --enable-kdrive-evdev 
-
 configure-xorgserver-local() {
 	export LDFLAGS="$LDFLAGS_RLINK -lxcb"
 	./autogen.sh
@@ -256,7 +254,7 @@ configure-xorgserver() {
 
 deploy-xorgserver-local() {
 	deploy_binaries
-	ln -fs Xorg "$ROOTFS"/usr/bin/X 
+	ln -fs Xorg "$ROOTFS"/usr/bin/X
 	rsync -av \
 		"$STAGING_USR"/share/X11 \
 		"$STAGING_USR"/share/fonts \

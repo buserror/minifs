@@ -21,7 +21,7 @@ hset linux-initrd dir "linux"
 hset linux-dtb dir "linux"
 
 # the headers gets installed first, the other phases are later
-PACKAGES+=" linux-headers"
+#PACKAGES+=" linux-headers"
 
 hset linux-headers optional "uclibc musl"
 

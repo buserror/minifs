@@ -10,9 +10,13 @@ configure-libalsa() {
 	configure configure-libalsa-local
 }
 
-deploy-libalsa() {
+deploy-libalsa-local() {
 	mkdir -p "$ROOTFS"/var/lib/alsa
-	deploy rsync -a "$STAGING_USR"/share/alsa "$ROOTFS"/usr/share/
+	ln -sf sh /etc/ash
+	rsync -a "$STAGING_USR"/share/alsa "$ROOTFS"/usr/share/
+}
+deploy-libalsa() {
+	deploy deploy-libalsa-local
 }
 
 PACKAGES+=" alsaplugins"

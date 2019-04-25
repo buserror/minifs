@@ -1,5 +1,6 @@
 
-#echo GCC PATH = $GCC
+echo GCC PATH = $GCC
+echo COMMAND_PACKAGE $COMMAND_PACKAGE
 if [ ! -f "$GCC" -o "$COMMAND_PACKAGE" == "crosstools" ]; then
 	PACKAGES+=" crosstools"
 	TARGET_PACKAGES+=" crosstools"
@@ -7,20 +8,11 @@ fi
 
 CROSSTOOL_JOBS=".$MINIFS_JOBS"
 
-#hset crosstools version "1.22.0"
-#hset crosstools url "http://ymorin.is-a-geek.org/download/crosstool-ng/crosstool-ng-$(hget crosstools version).tar.bz2"
-
-#hset crosstools url "git!https://github.com/crosstool-ng/crosstool-ng.git#crosstol-ng-$MINIFS_BOARD.tar.bz2"
-#hset crosstools git-ref 'da3f8c4ec5345b709a330eebab01cd62c574295d'
-
-#hset crosstools version "1.23.0"
-#hset crosstools url "http://crosstool-ng.org/download/crosstool-ng/crosstool-ng-$(hget crosstools version).tar.bz2"
-
 hset crosstools url "git!https://github.com/crosstool-ng/crosstool-ng.git#crosstool-ng-$MINIFS_BOARD.tar.bz2"
 #hset crosstools git-ref 'fd9fe523b22cb6281f26081232a3f8f3aee7fda1'
-hset crosstolls git-ref 'd5900debd397b8909d9cafeb9a1093fb7a5dc6e6'
+hset crosstools git-ref 'b2151f1dba2b20c310adfe7198e461ec4469172b'
 
-hset crosstools depends "linux-headers " #host-libtool host-automake"
+hset crosstools depends "host-libtool host-automake"
 
 # ${HOME}/x-tools/${CT_TARGET}
 # MINIFS_TOOLCHAIN/${CT_TARGET}
@@ -44,7 +36,7 @@ patch-crosstools() {
 
 reset-crossrools-env() {
 	export PATH="$BASE_PATH"
-	unset CC CXX GCC LD CFLAGS CXXFLAGS CPPFLAGS LDFLAGS ACLOCAL ;
+	unset CC CXX GCC LD CFLAGS CXXFLAGS CPPFLAGS LDFLAGS ACLOCAL LIBTOOL;
 	unset PKG_CONFIG_PATH PKG_CONFIG_LIBDIR LD_LIBRARY_PATH ;
 }
 
@@ -156,7 +148,7 @@ configure-host-libtool() {
 			--prefix=$STAGING_TOOLS \
 			--build=$(gcc -dumpmachine) \
 			--host=$TARGET_SMALL_ARCH \
-			--program-prefix="$TARGET_FULL_ARCH"- CC=$TARGET_FULL_ARCH-gcc
+			--program-prefix="$TARGET_FULL_ARCH"- #CC=$TARGET_FULL_ARCH-gcc
 	) || exit 1
 }
 install-host-libtool() {

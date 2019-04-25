@@ -69,7 +69,7 @@ deploy-sharedlibs-local() {
 		ln -s -f lib "$ROOTFS"/usr/lib64
 	fi
 	local dangling=$(find "$ROOTFS" -name \*.so -type f|grep -v '\-[0-9]')
-	if [ "$dangling" != "" ]; then rm -f $dangling; fi
+#	if [ "$dangling" != "" ]; then rm -f $dangling; fi
 	echo THESE ARE DANGLING LINKS: $danglings
 	optional $MINIFS_BOARD-sharedlibs-cleanup
 	set +x

@@ -311,7 +311,7 @@ deploy-libgtk() {
 
 PACKAGES+=" libgtkhicolor"
 #hset libgtkhicolor url "http://icon-theme.freedesktop.org/releases/hicolor-icon-theme-0.12.tar.gz"
-hset libgtkhicolor url "http://icon-theme.freedesktop.org/releases/hicolor-icon-theme-0.15.tar.gz"
+hset libgtkhicolor url "http://icon-theme.freedesktop.org/releases/hicolor-icon-theme-0.15.tar.xz"
 
 PACKAGES+=" libcroco"
 #hset libcroco url "ftp://ftp.gnome.org/pub/GNOME/sources/libcroco/0.6/libcroco-0.6.2.tar.bz2"
