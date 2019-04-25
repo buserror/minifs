@@ -335,6 +335,7 @@ so_dir_t * elf_scandir(so_dir_t * base, const char * dirname, int flags)
 	DIR * d = opendir(dirname);
 	if (!d)
 		return base;
+	printf("%s %s\n", __func__, dirname);
 
 	so_dir_t * res = malloc(sizeof(so_dir_t));
 	memset(res, 0, sizeof(so_dir_t));
@@ -419,7 +420,7 @@ int purge_unused_libs(so_dir_t * dir)
 				so_file_t *f = d->loaded->file[fi];
 
 				if (f->so_name && (!f->used || !f->used->count) && !(f->flags & FILE_LOCK)) {
-				//	printf("Library %s is not used\n", f->name);
+					printf("Library %s is not used\n", f->name);
 					d->purged = so_filelist_add(d->purged, f);
 					so_filelist_remove(d->loaded, f);
 					cleared++;

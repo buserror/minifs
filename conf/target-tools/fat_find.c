@@ -86,6 +86,7 @@ struct volume_id {
 };
 
 struct volume_id * g_libfat_volume_id = NULL;
+int verbose = 0;
 
 char * longname_extract(uint8_t * buf, char * dst)
 {
@@ -157,6 +158,18 @@ volume_id_read_file(
 	libfat_sector_t s = libfat_clustertosector(fs, file->cluster);
 	uint32_t size = file->size;
 
+	if (verbose) {
+		uint64_t sector = (uint64_t)s;
+		uint64_t sector_cnt = (uint64_t)fs->end;
+		printf("%s: file name     = %s\n", __func__, file->name);
+		printf("%s: first cluster = %d\n", __func__, file->cluster);
+		printf("%s: first sector  = %llu\n", __func__, sector);
+		printf("%s: outfd         = %d\n", __func__, outfd);
+		printf("%s: total sectors = %llu\n", __func__, sector_cnt);
+		if (s == (libfat_sector_t) -1)
+			printf("%s: libfat_nextsector() returned -1 before entering loop\n", __func__);
+	}
+
 	while (size) {
 		if (s == 0)
 			return -2; /* Not found */
@@ -175,6 +188,11 @@ volume_id_read_file(
 		libfat_flush(fs);
 
 		s = libfat_nextsector(fs, s);
+
+		if (verbose) {
+			if (s == (libfat_sector_t) -1)
+				printf("%s: libfat_nextsector() returned -1 inside loop\n", __func__);
+		}
 	}
 	ftruncate(outfd, file->size - size);
 
@@ -324,8 +342,8 @@ int main(int argc, char ** argv)
 	struct lookupList copy = {0};
 	const char * outdir = "/tmp/rw";
 	const char * link = NULL; // "/tmp/rw/root";
-	int verbose = 0;
 	int list = 0, any = 0;
+	int fd;
 
 	for (int i = 1; i < argc; i++) {
 		if (!strcmp("-e", argv[i]) || !strcmp("--expect", argv[i])) {
