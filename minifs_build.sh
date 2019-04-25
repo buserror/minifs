@@ -375,9 +375,11 @@ for package in $TARGET_PACKAGES; do
 			git)
 				gitref=${gitref:-"master"}
 				if [ ! -d "$package.git" ]; then
-					echo "#### git clone $url $package.git"
+					echo "#### git clone $url $package.git ($gitref)"
 					git clone "$url" "$package.git" &&
-						git checkout $gitref
+						{ pushd "$package.git"; \
+							git checkout $gitref; \
+						  popd; } || exit 1
 				fi
 				if [ -d "$package.git" ]; then
 					echo "#### Compressing $package to $loc"
@@ -768,6 +770,8 @@ else
     exit $waitret
 fi
 
+# in minifs-script
+optional board_compile
 
 #######################################################################
 ## Now, run the deploy phases for packages that wanted it
@@ -789,9 +793,6 @@ for pack in $PROCESS_PACKAGES; do
 		done
 	end_package
 done
-
-# in minifs-script
-optional board_compile
 
 # in minifs-script
 optional board_finish
