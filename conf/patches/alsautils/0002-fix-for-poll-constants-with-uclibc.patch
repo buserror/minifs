@@ -1,0 +1,14 @@
+diff -ru alsautils.orig/axfer/waiter-select.c alsautils/axfer/waiter-select.c
+--- alsautils.orig/axfer/waiter-select.c	2019-04-23 08:56:41.587343598 +0100
++++ alsautils/axfer/waiter-select.c	2019-04-23 08:57:29.790542116 +0100
+@@ -15,8 +15,8 @@
+ #include <sys/select.h>
+ 
+ // Except for POLLERR.
+-#define POLLIN_SET	(POLLRDNORM | POLLRDBAND | POLLIN | POLLHUP)
+-#define POLLOUT_SET	(POLLWRBAND | POLLWRNORM | POLLOUT)
++#define POLLIN_SET	(POLLIN | POLLHUP)
++#define POLLOUT_SET	(POLLOUT)
+ #define POLLEX_SET	(POLLPRI)
+ 
+ struct select_state {
