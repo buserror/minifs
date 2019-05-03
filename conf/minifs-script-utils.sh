@@ -313,7 +313,7 @@ host-setup() {
 	export INSTALL=/usr/bin/install
 }
 
-hset host-patch url "http://ftp.de.debian.org/debian/pool/main/p/patch/patch_2.6.1.orig.tar.gz"
+hset host-patch url "http://ftp.de.debian.org/debian/pool/main/p/patch/patch_2.7.6.orig.tar.xz"
 hset host-patch name "patch"
 
 build-patch() {
@@ -339,11 +339,11 @@ compile-host-tools() {
 		base=${url/*\//}
 		if [ ! -f "$BASE/download/$base" ]; then
 			echo "** Downloading $base"
-			wget -q "$url" -O "$BASE"/download/$base || \
+			$WGET "$url" -O "$BASE"/download/$base || \
 				exit 1
 		fi
 		rm -rf $BUILD/host-$name && mkdir -p $BUILD/host-$name
-		tar zx -f "$BASE"/download/$base --strip 1  -C $BUILD/host-$name || exit 1
+		tar xf "$BASE"/download/$base --strip 1  -C $BUILD/host-$name || exit 1
 		echo "** Building host $name"
 		(
 			host-setup
