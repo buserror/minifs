@@ -12,8 +12,9 @@ if [ "$(hget linux url)" = "" ]; then
 	hset linux url $LINUX_URL
 fi
 
-hset linux targets "linux-headers linux-modules linux-bare linux-initrd linux-dtb"
+hset linux targets "linux-config linux-headers linux-modules linux-bare linux-initrd linux-dtb"
 
+hset linux-config dir "linux"
 hset linux-headers dir "linux"
 hset linux-modules dir "linux"
 hset linux-bare dir "linux"
@@ -21,7 +22,7 @@ hset linux-initrd dir "linux"
 hset linux-dtb dir "linux"
 
 # the headers gets installed first, the other phases are later
-#PACKAGES+=" linux-headers"
+PACKAGES+=" linux-config"
 
 hset linux-headers optional "uclibc musl"
 
@@ -41,10 +42,11 @@ linux-get-cflags() {
 }
 
 #######################################################################
-## linux-headers
+## linux-config
 #######################################################################
+hset linux-config phases "setup"
 
-setup-linux-headers() {
+setup-linux-config() {
 	mkdir -p "$BUILD/linux-obj"
 	local conf=$(minifs_locate_config_path config_kernel.conf)
 	[[ "$conf" == "" ]] && conf="$CONFIG/config_kernel.conf"
@@ -70,6 +72,10 @@ setup-linux-headers() {
 	fi
 	ln -sf ".config-bare" "$BUILD/linux-obj/.config"
 }
+
+#######################################################################
+## linux-headers
+#######################################################################
 
 configure-linux-headers() {
 	configure echo Done
@@ -102,7 +108,7 @@ if [ "$CONFIG_MODULES" != "" ]; then
 	PACKAGES+=" linux-modules"
 fi
 
-hset linux-modules depends "linux-headers crosstools rootfs-create"
+hset linux-modules depends "linux-config linux-headers crosstools rootfs-create"
 #hset linux-modules optional "libelf"
 hset linux-modules optional "elfutils"
 
@@ -167,7 +173,7 @@ deploy-linux-modules() {
 #######################################################################
 
 PACKAGES+=" linux-bare"
-hset linux-bare depends "linux-modules linux-headers crosstools"
+hset linux-bare depends "linux-config linux-modules linux-headers crosstools"
 
 hostcheck-linux-bare() {
 	if [ "$TARGET_KERNEL_NAME" == uImage ]; then
@@ -216,7 +222,7 @@ deploy-linux-bare() {
 if [ $TARGET_INITRD -eq 1 ]; then
 	PACKAGES+=" linux-initrd"
 fi
-hset linux-initrd depends "filesystems"
+hset linux-initrd depends "linux-config filesystems"
 hset linux-initrd phases "deploy"
 
 setup-linux-initrd() {
