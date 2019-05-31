@@ -131,7 +131,12 @@ compile-linux-modules() {
 
 # if kernel was built, get it's version from there, otherwise look at makefile
 get-kernel-version-postmake() {
-	local fn="$BUILD/linux-obj/arch/$TARGET_KERNEL_ARCH/boot/version.o"
+	local hd="$BUILD/linux-obj/include/config/kernel.release"
+	if [ -f "$hd" ]; then
+		cat "$hd"
+		return
+	fi
+	local fn="$BUILD/linux-obj/arch/$TARGET_KERNEL_ARCH/init/version.o"
 	if [ -f "$fn" ]; then
 		strings "$fn"|head -1|awk '{print $1}'
 		return
